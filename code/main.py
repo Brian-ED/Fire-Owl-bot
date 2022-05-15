@@ -15,8 +15,7 @@ if platform.platform(True,True) == "Windows-10":
 else:
     isLinux = 1
 
-commands = ["8ball", "bang", "help", "listfiles", "python", "tetris", "guessgame"
-            "roll", "runbf", "runc", "runfile", "save", "suggest","connect4"]
+commands = ["8ball", "bang", "help", "roll"]
 commands.sort()
 
 with open(f"../Safe/Fire-Owl-bot.yaml", encoding="utf-8") as fp:
