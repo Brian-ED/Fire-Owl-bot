@@ -70,7 +70,15 @@ async def on_message(message):
         else: await message.channel.send(randint(1,6))
 
     elif args[0] == 'newresponse':
-        print()
+        try:
+            index=args.index('replywith:')
+        except ValueError:
+            await message.channel.send('You need to include "replywith:" in the message')
+            return
+        initiateList=args[1:index]
+        replyList=args[index+1:]
+        dictionary={' '.join(initiateList):' '.join(replyList)}
+        print(dictionary)
 
     elif args[0] == 'flip':
         if randint(0,1):
@@ -80,7 +88,9 @@ async def on_message(message):
 
     elif args[0] == 'rps':
         RPS=['rock','paper','scissors']
-        botChoice  = RPS[randrange(0,2)]
+        if len(args)<2:
+            await message.channel.send(f'Please enter one of the following items: {", ".join(RPS)}')
+        botChoice  = RPS[randrange(0,3)]
         userChoice = args[1].lower()
         if not (userChoice in RPS):
             await message.channel.send(f'Please enter one of the following items: {", ".join(RPS)}')
