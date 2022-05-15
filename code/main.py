@@ -19,8 +19,8 @@ commands = ["8ball", "bang", "help", "listfiles", "python", "tetris", "guessgame
             "roll", "runbf", "runc", "runfile", "save", "suggest","connect4"]
 commands.sort()
 
-with open(f"../Safe/GuillesBot.yaml", encoding="utf-8") as fp:
-    TOKEN = yaml.safe_load(fp)["AToken"]
+with open(f"../Safe/Fire-Owl-bot.yaml", encoding="utf-8") as fp:
+    TOKEN = yaml.safe_load(fp)
 
 with open(f"./extra/.yaml", encoding="utf-8") as ft:
     yamlFile = yaml.safe_load(ft)
