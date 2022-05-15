@@ -1,5 +1,6 @@
 from typing import List
-def useTree(message: str, tree: List[str])->str:
+def useTree(message: str, treeIN: List[str])->str:
+    tree=treeIN[:]
     for m in range(0, len(message)):
         for t in range(0,len(tree)):
             try:
@@ -21,9 +22,5 @@ def useTree(message: str, tree: List[str])->str:
 #message = "hello"
 #print(useTree(message, Commands))
 
-def filterStrToInt(input):
-    output = ""
-    for i in input:
-        if i.isnumeric():
-            output += i
-    return int(output)
+async def say(message,whatNeedsToBeSaid:str):
+    await message.channel.send(whatNeedsToBeSaid)

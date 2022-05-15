@@ -18,8 +18,8 @@ else:
 commands = ["8ball", "bang", "help", "roll"]
 commands.sort()
 
-with open(f"../Safe/Fire-Owl-bot.yaml", encoding="utf-8") as fp:
-    TOKEN = yaml.safe_load(fp)
+with open(f"../../Safe/Fire-Owl-bot.yaml", encoding="utf-8") as fp:
+    TOKEN = yaml.safe_load(fp)["Token"]
 
 with open(f"./extra/.yaml", encoding="utf-8") as ft:
     yamlFile = yaml.safe_load(ft)
@@ -32,10 +32,10 @@ async def on_ready():
     print(client.user.id)
     print("------")
 
+
+
 @client.event
 async def on_message(message):
-    print(message.author)
-    print(message.content)
 
     OP = (message.author.id == 671689100331319316)
     args = message.content.split(" ")
@@ -52,8 +52,9 @@ async def on_message(message):
             args[0] = str(command)
         else: await message.channel.send(command)
 
-    elif args[0] == "help":
-        await message.channel.send(f"list of commands: {commands}")
+    
+    if args[0] == "help":
+        await message.channel.send(f"list of commands: {' '.join(commands)}")
 
     elif args[0] == "bang":
         if len(args) >= 2:
