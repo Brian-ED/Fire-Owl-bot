@@ -1,4 +1,3 @@
-from time import sleep
 import discord as dis
 import platform
 import yaml
@@ -6,10 +5,8 @@ from random import randint,random
 import extra.functions as fns
 client = dis.Client()
 prefix = 'fo!'
-
-isLinux = 0
 txtpath = '../../txts'
-respondstxtPath="C:/Users/brian/Persinal/discBots/data/Fire-Owl-bot/responds.txt"
+respondstxtPath="../../data/Fire-Owl-bot/responds.txt"
 
 # path of the current script
 if platform.platform(True,True) == 'Windows-10':
@@ -43,6 +40,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    print(message.author.top_role.permissions.administrator)
     global responses
     args = message.content.split(' ')
 
@@ -116,9 +114,7 @@ async def on_message(message):
             await message.channel.send(f'{message.author.mention}Tails')
 
     elif args[0] == 'rps':
-        (userChoice,botChoice,result)=rps(args)
-    
+        (userChoice,botChoice,result)=fns.rps(args)
         await message.channel.send(f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{result}')
-        
 
 client.run(TOKEN)
