@@ -1,3 +1,4 @@
+from random import randint
 from typing import List
 def useTree(message: str, treeIN: List[str])->str:
     tree=treeIN[:]
@@ -24,3 +25,33 @@ def useTree(message: str, treeIN: List[str])->str:
 
 async def say(message,whatNeedsToBeSaid:str):
     await message.channel.send(whatNeedsToBeSaid)
+
+def rps(args):
+    RPS=['rock','paper','scissors']
+    if len(args)<2:
+        return f'Please enter one of the following items: {", ".join(RPS)}'
+    userChoice = args[1].lower()
+    if not (userChoice in RPS):
+        return f'Please enter one of the following items: {", ".join(RPS)}'
+    botChoice  = RPS[randint(0,2)]
+    if userChoice == botChoice:
+        result="Ah we drew the game m'lad, well played"
+
+    elif userChoice == 'rock':
+        if botChoice == 'scissors':
+            result='Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:975072362083012668>'
+        elif botChoice == 'paper':
+            result='Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!'
+        
+    elif userChoice == 'scissors':
+        if botChoice=='rock':
+            result='Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:975072362083012668>'
+        elif botChoice=='paper':
+            result="Oh i lost! Y'know i got that paper from my grandma before she died... :(... ha just kidding, totally got you there :)"
+        
+    elif userChoice == 'paper':
+        if botChoice=='scissors':
+            result='Haha gottem. Scissors are basically magic to me, being able to make the non-existent space between two objects apear visible... GGsss'
+        elif botChoice=='rock':
+            result='Wait... you won? Since when should paper beat rock? Let me complain to Dwayne about this bull!'
+    return (userChoice,botChoice,result)

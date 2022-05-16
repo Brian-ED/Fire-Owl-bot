@@ -1,13 +1,15 @@
+from time import sleep
 import discord as dis
 import platform
 import yaml
-from random import randint, randrange
-from extra.functions import *
+from random import randint,random
+import extra.functions as fns
 client = dis.Client()
 prefix = 'fo!'
 
 isLinux = 0
 txtpath = '../../txts'
+respondstxtPath="C:/Users/brian/Persinal/discBots/data/Fire-Owl-bot/responds.txt"
 
 # path of the current script
 if platform.platform(True,True) == 'Windows-10':
@@ -16,10 +18,15 @@ else:
     isLinux = 1
 
 commands = ['8ball', 'bang', 'help', 'roll', 'flip', 'rps']
+adminCommands=['newresponse']
 commands.sort()
 
-with open(f'../../Safe/Fire-Owl-bot.yaml', encoding='utf-8') as fp:
-    TOKEN = yaml.safe_load(fp)['Token']
+with open(respondstxtPath, "r", encoding="utf-8") as f:
+    global responses
+    responses=eval(str(f.read()))
+
+with open(f'C:/Users/brian/Persinal/discBots/Safe/Fire-Owl-bot.yaml', encoding='utf-8') as f:
+    TOKEN = yaml.safe_load(f)['Token']
 
 with open(f'./extra/.yaml', encoding='utf-8') as ft:
     yamlFile = yaml.safe_load(ft)
@@ -36,23 +43,27 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    global responses
     args = message.content.split(' ')
 
-    if len(args[0])<3:
-        return
     if not args[0].startswith(prefix):
+        for i in responses.keys():
+            if i in ' '.join(args):
+                await message.channel.send(responses[i])
+                break
         return
+    if len(args[0]) == len(prefix):
+        args[0]=prefix+'help'
     
     args[0] = args[0][len(prefix):].lower() # makes the command inputted lowercase
-    command = useTree(args[0],commands) # useTree is basically auto-correct
+    command = fns.useTree(args[0],commands) # useTree is basically auto-completion
     
     # handle if autocorrect got multiple results
     if command != '':
         if type(command) is str:
             args[0] = str(command)
-        else: await message.channel.send(command)
+        else: return
 
-    
     if args[0] == 'help':
         await message.channel.send(f'list of commands: {", ".join(commands)}')
 
@@ -60,14 +71,19 @@ async def on_message(message):
         if len(args) >= 2:
             await message.channel.send(f'https://duckduckgo.com/?q={args[1]}+{"+".join(args[2:])}')
         else: await message.channel.send('You need to include a bang, (like "!yt" for example), aswell as a search after')
-        
+
     elif args[0] == '8ball':
-        await message.channel.send(yamlFile['8ball'][randrange(0,len(yamlFile['8ball']))])
+        await message.channel.send(yamlFile['8ball'][randint(0,len(yamlFile['8ball'])-1)])
 
     elif args[0] == 'roll':
+        if len(args) == 3:
+            await message.channel.send(str(randint(int(args[1]),int(args[2]))))
         if len(args) == 2:
             await message.channel.send(str(randint(1,int(args[1]))))
-        else: await message.channel.send(randint(1,6))
+        elif '0'==args[1]:
+            await message.channel.send(random)
+        else:
+            await message.channel.send(randint(1,6))
 
     elif args[0] == 'newresponse':
         try:
@@ -75,10 +91,23 @@ async def on_message(message):
         except ValueError:
             await message.channel.send('You need to include "replywith:" in the message')
             return
-        initiateList=args[1:index]
-        replyList=args[index+1:]
-        dictionary={' '.join(initiateList):' '.join(replyList)}
-        print(dictionary)
+        initiateStr=' '.join(args[1:index])
+        replyStr=' '.join(args[index+1:])
+
+        with open(respondstxtPath, "r", encoding="utf-8") as f:
+            responses=eval(str(f.read()))
+        
+        print(responses)
+        responses[initiateStr]=replyStr
+        print(responses)
+
+        with open(respondstxtPath, "w", encoding="utf-8") as f:
+            f.write(str(responses))
+
+        await message.channel.send(f'Alas it is done')
+
+    elif args[0] == 'listresponses':
+        await message.channel.send(responses)
 
     elif args[0] == 'flip':
         if randint(0,1):
@@ -87,35 +116,9 @@ async def on_message(message):
             await message.channel.send(f'{message.author.mention}Tails')
 
     elif args[0] == 'rps':
-        RPS=['rock','paper','scissors']
-        if len(args)<2:
-            await message.channel.send(f'Please enter one of the following items: {", ".join(RPS)}')
-        botChoice  = RPS[randrange(0,3)]
-        userChoice = args[1].lower()
-        if not (userChoice in RPS):
-            await message.channel.send(f'Please enter one of the following items: {", ".join(RPS)}')
-            return
-        if userChoice == botChoice:
-            result="Ah we drew the game m'lad, well played"
-
-        elif userChoice == 'rock':
-            if botChoice == 'scissors':
-                result='Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:975072362083012668>'
-            elif botChoice == 'paper':
-                result='Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!'
-            
-        elif userChoice == 'scissors':
-            if botChoice=='rock':
-                result='Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:975072362083012668>'
-            elif botChoice=='paper':
-                result="Oh i lost! Y'know i got that paper from my grandma before she died... :(... ha just kidding, totally got you there :)"
-            
-        elif userChoice == 'paper':
-            if botChoice=='scissors':
-                result='Haha gottem. Scissors are basically magic to me, being able to make the non-existent space between two objects apear visible... GGsss'
-            elif botChoice=='rock':
-                result='Wait... you won? Since when should paper beat rock? Let me complain to Dwayne about this bull!'
-
+        (userChoice,botChoice,result)=rps(args)
+    
         await message.channel.send(f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{result}')
+        
 
 client.run(TOKEN)
