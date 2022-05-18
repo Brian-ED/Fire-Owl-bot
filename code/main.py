@@ -1,44 +1,32 @@
 import discord as dis
-import platform
 import yaml
 from random import randint,random
 import extra.functions as fns
+from os import getcwd
 client = dis.Client()
 
 prefix = 'fo!'
-respondstxtPath='./extra/responds.txt'
-tokenPath = '../../Safe/Fire-Owl-bot.yaml'
-yamlFile='./extra/.yaml'
+respondstxtPath = getcwd()+'/extra/responds.txt'
+recommendsPath = getcwd()+'/extra/recommends.txt'
+tokenPath = getcwd()+'/../../Safe/Fire-Owl-bot.yaml'
 
-isLinux=not (platform.platform(True,True) == 'Windows-10')
-if not isLinux:
-    respondstxtPath='C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/extra/responds.txt'
-    tokenPath='C:/Users/brian/Persinal/discBots/Safe/Fire-Owl-bot.yaml'
-    yamlFile= 'C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/extra/.yaml'
-
-commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info']
+commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend']
 adminCommands=['newresponse','delresponse']
 commands.sort()
 
-with open(respondstxtPath, "r", encoding="utf-8") as f:
-    global responses
-    responses:dict=eval(str(f.read()))
+global responses
+responses:dict=fns.openR(respondstxtPath)
 
 with open(tokenPath, encoding='utf-8') as f:
     TOKEN = yaml.safe_load(f)['Token']
 
-with open(yamlFile, encoding='utf-8') as ft:
-    yamlFile = yaml.safe_load(ft)
-
 @client.event
 async def on_ready():
     await client.change_presence(activity=dis.Game('subscribe to FIRE OWL'))
-    print(platform.platform(True,True))
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
     print('------')
-
 
 
 @client.event
@@ -67,7 +55,9 @@ async def on_message(message):
             args[0] = str(command)
         else: return
 
+
     if args[0] == 'help':
+        print('debug')
         if isAdmin: 
             result=', '+', '.join(adminCommands)
         else:
@@ -75,10 +65,14 @@ async def on_message(message):
         await say(f'list of commands: {", ".join(commands)}'+result)
 
     elif args[0] == '8ball':
-        await say(yamlFile['8ball'][randint(0,len(yamlFile['8ball'])-1)])
+        ball8=['Yes','No','Not sure','You know it','Absolutely not',
+               'Absolutely yes','Cannot tell','Sure','Mmm, I have no idea',
+               'Haha ye boi','What? no!','Yep','Nope','Maybe',"I'm too afraid to tell",
+               "Sorry that's too hard to answer.",'Most likely.']
+        await say(ball8[randint(0,len(ball8['8ball'])-1)])
 
     elif args[0] == 'roll':
-        if len(args) == 3:
+        if len(args) > 2:
             await say(str(randint(int(args[1]),int(args[2]))))
         elif '0'==args[1]:
             await say(random)
@@ -93,16 +87,12 @@ async def on_message(message):
         except ValueError:
             await say('You need to include "replywith:" in the message')
             return
-        initiateStr=' '.join(args[1:index])
-        replyStr=' '.join(args[index+1:])
+        resStr=' '.join(args[1:index])
+        repStr=' '.join(args[index+1:])
 
-        with open(respondstxtPath, "r", encoding="utf-8") as f:
-            responses=eval(str(f.read()))
-        
-        responses[initiateStr]=replyStr
-
-        with open(respondstxtPath, "w", encoding="utf-8") as f:
-            f.write(str(responses))
+        responses=fns.openR(respondstxtPath)        
+        responses[resStr]=repStr
+        fns.openW(respondstxtPath,responses)
 
         await say(f'Alas it is done')
 
@@ -110,10 +100,9 @@ async def on_message(message):
         await say('responses: '+', '.join(list(responses.keys())))
 
     elif args[0] == 'flip':
-        if randint(0,1):
-            await say(f'{message.author.mention} heads')
-        else:
-            await say(f'{message.author.mention} tails')
+        if randint(0,1):r=' heads'
+        else: r=' tails'
+        await say(message.author.mention+r)
 
     elif args[0] == 'rps':
         (userChoice,botChoice,result)=fns.rps(args)
@@ -138,14 +127,21 @@ async def on_message(message):
             await say('is admin: '+'well yes... but actually no'+'\nyour user ID: '+str(message.author.id))
 
     elif args[0] == 'delresponse':
-        with open(respondstxtPath, "r", encoding="utf-8") as f:
-            responses=eval(str(f.read()))
+        responses=fns.openR(respondstxtPath)
         try:
             responses.pop(' '.join(args[1:]))
             await say('deleted')
         except:
             await say("reply doesn't exist")
-        with open(respondstxtPath, "w", encoding="utf-8") as f:
-            f.write(str(responses))
+        fns.openW(respondstxtPath,responses)
+    
+    elif args[0] == 'recommend':
+        if len(args)<2:await say('Remember to recommend something')
+        else:
+            r=fns.openR(recommendsPath)
+            r+=' '.join(args[1:])+'\n\n'
+            fns.openW(recommendsPath,r)
+            await say('Thanks for helping the bot out! :D')
+
 
 client.run(TOKEN)

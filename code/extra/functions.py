@@ -48,3 +48,11 @@ def rps(args):
             result='Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:975072362083012668>'
         elif botChoice=='paper':
             result="Oh i lost! Y'know i got that paper from my grandma before she died... :(... ha just kidding, totally got you there :)"
+
+
+def openR(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return eval(str(f.read()))
+def openW(path,value):
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(str(value))
