@@ -1,24 +1,27 @@
+from time import sleep
 import discord as dis
 import yaml
 from random import randint,random
 import extra.functions as fns
-from os import getcwd
+from platform import platform
 client = dis.Client()
 
 prefix = 'fo!'
-respondstxtPath = getcwd()+'/extra/responds.txt'
-recommendsPath = getcwd()+'/extra/recommends.txt'
-tokenPath = getcwd()+'/../../Safe/Fire-Owl-bot.yaml'
+respondstxtPath='./extra/responds.txt'
+tokenPath = '../../Safe/Fire-Owl-bot.yaml'
+isLinux=not (platform(True,True) == 'Windows-10')
+if not isLinux:
+    recommendsPath='C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/extra/recommends.txt'
+    respondstxtPath='C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/extra/responds.txt'
+    tokenPath='C:/Users/brian/Persinal/discBots/Safe/Fire-Owl-bot.yaml'
+
 
 commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend']
-adminCommands=['newresponse','delresponse']
 commands.sort()
+adminCommands=['newresponse','delresponse']
 
 global responses
-responses:dict=fns.openR(respondstxtPath)
-
-with open(tokenPath, encoding='utf-8') as f:
-    TOKEN = yaml.safe_load(f)['Token']
+responses:dict = fns.openR(respondstxtPath)
 
 @client.event
 async def on_ready():
@@ -28,21 +31,23 @@ async def on_ready():
     print(client.user.id)
     print('------')
 
-
+# syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
-async def on_message(message):
-    if message.author.bot:return
-    isBrian=str(message.author.id)=='671689100331319316'
-    isAdmin=message.author.top_role.permissions.administrator or isBrian
+async def on_message(msg):
+    say=msg.channel.send
+    args = msg.content.split(' ')
+
+    if msg.author.bot:return
+    isBrian=str(msg.author.id)=='671689100331319316'
+    isAdmin=(msg.author.top_role.permissions.administrator or isBrian) and (msg.guild.id=='497131548282191892')
     global responses
-    args = message.content.split(' ')
-    say=message.channel.send
     if not args[0].startswith(prefix):
         for i in responses.keys():
-            if i in args:
+            if fns.isSublist(args,i.split(' ')):
                 await say(responses[i])
-                break
+                return
         return
+    
     if len(args[0]) == len(prefix):
         args[0]=prefix+'help'
     
@@ -54,10 +59,17 @@ async def on_message(message):
         if type(command) is str:
             args[0] = str(command)
         else: return
-
-
+    
+    if args[0] == 'rick':
+        await msg.author.send('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+        sleep(15)
+        await msg.author.send('Ok i am so sorry... please forgive me. here are some cats :D\nhttps://www.youtube.com/watch?v=VZrDxD0Za9I')
+        sleep(200)
+        await msg.author.send('cope')
+        sleep(5)
+        await msg.author.send('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw')
+    
     if args[0] == 'help':
-        print('debug')
         if isAdmin: 
             result=', '+', '.join(adminCommands)
         else:
@@ -69,7 +81,7 @@ async def on_message(message):
                'Absolutely yes','Cannot tell','Sure','Mmm, I have no idea',
                'Haha ye boi','What? no!','Yep','Nope','Maybe',"I'm too afraid to tell",
                "Sorry that's too hard to answer.",'Most likely.']
-        await say(ball8[randint(0,len(ball8['8ball'])-1)])
+        await say(ball8[randint(0,len(ball8)-1)])
 
     elif args[0] == 'roll':
         if len(args) > 2:
@@ -83,12 +95,21 @@ async def on_message(message):
 
     elif isAdmin and (args[0] == 'newresponse'):
         try:
-            index=args.index('replywith:')
+            indexReply=args.index('replywith:')
+            replywith=True
         except ValueError:
-            await say('You need to include "replywith:" in the message')
-            return
-        resStr=' '.join(args[1:index])
-        repStr=' '.join(args[index+1:])
+            replywith=False
+
+        try:
+            indexReact=args.index('replywith:')
+            reactwith=True
+        except ValueError:
+            reactwith=False
+        if (not replywith) and (not reactwith):
+            await say('You need to include " replywith: " or " reactwith: " in the message')
+
+        resStr=' '.join(args[1:indexReply])
+        repStr=' '.join(args[indexReply+1:])
 
         responses=fns.openR(respondstxtPath)        
         responses[resStr]=repStr
@@ -102,9 +123,11 @@ async def on_message(message):
     elif args[0] == 'flip':
         if randint(0,1):r=' heads'
         else: r=' tails'
-        await say(message.author.mention+r)
+        await say(msg.author.mention+r)
 
     elif args[0] == 'rps':
+        if len(args)<2:
+            return f'Please enter rock, paper, or scissors'
         (userChoice,botChoice,result)=fns.rps(args)
         await say(f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{result}')
     
@@ -118,13 +141,10 @@ async def on_message(message):
     
     elif args[0] == 'hkwiki':
         if len(args)<2:await say('Remember to search something')
-        else: await say(f'https://hollowknight.fandom.com/wiki/Special:Search?query={args[1]}')
+        else: await say('https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:]))
     
     elif args[0] == 'info':
-        if not isBrian:
-            await say('is admin: '+str(isAdmin)+'\nyour user ID: '+str(message.author.id))
-        elif isBrian:
-            await say('is admin: '+'well yes... but actually no'+'\nyour user ID: '+str(message.author.id))
+        await say(f"You're admin: {isAdmin}\nYour user ID: {msg.author.id}\nThis server's ID: {msg.guild.id}")
 
     elif args[0] == 'delresponse':
         responses=fns.openR(respondstxtPath)
@@ -136,12 +156,13 @@ async def on_message(message):
         fns.openW(respondstxtPath,responses)
     
     elif args[0] == 'recommend':
-        if len(args)<2:await say('Remember to recommend something')
+        if len(args)<2:
+            await say('Remember to recommend something')
         else:
             r=fns.openR(recommendsPath)
             r+=' '.join(args[1:])+'\n\n'
             fns.openW(recommendsPath,r)
             await say('Thanks for helping the bot out! :D')
 
-
-client.run(TOKEN)
+with open(tokenPath, encoding='utf-8') as f:
+    client.run(yaml.safe_load(f)['Token'])

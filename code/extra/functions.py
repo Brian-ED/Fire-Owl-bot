@@ -1,5 +1,5 @@
 from random import randint
-from typing import List
+from typing import List, Any
 def useTree(message: str, treeIN: List[str])->str:
     tree=treeIN[:]
     for m in range(0, len(message)):
@@ -28,8 +28,6 @@ async def say(message,whatNeedsToBeSaid:str):
 
 def rps(args):
     RPS=['rock','paper','scissors']
-    if len(args)<2:
-        return f'Please enter one of the following items: {", ".join(RPS)}'
     userChoice = args[1].lower()
     if not (userChoice in RPS):
         return f'Please enter one of the following items: {", ".join(RPS)}'
@@ -49,10 +47,20 @@ def rps(args):
         elif botChoice=='paper':
             result="Oh i lost! Y'know i got that paper from my grandma before she died... :(... ha just kidding, totally got you there :)"
 
-
 def openR(path):
     with open(path, "r", encoding="utf-8") as f:
         return eval(str(f.read()))
 def openW(path,value):
     with open(path, "w", encoding="utf-8") as f:
         f.write(str(value))
+
+# Credits to daanolav for helping out with this one :D
+# also Credits to SonOfDiclonius for spotting the case where sublist is bigger 
+def isSublist(a: List[Any] , b:List[Any]) -> bool:
+    #Check if b is a sublist of a
+    m, n = len(a), len(b)
+    if m<n: return False
+    for i in range(m-n+1):
+        if a[i:i+n]==b:
+            return True
+    return False
