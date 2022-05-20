@@ -1,20 +1,23 @@
 from asyncio import sleep as asySleep
+from cgi import test
 import discord as dis
 import yaml
 from random import randint,random
 import extra.functions as fns
 from platform import platform
-import asyncio
 client = dis.Client()
 
 prefix = 'fo!'
 respondstxtPath='./extra/responds.txt'
+reactstxtPath='./extra/reacts.txt'
 tokenPath = '../../Safe/Fire-Owl-bot.yaml'
 isLinux=not (platform(True,True) == 'Windows-10')
 if not isLinux:
-    recommendsPath='C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/extra/recommends.txt'
-    respondstxtPath='C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/extra/responds.txt'
-    tokenPath='C:/Users/brian/Persinal/discBots/Safe/Fire-Owl-bot.yaml'
+    loc='C:/Users/brian/Persinal/discBots/'
+    recommendsPath=loc+'Fire-Owl-bot/code/extra/recommends.txt'
+    respondstxtPath=loc+'Fire-Owl-bot/code/extra/responds.txt'
+    reactstxtPath=loc+'Fire-Owl-bot/code/extra/reacts.txt'
+    tokenPath=loc+'Safe/Fire-Owl-bot.yaml'
 
 
 commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick']
@@ -23,6 +26,8 @@ adminCommands=['newresponse','delresponse']
 
 global responses
 responses:dict = fns.openR(respondstxtPath)
+global reacts
+reacts:dict = fns.openR(reactstxtPath)
 
 @client.event
 async def on_ready():
@@ -30,6 +35,7 @@ async def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
+    print(client.guilds)
     print('------')
 
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
@@ -40,15 +46,22 @@ async def on_message(msg):
 
     if msg.author.bot:return
     isBrian=str(msg.author.id)=='671689100331319316'
-    isAdmin=(msg.author.top_role.permissions.administrator and msg.guild.id=='497131548282191892') or isBrian
+    isAdmin=(msg.author.top_role.permissions.administrator and (str(msg.guild.id)=='497131548282191892')) or isBrian
     global responses
-    if not args[0].startswith(prefix):
-        for i in responses.keys():
-            if fns.isSublist(args,i.split(' ')):
-                await say(responses[i])
-                return
-        return
+    global reacts
     
+    if not args[0].startswith(prefix):
+        argsL=[x.lower() for x in args]
+        for i in responses.keys():
+            if fns.isSublist(argsL,i.split(' ')):
+                await say(responses[i])
+                break
+        for i in reacts.keys():
+            if fns.isSublist(argsL,i.split(' ')):
+                await msg.add_reaction(reacts[i])
+                break
+        return
+
     if len(args[0]) == len(prefix):
         args[0]=prefix+'help'
     
@@ -96,17 +109,27 @@ async def on_message(msg):
 
     elif isAdmin and (args[0] == 'newresponse'):
         try:
-            indexReply=args.index('replywith:')
+            indexOf=args.index('replywith:')
+            isReact=0
         except ValueError:
-            await say('You need to include "replywith:" in the message')
-            return
+            try:
+                indexOf=args.index('reactwith:')
+                isReact=1
+            except ValueError:
+                await say('You need to include " replywith: " or " reactwith: " in the message. Not both btw.')
+                return
 
-        resStr=' '.join(args[1:indexReply])
-        repStr=' '.join(args[indexReply+1:])
+        resStr=' '.join(args[1:indexOf])
+        repStr=' '.join(args[indexOf+1:])
 
-        responses=fns.openR(respondstxtPath)
-        responses[resStr]=repStr
-        fns.openW(respondstxtPath,responses)
+        if isReact:
+            reacts=fns.openR(reactstxtPath)
+            reacts[resStr]=repStr
+            fns.openW(reactstxtPath,reacts)
+        else:
+            responses=fns.openR(respondstxtPath)
+            responses[resStr]=repStr
+            fns.openW(respondstxtPath,responses)
 
         await say(f'Alas it is done')
 
