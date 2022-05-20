@@ -22,7 +22,7 @@ if not isLinux:
 
 commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick']
 commands.sort()
-adminCommands=['newresponse','delresponse']
+adminCommands=['newresponse','delresponse','delreact']
 
 global responses
 responses:dict = fns.openR(respondstxtPath)
@@ -171,6 +171,15 @@ async def on_message(msg):
             await say("reply doesn't exist")
         fns.openW(respondstxtPath,responses)
     
+    elif args[0] == 'delreact':
+        reacts=fns.openR(reactstxtPath)
+        try:
+            reacts.pop(' '.join(args[1:]))
+            fns.openW(reactstxtPath,reacts)
+            await say('deleted')
+        except:
+            await say("reply doesn't exist")
+
     elif args[0] == 'recommend':
         if len(args)<2:
             await say('Remember to recommend something')
