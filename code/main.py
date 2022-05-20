@@ -1,9 +1,10 @@
-from time import sleep
+from asyncio import sleep as asySleep
 import discord as dis
 import yaml
 from random import randint,random
 import extra.functions as fns
 from platform import platform
+import asyncio
 client = dis.Client()
 
 prefix = 'fo!'
@@ -16,7 +17,7 @@ if not isLinux:
     tokenPath='C:/Users/brian/Persinal/discBots/Safe/Fire-Owl-bot.yaml'
 
 
-commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend']
+commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick']
 commands.sort()
 adminCommands=['newresponse','delresponse']
 
@@ -39,7 +40,7 @@ async def on_message(msg):
 
     if msg.author.bot:return
     isBrian=str(msg.author.id)=='671689100331319316'
-    isAdmin=(msg.author.top_role.permissions.administrator or isBrian) and (msg.guild.id=='497131548282191892')
+    isAdmin=(msg.author.top_role.permissions.administrator and msg.guild.id=='497131548282191892') or isBrian
     global responses
     if not args[0].startswith(prefix):
         for i in responses.keys():
@@ -62,11 +63,11 @@ async def on_message(msg):
     
     if args[0] == 'rick':
         await msg.author.send('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-        sleep(15)
+        await asySleep(15)
         await msg.author.send('Ok i am so sorry... please forgive me. here are some cats :D\nhttps://www.youtube.com/watch?v=VZrDxD0Za9I')
-        sleep(200)
+        await asySleep(200)
         await msg.author.send('cope')
-        sleep(5)
+        await asySleep(5)
         await msg.author.send('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw')
     
     if args[0] == 'help':
@@ -96,22 +97,14 @@ async def on_message(msg):
     elif isAdmin and (args[0] == 'newresponse'):
         try:
             indexReply=args.index('replywith:')
-            replywith=True
         except ValueError:
-            replywith=False
-
-        try:
-            indexReact=args.index('replywith:')
-            reactwith=True
-        except ValueError:
-            reactwith=False
-        if (not replywith) and (not reactwith):
-            await say('You need to include " replywith: " or " reactwith: " in the message')
+            await say('You need to include "replywith:" in the message')
+            return
 
         resStr=' '.join(args[1:indexReply])
         repStr=' '.join(args[indexReply+1:])
 
-        responses=fns.openR(respondstxtPath)        
+        responses=fns.openR(respondstxtPath)
         responses[resStr]=repStr
         fns.openW(respondstxtPath,responses)
 
