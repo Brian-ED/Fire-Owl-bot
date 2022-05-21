@@ -191,3 +191,4 @@ async def on_message(msg):
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
+    #
