@@ -11,6 +11,7 @@ prefix = 'fo!'
 respondstxtPath='./extra/responds.txt'
 reactstxtPath='./extra/reacts.txt'
 tokenPath = '../../Safe/Fire-Owl-bot.yaml'
+recommendsPath = '-/extra/recommends.txt'
 isLinux=not (platform(True,True) == 'Windows-10')
 if not isLinux:
     loc='C:/Users/brian/Persinal/discBots/'
@@ -35,7 +36,6 @@ async def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
-    print(client.guilds)
     print('------')
 
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
@@ -134,7 +134,7 @@ async def on_message(msg):
         await say(f'Alas it is done')
 
     elif args[0] == 'listresponses':
-        await say('responses: '+', '.join(list(responses.keys())))
+        await say('responses: '+', '.join(list(responses.keys()))+'\nReacts: '+', '.join(list(reacts.keys())))
 
     elif args[0] == 'flip':
         if randint(0,1):r=' heads'
