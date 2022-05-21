@@ -1,5 +1,4 @@
 from asyncio import sleep as asySleep
-from cgi import test
 import discord as dis
 import yaml
 from random import randint,random
@@ -21,7 +20,7 @@ if not isLinux:
     tokenPath=loc+'Safe/Fire-Owl-bot.yaml'
 
 
-commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick']
+commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick','emote']
 commands.sort()
 adminCommands=['newresponse','delresponse','delreact']
 
@@ -188,7 +187,14 @@ async def on_message(msg):
             r+=' '.join(args[1:])+'\n\n'
             fns.openW(recommendsPath,r)
             await say('Thanks for helping the bot out! :D')
+    
+    elif args[0] == 'emote':
+        if len(args)<3:
+            r='The emote command uses 2 arguments.\nfo!emote <name> <ID>'
+        else:
+            r=f'<:{args[1]}:{args[2]}>'
+            await msg.delete()
+        await say(r)
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
-    #
