@@ -191,6 +191,7 @@ async def on_message(msg):
             await say('Thanks for helping the bot out! :D')
     
     elif args[0] == 'update' and isBrian:
+        os.chdir("/Users/brian/persinal/discBots/Fire-Owl-bot/")
         os.system('git pull')
 
 with open(tokenPath, encoding='utf-8') as f:
