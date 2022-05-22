@@ -1,4 +1,5 @@
 from asyncio import sleep as asySleep
+import os
 import discord as dis
 import yaml
 from random import randint,random
@@ -188,6 +189,9 @@ async def on_message(msg):
             r+=' '.join(args[1:])+'\n\n'
             fns.openW(recommendsPath,r)
             await say('Thanks for helping the bot out! :D')
+    
+    elif args[0] == 'update' and isBrian:
+        os.system('git pull')
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
