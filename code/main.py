@@ -2,7 +2,7 @@ from asyncio import sleep as asySleep
 import discord as dis
 import yaml
 from random import randint,random
-import extra.functions as fns
+import functions as fns
 from platform import platform
 client = dis.Client()
 
@@ -65,7 +65,7 @@ async def on_message(msg):
         args[0]=prefix+'help'
     
     args[0] = args[0][len(prefix):].lower() # makes the command inputted lowercase
-    command = fns.useTree(args[0],commands) # useTree is basically auto-completion
+    command = fns.useTree(args[0],commands) # useTree is basically auto-correct
     
     # handle if autocorrect got multiple results
     if command != '':
@@ -98,15 +98,16 @@ async def on_message(msg):
 
     elif args[0] == 'roll':
         if len(args) > 2:
-            await say(str(randint(int(args[1]),int(args[2]))))
-        elif '0'==args[1]:
-            await say(random)
-        if len(args) == 2:
-            await say(str(randint(1,int(args[1]))))
-        else:
             await say(randint(1,6))
+        elif len(args) == 2:
+            if '0'==args[1]:
+                await say(random())
+            else:
+                await say(randint(1,int(args[1])))
+        else:
+            await say(randint(int(args[1]),int(args[2])))
 
-    elif isAdmin and (args[0] == 'newresponse'):
+    elif args[0] == 'newresponse' and isAdmin :
         try:
             indexOf=args.index('replywith:')
             isReact=0
