@@ -11,17 +11,20 @@ prefix = 'fo!'
 respondstxtPath='./extra/responds.txt'
 reactstxtPath='./extra/reacts.txt'
 tokenPath = '../../Safe/Fire-Owl-bot.yaml'
-recommendsPath = '-/extra/recommends.txt'
+recommendsPath = './extra/recommends.txt'
+botDir = '../'
+codeDir='./'
 isLinux=not (platform(True,True) == 'Windows-10')
 if not isLinux:
     loc='C:/Users/brian/Persinal/discBots/'
     recommendsPath=loc+'Fire-Owl-bot/code/extra/recommends.txt'
     respondstxtPath=loc+'Fire-Owl-bot/code/extra/responds.txt'
     reactstxtPath=loc+'Fire-Owl-bot/code/extra/reacts.txt'
+    botDir=loc+'Fire-Owl-bot/'
+    codeDir=loc+'Fire-Owl-bot/code/'
     tokenPath=loc+'Safe/Fire-Owl-bot.yaml'
 
-
-commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick']
+commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick','zote']
 commands.sort()
 adminCommands=['newresponse','delresponse','delreact']
 
@@ -190,9 +193,15 @@ async def on_message(msg):
             fns.openW(recommendsPath,r)
             await say('Thanks for helping the bot out! :D')
     
-    elif args[0] == 'update' and isBrian:
-        os.chdir("/Users/brian/persinal/discBots/Fire-Owl-bot/")
+    elif (args[0] == 'update') and isBrian:
+        os.chdir(botDir)
         os.system('git pull')
+        os.chdir(codeDir)
+        os.system("python3 main.py")
+        quit()
+    
+    elif args[0] == 'zote':
+        await say(fns.zoteQuotes[randint(0,len(fns.zoteQuotes)-1)])
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
