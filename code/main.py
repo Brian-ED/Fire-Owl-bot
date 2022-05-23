@@ -102,15 +102,16 @@ async def on_message(msg):
         await say(ball8[randint(0,len(ball8)-1)])
 
     elif args[0] == 'roll':
-        if len(args) > 2:
-            await say(randint(1,6))
+        if len(args)<2:
+            r=randint(1,6)
         elif len(args) == 2:
             if '0'==args[1]:
-                await say(random())
+                r=random()
             else:
-                await say(randint(1,int(args[1])))
+                r=randint(1,int(args[1]))
         else:
-            await say(randint(int(args[1]),int(args[2])))
+            r=randint(int(args[1]),int(args[2]))
+        await say(r)
 
     elif args[0] == 'newresponse' and isAdmin :
         try:
