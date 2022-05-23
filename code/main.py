@@ -201,7 +201,7 @@ async def on_message(msg):
         os.system('git pull')
         os.system('cd '+codeDir)
         os.system("python3 main.py")
-        await say("updating")
+        await say("updating...")
         asySleep(1)
         quit()
     
