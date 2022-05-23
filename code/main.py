@@ -201,6 +201,7 @@ async def on_message(msg):
         os.system('git pull')
         os.system('cd '+codeDir)
         os.system("python3 main.py")
+        await say("updating")
         quit()
     
     elif args[0] == 'zote':
