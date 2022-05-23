@@ -20,8 +20,6 @@ if not isLinux:
     recommendsPath=loc+'Fire-Owl-bot/code/extra/recommends.txt'
     respondstxtPath=loc+'Fire-Owl-bot/code/extra/responds.txt'
     reactstxtPath=loc+'Fire-Owl-bot/code/extra/reacts.txt'
-    botDir=loc+'Fire-Owl-bot/'
-    codeDir=loc+'Fire-Owl-bot/code/'
     tokenPath=loc+'Safe/Fire-Owl-bot.yaml'
 
 commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick','zote']
@@ -196,13 +194,13 @@ async def on_message(msg):
             fns.openW(recommendsPath,r)
             await say('Thanks for helping the bot out! :D')
     
-    elif (args[0] == 'update') and isBrian:
+    elif (args[0] == 'update') and isBrian and isLinux:
         os.system('cd '+botDir)
         os.system('git pull')
         os.system('cd '+codeDir)
         os.system("python3 main.py")
         await say("updating...")
-        asySleep(1)
+        asySleep(2)
         quit()
     
     elif args[0] == 'zote':

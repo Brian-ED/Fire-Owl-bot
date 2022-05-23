@@ -1,5 +1,5 @@
 from random import randint
-from typing import List, Any
+from typing import List, Any, Iterable
 def useTree(message: str, treeIN: List[str])->str:
     tree=treeIN[:]
     for m in range(0, len(message)):
@@ -22,6 +22,12 @@ def useTree(message: str, treeIN: List[str])->str:
 #Commands = ["helloworld","helloyou","helli","iwuaigd"]
 #message = "hello"
 #print(useTree(message, Commands))
+
+def forEach(val:Iterable,f):
+    arr=[]
+    for i in val:
+        arr.append(f(i))
+    return arr
 
 async def say(message,whatNeedsToBeSaid:str):
     await message.channel.send(whatNeedsToBeSaid)
