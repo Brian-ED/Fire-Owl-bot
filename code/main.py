@@ -196,12 +196,14 @@ async def on_message(msg):
             await say('Thanks for helping the bot out! :D')
     
     elif (args[0] == 'update') and isBrian and isLinux:
+        await say("updating...")
+        asySleep(1)
         os.system('cd '+botDir)
         os.system('git pull')
         os.system('cd '+codeDir)
         os.system("python3 main.py")
-        await say("updating...")
-        asySleep(2)
+        asySleep(1)
+        await say("done")
         quit()
     
     elif args[0] == 'zote':
