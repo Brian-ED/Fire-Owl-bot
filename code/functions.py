@@ -39,19 +39,20 @@ def rps(args):
         return f'Please enter one of the following items: {", ".join(RPS)}'
     botChoice  = RPS[randint(0,2)]
     if userChoice == botChoice:
-        result="Ah we drew the game m'lad, well played"
+        r="Ah we drew the game m'lad, well played"
 
     elif userChoice == 'rock':
         if botChoice == 'scissors':
-            result='Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:975072362083012668>'
+            r='Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:975072362083012668>'
         elif botChoice == 'paper':
-            result='Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!'
+            r='Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!'
 
     elif userChoice == 'scissors':
         if botChoice=='rock':
-            result='Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:975072362083012668>'
+            r='Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:975072362083012668>'
         elif botChoice=='paper':
-            result="Oh i lost! Y'know i got that paper from my grandma before she died... :(... ha just kidding, totally got you there :)"
+            r="Oh i lost! Y'know i got that paper from my grandma before she died... :(... ha just kidding, totally got you there :)"
+    return (userChoice,botChoice,r)
 
 def openR(path):
     with open(path, "r", encoding="utf-8") as f:

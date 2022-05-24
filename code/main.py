@@ -140,7 +140,7 @@ async def on_message(msg):
         await say(f'Alas it is done')
 
     elif args[0] == 'listresponses':
-        await say('responses: '+', '.join(list(responses.keys()))+'\nReacts: '+', '.join(list(reacts.keys())))
+        await say('Responses: '+', '.join(list(responses.keys()))+'\nReacts: '+', '.join(list(reacts.keys())))
 
     elif args[0] == 'flip':
         if randint(0,1):r=' heads'
@@ -150,8 +150,8 @@ async def on_message(msg):
     elif args[0] == 'rps':
         if len(args)<2:
             return f'Please enter rock, paper, or scissors'
-        (userChoice,botChoice,result)=fns.rps(args)
-        await say(f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{result}')
+        (userChoice,botChoice,r)=fns.rps(args)
+        await say(f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{r}')
     
     elif args[0] == 'google':
         if len(args)<2:await say('Remember to search something')
