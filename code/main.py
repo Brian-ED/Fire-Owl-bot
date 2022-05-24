@@ -199,6 +199,8 @@ async def on_message(msg):
         await say("updating...")
         asySleep(1)
         os.system('cd '+botDir)
+        os.system('git reset --hard')
+        os.system('git clean -fd')
         os.system('git pull')
         os.system('cd '+codeDir)
         os.system("python3 main.py")
