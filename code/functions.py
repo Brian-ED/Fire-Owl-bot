@@ -32,12 +32,7 @@ def forEach(val:Iterable,f):
 async def say(message,whatNeedsToBeSaid:str):
     await message.channel.send(whatNeedsToBeSaid)
 
-def rps(args):
-    RPS=['rock','paper','scissors']
-    userChoice = args[1].lower()
-    if not (userChoice in RPS):
-        return f'Please enter one of the following items: {", ".join(RPS)}'
-    botChoice  = RPS[randint(0,2)]
+def rps(userChoice,botChoice):
     if userChoice == botChoice:
         r="Ah we drew the game m'lad, well played"
 

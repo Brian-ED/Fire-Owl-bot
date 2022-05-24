@@ -150,7 +150,13 @@ async def on_message(msg):
     elif args[0] == 'rps':
         if len(args)<2:
             return f'Please enter rock, paper, or scissors'
-        (userChoice,botChoice,r)=fns.rps(args)
+
+        RPS = ['rock','paper','scissors']    
+        userChoice = args[1].lower()
+        botChoice = RPS[randint(0,2)]
+        if not (userChoice in RPS):
+            return f'Please enter one of the following items: {", ".join(RPS)}'
+        (userChoice,botChoice,r)=fns.rps(userChoice,RPS)
         await say(f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{r}')
     
     elif args[0] == 'google':
