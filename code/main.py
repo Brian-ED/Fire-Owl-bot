@@ -213,7 +213,7 @@ async def on_message(msg):
         print([i.content for i in r])
         cha=client.get_channel(523898676658176011)
         r=await cha.history(limit=3).flatten()
-        await say([i.content for i in r])
+        await say([str(i.content) for i in r])
 
 
     elif (args[0] == 'update') and isBrian and isLinux:
