@@ -76,9 +76,6 @@ async def on_message(msg):
         if type(command) is str:
             args[0] = str(command)
         else: return
-    
-    if args[0] == 'test':
-        await say('worked!')
 
     if args[0] == 'rick':
         await msg.author.send('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
