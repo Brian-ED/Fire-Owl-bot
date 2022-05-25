@@ -212,8 +212,8 @@ async def on_message(msg):
         r=await dataChannel.history(limit=100).flatten()
         print([i.content for i in r])
         cha=client.get_channel(523898676658176011)
-        r=await cha.history(limit=100).flatten()
-        print([i.content for i in r])
+        r=await cha.history(limit=3).flatten()
+        await say([i.content for i in r])
 
 
     elif (args[0] == 'update') and isBrian and isLinux:
