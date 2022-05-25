@@ -206,9 +206,8 @@ async def on_message(msg):
             await say('Thanks for helping the bot out! :D')
     
     elif args[0]=='test':
-        r=await dataChannel.history(limit=100).flatten()
-        print([i.content for i in r])
-        cha=client.get_channel(523898676658176011)
+        #r=await dataChannel.history(limit=100).flatten()
+        #print([i.content for i in r])
         r=await msg.channel.history(limit=3).flatten()
         await say([str(i.content) for i in r])
 
