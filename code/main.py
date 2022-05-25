@@ -209,7 +209,7 @@ async def on_message(msg):
         r=await dataChannel.history(limit=100).flatten()
         print([i.content for i in r])
         cha=client.get_channel(523898676658176011)
-        r=await cha.history(limit=3).flatten()
+        r=await msg.channel.history(limit=3).flatten()
         await say([str(i.content) for i in r])
 
 
