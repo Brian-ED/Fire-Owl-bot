@@ -8,6 +8,8 @@ from platform import platform
 client = dis.Client()
 
 prefix = 'fo!'
+dataChannel = client.get_channel(979056674503540806)
+
 respondstxtPath='./extra/responds.txt'
 reactstxtPath='./extra/reacts.txt'
 tokenPath = '../../Safe/Fire-Owl-bot.yaml'
@@ -146,6 +148,10 @@ async def on_message(msg):
         if randint(0,1):r=' heads'
         else: r=' tails'
         await say(msg.author.mention+r)
+    
+    elif args[0] == 'muteMyself':
+        await say('Alright will do. For how many hours?')
+        
 
     elif args[0] == 'rps':
         if len(args)<2:
@@ -202,6 +208,14 @@ async def on_message(msg):
             fns.openW(recommendsPath,r)
             await say('Thanks for helping the bot out! :D')
     
+    elif args[0]=='test':
+        r=await dataChannel.history(limit=100).flatten()
+        print([i.content for i in r])
+        cha=client.get_channel(523898676658176011)
+        r=await cha.history(limit=100).flatten()
+        print([i.content for i in r])
+
+
     elif (args[0] == 'update') and isBrian and isLinux:
         await say("updating...")
         asySleep(1)
