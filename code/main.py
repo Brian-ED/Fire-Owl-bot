@@ -5,11 +5,10 @@ import yaml
 from random import randint,random
 import functions as fns
 from platform import platform
+from sympy import S as mathEval
 client = dis.Client()
 
 prefix = 'fo!'
-dataChannel = client.get_channel(979056674503540806)
-
 respondstxtPath='./extra/responds.txt'
 reactstxtPath='./extra/reacts.txt'
 tokenPath = '../../Safe/Fire-Owl-bot.yaml'
@@ -24,18 +23,19 @@ if not isLinux:
     reactstxtPath=loc+'Fire-Owl-bot/code/extra/reacts.txt'
     tokenPath=loc+'Safe/Fire-Owl-bot.yaml'
 
-commands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick','zote']
-commands.sort()
+userCommands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick','zote','calculate']
+userCommands.sort()
 adminCommands=['newresponse','delresponse','delreact']
-
-global responses
+adminCommands.sort()
+global responses,reacts
 responses:dict = fns.openR(respondstxtPath)
-global reacts
 reacts:dict = fns.openR(reactstxtPath)
 
 @client.event
 async def on_ready():
-    await client.change_presence(activity=dis.Game('subscribe to FIRE OWL'))
+    global dataChannel
+    dataChannel = client.get_channel(979056674503540806)
+    await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL {client.guilds[0].member_count}'))
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
@@ -49,33 +49,37 @@ async def on_message(msg):
 
     if msg.author.bot:return
     isBrian=str(msg.author.id)=='671689100331319316'
-    isAdmin=(msg.author.top_role.permissions.administrator and (str(msg.guild.id)=='497131548282191892')) or isBrian
-    global responses
-    global reacts
+    isAdmin=msg.author.top_role.permissions.administrator and msg.guild.id=='497131548282191892' or isBrian
+    if isAdmin: commands = userCommands+adminCommands
+    else: commands = userCommands
+    global responses,reacts,dataChannel
     
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
         for i in responses.keys():
             if fns.isSublist(argsL,i.split(' ')):
-                await say(responses[i])
+                r=responses[i].split(' ')
+                if len(r)>2 and 'replydelay:'==r[-2]:
+                    try:
+                        asySleep(int(r[-1]))
+                        r=r[:-2]
+                    except: print('not a number')
+                await say(' '.join(r))
                 break
+                    
         for i in reacts.keys():
             if fns.isSublist(argsL,i.split(' ')):
-                await msg.add_reaction(reacts[i])
+                r=reacts[i].split(' ')
+                if len(r)>2 and 'replydelay:'==r[-2]:
+                    try:
+                        asySleep(int(r[-1]))
+                        r=r[1]
+                    except: print('not a number')
+                    await msg.add_reaction(r)
                 break
         return
 
-    if len(args[0]) == len(prefix):
-        args[0]=prefix+'help'
-    
-    args[0] = args[0][len(prefix):].lower() # makes the command inputted lowercase
-    command = fns.useTree(args[0],commands) # useTree is basically auto-correct
-    
-    # handle if autocorrect got multiple results
-    if command != '':
-        if type(command) is str:
-            args[0] = str(command)
-        else: return
+    args[0] = fns.commandHandler(prefix,args[0],commands)
 
     if args[0] == 'rick':
         await msg.author.send('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
@@ -85,6 +89,7 @@ async def on_message(msg):
         await msg.author.send('cope')
         await asySleep(5)
         await msg.author.send('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw')
+    
     
     if args[0] == 'help':
         if isAdmin: 
@@ -98,7 +103,7 @@ async def on_message(msg):
                'Absolutely yes','Cannot tell','Sure','Mmm, I have no idea',
                'Haha ye boi','What? no!','Yep','Nope','Maybe',"I'm too afraid to tell",
                "Sorry that's too hard to answer.",'Most likely.']
-        await say(ball8[randint(0,len(ball8)-1)])
+        await say(fns.randItem(ball8))
 
     elif args[0] == 'roll':
         if len(args)<2:
@@ -124,22 +129,32 @@ async def on_message(msg):
                 await say('You need to include " replywith: " or " reactwith: " in the message. Not both btw.')
                 return
 
-        resStr=' '.join(args[1:indexOf])
-        repStr=' '.join(args[indexOf+1:])
+        aStr=' '.join(args[1:indexOf])
+        bStr=' '.join(args[indexOf+1:])
+        
+        if args[-2] == 'replydelay:' and not args[-1].isnumeric():
+            await say('the delay needs to be a number')
+            return
 
         if isReact:
             reacts=fns.openR(reactstxtPath)
-            reacts[resStr]=repStr
+            reacts[aStr]=bStr
             fns.openW(reactstxtPath,reacts)
         else:
             responses=fns.openR(respondstxtPath)
-            responses[resStr]=repStr
+            responses[aStr]=bStr
             fns.openW(respondstxtPath,responses)
 
         await say(f'Alas it is done')
 
     elif args[0] == 'listresponses':
         await say('Responses: '+', '.join(list(responses.keys()))+'\nReacts: '+', '.join(list(reacts.keys())))
+    
+    elif args[0] == 'calculate':
+        if len(args)>1:
+            await say(mathEval(' '.join(args[1:])))
+        else:
+            await say('Add an expression')
 
     elif args[0] == 'flip':
         if randint(0,1):r=' heads'
@@ -157,12 +172,19 @@ async def on_message(msg):
 
         RPS = ['rock','paper','scissors']    
         userChoice = args[1].lower()
-        botChoice = RPS[randint(0,2)]
+        botChoice = fns.randItem(RPS)
         if not (userChoice in RPS):
             return f'Please enter one of the following items: {", ".join(RPS)}'
         (userChoice,botChoice,r)=fns.rps(userChoice,botChoice)
         await say(f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{r}')
     
+    elif args[0] == 'recommend':
+        if len(args)!=1:
+            await client.get_channel(980859412564553738).send(' '.join(args[1:]))
+            await say('Thanks for the recommendation :D')
+        else:
+            await say(f'Remember to recommend something\n{prefix}recommend <recommendation>')
+
     elif args[0] == 'google':
         if len(args)<2:await say('Remember to search something')
         await say('https://www.google.com/search?q='+'+'.join(args[1:]))
@@ -195,7 +217,7 @@ async def on_message(msg):
             await say('deleted')
         except:
             await say("reply doesn't exist")
-
+    
     elif args[0] == 'recommend':
         if len(args)<2:
             await say('Remember to recommend something')
@@ -204,16 +226,10 @@ async def on_message(msg):
             r+=' '.join(args[1:])+'\n\n'
             fns.openW(recommendsPath,r)
             await say('Thanks for helping the bot out! :D')
-    
-    elif args[0]=='test':
-        #r=await dataChannel.history(limit=100).flatten()
-        #print([i.content for i in r])
-        r=await msg.channel.history(limit=3).flatten()
-        await say([str(i.content) for i in r])
 
-
-    elif (args[0] == 'update') and isBrian and isLinux:
+    elif args[0] == 'update' and isBrian and isLinux:
         await say("updating...")
+
         asySleep(1)
         os.system('cd '+botDir)
         os.system('git reset --hard')
@@ -227,6 +243,28 @@ async def on_message(msg):
     
     elif args[0] == 'zote':
         await say(fns.zoteQuotes[randint(0,len(fns.zoteQuotes)-1)])
+    #work in progress:::
+    #elif args[0] == 'emergencybreak':
+    #    if len(args)==1:
+    #        await say('spesify how many hours (recommended is 1)')
+    #    else:
+    #        print(args[0])
+    #        sleep(int(args[1]))
+
+    elif args[0] == 'test' and isBrian:
+        args.index("replydelay:")
+        #await dataChannel.send('Reacts:',file=dis.File(reactstxtPath))
+        #data=await dataChannel.history(limit=100).flatten()
+
+
+    elif args[0] == 'eval' and isBrian:
+        if len(args)<2:
+            await say('Please include something to evaluate')
+        else:
+            eval(' '.join(args[1:]))
+
+            await say('Run successful')
+
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
