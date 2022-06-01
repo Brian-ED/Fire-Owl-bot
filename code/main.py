@@ -209,7 +209,7 @@ async def on_message(msg):
             await say("reply doesn't exist")
         fns.openW(respondstxtPath,responses)
     
-    elif args[0] == 'delreact':
+    elif args[0] == 'delreact' and isBrian:
         reacts=fns.openR(reactstxtPath)
         try:
             reacts.pop(' '.join(args[1:]))

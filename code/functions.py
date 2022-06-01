@@ -10,7 +10,7 @@ def commandHandler(prefix:str,cmd:str,commands:List[str])->str:
     if 1==sum(startswith):
         return commands[startswith.index(1)]
     else:
-        return cmd 
+        return '' 
 
 randItem=lambda i:i[randint(0,len(i)-1)]
 
