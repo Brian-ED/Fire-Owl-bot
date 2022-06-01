@@ -200,7 +200,7 @@ async def on_message(msg):
     elif args[0] == 'info':
         await say(f"You're admin: {isAdmin}\nYour user ID: {msg.author.id}\nThis server's ID: {msg.guild.id}")
 
-    elif args[0] == 'delresponse':
+    elif args[0] == 'delresponse' and isAdmin:
         responses=fns.openR(respondstxtPath)
         try:
             responses.pop(' '.join(args[1:]))
