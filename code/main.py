@@ -7,14 +7,17 @@ import functions as fns
 from platform import platform
 from sympy import S as mathEval
 from shutil import rmtree, copytree
+from time import perf_counter as currentTime
 
 client = dis.Client()
+
+lastReplyTime = currentTime()
+replyDelay=10
 
 prefix = 'fo!'
 respondstxtPath='./extra/responds.txt'
 reactstxtPath='./extra/reacts.txt'
 tokenPath = '../../Safe/Fire-Owl-bot.yaml'
-recommendsPath = './extra/recommends.txt'
 botDir = '../'
 codeDir='./'
 extraDir='./extra'
@@ -24,7 +27,6 @@ if not isLinux:
     loc             = 'C:/Users/brian/Persinal/discBots/'
     savestateDir    = loc+"data/Fire-Owl-data"
     extraDir        = loc+'Fire-Owl-bot/code/extra/'
-    recommendsPath  = extraDir+'recommends.txt'
     respondstxtPath = extraDir+'responds.txt'
     reactstxtPath   = extraDir+'reacts.txt'
     tokenPath       = loc+'Safe/Fire-Owl-bot.yaml'
@@ -35,13 +37,13 @@ if not isLinux:
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick','zote','calculate']
+userCommands = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','Calculate']
 userCommands.sort()
-adminCommands=['newresponse','delresponse','delreact','restorebackup']
+adminCommands=['NewResponse','DelResponse','DelReact','RestoreBackup','EmergencyQuit','ChangeReplyDelay']
 adminCommands.sort()
 global responses,reacts
 responses:dict = fns.openR(respondstxtPath)
-reacts:dict = fns.openR(reactstxtPath)
+reacts   :dict = fns.openR(reactstxtPath)
 
 @client.event
 async def on_ready():
@@ -56,40 +58,32 @@ async def on_ready():
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
 async def on_message(msg):
-    say=msg.channel.send
+    say = msg.channel.send
     args = msg.content.split(' ')
 
     if msg.author.bot:return
-    isBrian=str(msg.author.id)=='671689100331319316'
-    isAdmin=msg.author.top_role.permissions.administrator and msg.guild.id=='497131548282191892' or isBrian
-    if isAdmin: commands = userCommands+adminCommands
-    else: commands = userCommands
-    global responses,reacts,dataChannel
+    isBrian=msg.author.id==671689100331319316
+    isAdmin=msg.author.top_role.permissions.administrator and msg.guild.id==497131548282191892 or isBrian
+    if isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
+    else:       commands = [i.lower() for i in userCommands]
+    global responses,reacts,dataChannel,lastReplyTime
     
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
         for i in responses.keys():
             if fns.isSublist(argsL,i.split(' ')):
-                r=responses[i].split(' ')
-                if len(r)>2 and 'replydelay:'==r[-2]:
-                    try:
-                        asySleep(int(r[-1]))
-                        r=r[:-2]
-                    except: print('not a number')
-                await say(' '.join(r))
-                break
-                    
+                if lastReplyTime+replyDelay<currentTime():
+                    lastReplyTime=currentTime()
+                    await say(responses[i])
+                    break
+                else: break
+
         for i in reacts.keys():
             if fns.isSublist(argsL,i.split(' ')):
-                r=reacts[i].split(' ')
-                if len(r)>2 and 'replydelay:'==r[-2]:
-                    try:
-                        asySleep(int(r[-1]))
-                        r=r[1]
-                    except: print('not a number')
-                    await msg.add_reaction(r)
+                await msg.add_reaction(reacts[i])
                 break
         return
+
 
     args[0] = fns.commandHandler(prefix,args[0],commands)
 
@@ -104,13 +98,16 @@ async def on_message(msg):
     
     
     if args[0] == 'help':
-        await say('list of commands:'+', '.join(commands))
+        r='List of commands: '+', '.join(userCommands)
+        if isAdmin:
+            r+='\nList of admin commands: '+', '.join(adminCommands)
+        await say(r)
 
     elif args[0] == '8ball':
         ball8=['Yes','No','Not sure','You know it','Absolutely not',
                'Absolutely yes','Cannot tell','Sure','Mmm, I have no idea',
-               'Haha ye boi','What? no!','Yep','Nope','Maybe',"I'm too afraid to tell",
-               "Sorry that's too hard to answer.",'Most likely.']
+               'Haha ye boi','What? No!','Yep','Nope','Maybe',"I'm too afraid to tell",
+               "Sorry that's too hard to answer",'Most likely']
         await say(fns.randItem(ball8))
 
     elif args[0] == 'roll':
@@ -125,7 +122,7 @@ async def on_message(msg):
             r=randint(int(args[1]),int(args[2]))
         await say(r)
 
-    elif args[0] == 'newresponse' and isAdmin :
+    elif args[0] == 'newresponse':
         try:
             indexOf=args.index('replywith:')
             isReact=0
@@ -208,14 +205,14 @@ async def on_message(msg):
     elif args[0] == 'info':
         await say(f"You're admin: {isAdmin}\nYour user ID: {msg.author.id}\nThis server's ID: {msg.guild.id}")
 
-    elif args[0] == 'delresponse' and isAdmin:
+    elif args[0] == 'delresponse':
         responses=fns.openR(respondstxtPath)
         try:
             responses.pop(' '.join(args[1:]))
             await say('deleted')
+            fns.openW(respondstxtPath,responses)
         except:
             await say("reply doesn't exist")
-        fns.openW(respondstxtPath,responses)
     
     elif args[0] == 'delreact' and isBrian:
         reacts=fns.openR(reactstxtPath)
@@ -225,15 +222,6 @@ async def on_message(msg):
             await say('deleted')
         except:
             await say("reply doesn't exist")
-    
-    elif args[0] == 'recommend':
-        if len(args)<2:
-            await say('Remember to recommend something')
-        else:
-            r=fns.openR(recommendsPath)
-            r+=' '.join(args[1:])+'\n\n'
-            fns.openW(recommendsPath,r)
-            await say('Thanks for helping the bot out! :D')
 
     elif args[0] == 'update' and isBrian and isLinux:
         await say("updating...")
@@ -259,19 +247,18 @@ async def on_message(msg):
     
     elif args[0] == 'zote':
         await say(fns.zoteQuotes[randint(0,len(fns.zoteQuotes)-1)])
-    #work in progress:::
-    #elif args[0] == 'emergencybreak':
-    #    if len(args)==1:
-    #        await say('spesify how many hours (recommended is 1)')
-    #    else:
-    #        print(args[0])
-    #        sleep(int(args[1]))
 
-    elif args[0] == 'test' and isBrian:
-        args.index("replydelay:")
-        #await dataChannel.send('Reacts:',file=dis.File(reactstxtPath))
-        #data=await dataChannel.history(limit=100).flatten()
-
+    elif args[0] == 'emergencyquit':
+        await say("I'm sorry for what i did :(.\nBye lovely folks!")
+        asySleep(0.5)
+        quit()
+    
+    elif args[0] == 'changereplydelay':
+        if len(args)<2:               await say('Remember to add a delay time in seconds')
+        elif not args[1].isnumeric(): await say('Time has to be an intiger number')
+        else:
+            await say('done')
+            replyDelay=int(args[1])
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
