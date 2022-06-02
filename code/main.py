@@ -6,6 +6,8 @@ from random import randint,random
 import functions as fns
 from platform import platform
 from sympy import S as mathEval
+from shutil import rmtree, copytree
+
 client = dis.Client()
 
 prefix = 'fo!'
@@ -15,17 +17,27 @@ tokenPath = '../../Safe/Fire-Owl-bot.yaml'
 recommendsPath = './extra/recommends.txt'
 botDir = '../'
 codeDir='./'
-isLinux=not (platform(True,True) == 'Windows-10')
+extraDir='./extra'
+savestateDir = "../../data/data/Fire-Owl-data"
+isLinux=platform(True,True) != 'Windows-10'
 if not isLinux:
-    loc='C:/Users/brian/Persinal/discBots/'
-    recommendsPath=loc+'Fire-Owl-bot/code/extra/recommends.txt'
-    respondstxtPath=loc+'Fire-Owl-bot/code/extra/responds.txt'
-    reactstxtPath=loc+'Fire-Owl-bot/code/extra/reacts.txt'
-    tokenPath=loc+'Safe/Fire-Owl-bot.yaml'
+    loc             = 'C:/Users/brian/Persinal/discBots/'
+    savestateDir    = loc+"data/Fire-Owl-data"
+    extraDir        = loc+'Fire-Owl-bot/code/extra/'
+    recommendsPath  = extraDir+'recommends.txt'
+    respondstxtPath = extraDir+'responds.txt'
+    reactstxtPath   = extraDir+'reacts.txt'
+    tokenPath       = loc+'Safe/Fire-Owl-bot.yaml'
+    botDir          = loc+'Fire-Owl-bot/'
+    codeDir         = botDir+'code/'
+
+
+rmtree(extraDir)
+copytree(savestateDir, extraDir)
 
 userCommands = ['8ball', 'help', 'roll', 'flip', 'rps','google','youtube','yt','listresponses','info','hkwiki','recommend','rick','zote','calculate']
 userCommands.sort()
-adminCommands=['newresponse','delresponse','delreact']
+adminCommands=['newresponse','delresponse','delreact','restorebackup']
 adminCommands.sort()
 global responses,reacts
 responses:dict = fns.openR(respondstxtPath)
@@ -92,11 +104,7 @@ async def on_message(msg):
     
     
     if args[0] == 'help':
-        if isAdmin: 
-            result=', '+', '.join(adminCommands)
-        else:
-            result=''
-        await say(f'list of commands: {", ".join(commands)}'+result)
+        await say('list of commands:'+', '.join(commands))
 
     elif args[0] == '8ball':
         ball8=['Yes','No','Not sure','You know it','Absolutely not',
@@ -189,7 +197,7 @@ async def on_message(msg):
         if len(args)<2:await say('Remember to search something')
         await say('https://www.google.com/search?q='+'+'.join(args[1:]))
 
-    elif (args[0] == 'yt') or (args[0] == 'youtube'):
+    elif args[0] in ['yt','youtube']:
         if len(args)<2:await say('Remember to search something')
         await say('https://www.youtube.com/results?search_query=' + '+'.join(args[1:]))
     
@@ -230,16 +238,24 @@ async def on_message(msg):
     elif args[0] == 'update' and isBrian and isLinux:
         await say("updating...")
 
-        asySleep(1)
+        rmtree(savestateDir)
+        copytree(extraDir, savestateDir)
+
+        asySleep(.5)
+        
         os.system('cd '+botDir)
         os.system('git reset --hard')
         os.system('git clean -fd')
         os.system('git pull')
         os.system('cd '+codeDir)
         os.system("python3 main.py")
-        asySleep(1)
         await say("done")
+        asySleep(0.5)
         quit()
+    
+    elif args[0] == 'restorebackup':
+        rmtree(extraDir)
+        copytree(savestateDir, extraDir)
     
     elif args[0] == 'zote':
         await say(fns.zoteQuotes[randint(0,len(fns.zoteQuotes)-1)])
@@ -255,15 +271,6 @@ async def on_message(msg):
         args.index("replydelay:")
         #await dataChannel.send('Reacts:',file=dis.File(reactstxtPath))
         #data=await dataChannel.history(limit=100).flatten()
-
-
-    elif args[0] == 'eval' and isBrian:
-        if len(args)<2:
-            await say('Please include something to evaluate')
-        else:
-            eval(' '.join(args[1:]))
-
-            await say('Run successful')
 
 
 with open(tokenPath, encoding='utf-8') as f:

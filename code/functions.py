@@ -1,16 +1,14 @@
 from random import randint
 from typing import List, Any
 
-
 def commandHandler(prefix:str,cmd:str,commands:List[str])->str:
     if cmd == prefix:
         cmd+='help'
-    cmd = cmd[len(prefix):].lower() # makes the command inputted lowercase
-    startswith=[i.startswith(cmd) for i in commands]
-    if 1==sum(startswith):
-        return commands[startswith.index(1)]
+    validityTable=[i.startswith(cmd[len(prefix):].lower()) for i in commands]
+    if 1==sum(validityTable):
+        return commands[validityTable.index(1)]
     else:
-        return '' 
+        return
 
 randItem=lambda i:i[randint(0,len(i)-1)]
 
