@@ -34,7 +34,7 @@ if not isLinux:
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','Calculate']
+userCommands = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote']
 userCommands.sort()
 adminCommands=['NewResponse','DelResponse','DelReact','RestoreBackup','EmergencyQuit','ChangeReplyDelay','Update']
 adminCommands.sort()
@@ -155,13 +155,13 @@ async def on_message(msg):
     elif args[0] == 'listresponses':
         await say('Responses: '+', '.join(list(responses.keys()))+'\nReacts: '+', '.join(list(reacts.keys())))
     
-    elif args[0] == 'calculate':
-        if len(args)>1:
-            try:
-                await say(mathEval(' '.join(args[1:])))
-            except: await say("Ops couldn't calculate")
-        else:
-            await say('Add an expression')
+    #elif args[0] == 'calculate':
+    #    if len(args)>1:
+    #        try:
+    #            await say(mathEval(' '.join(args[1:])))
+    #        except: await say("Ops couldn't calculate")
+    #    else:
+    #        await say('Add an expression')
 
     elif args[0] == 'flip':
         if randint(0,1):r=' heads'
