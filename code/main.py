@@ -11,9 +11,6 @@ from time import perf_counter as currentTime
 
 client = dis.Client()
 
-lastReplyTime = currentTime()
-replyDelay=10
-
 prefix = 'fo!'
 respondstxtPath='./extra/responds.txt'
 reactstxtPath='./extra/reacts.txt'
@@ -39,11 +36,14 @@ copytree(savestateDir, extraDir)
 
 userCommands = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','Calculate']
 userCommands.sort()
-adminCommands=['NewResponse','DelResponse','DelReact','RestoreBackup','EmergencyQuit','ChangeReplyDelay']
+adminCommands=['NewResponse','DelResponse','DelReact','RestoreBackup','EmergencyQuit','ChangeReplyDelay','Update']
 adminCommands.sort()
-global responses,reacts
+
+global responses,reacts,lastReplyTime,replyDelay
 responses:dict = fns.openR(respondstxtPath)
 reacts   :dict = fns.openR(reactstxtPath)
+lastReplyTime = currentTime()
+replyDelay=10
 
 @client.event
 async def on_ready():
@@ -66,7 +66,7 @@ async def on_message(msg):
     isAdmin=msg.author.top_role.permissions.administrator and msg.guild.id==497131548282191892 or isBrian
     if isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
     else:       commands = [i.lower() for i in userCommands]
-    global responses,reacts,dataChannel,lastReplyTime
+    global responses,reacts,dataChannel,lastReplyTime,replyDelay
     
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
