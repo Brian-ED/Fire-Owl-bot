@@ -21,7 +21,7 @@ tokenPath = '../../Safe/Fire-Owl-bot.yaml'
 botDir = '../'
 codeDir='./'
 extraDir='./extra'
-savestateDir = "../../data/data/Fire-Owl-data"
+savestateDir = "../../data/Fire-Owl-data"
 isLinux=platform(True,True) != 'Windows-10'
 if not isLinux:
     loc             = 'C:/Users/brian/Persinal/discBots/'
