@@ -157,7 +157,9 @@ async def on_message(msg):
     
     elif args[0] == 'calculate':
         if len(args)>1:
-            await say(mathEval(' '.join(args[1:])))
+            try:
+                await say(mathEval(' '.join(args[1:])))
+            except: await say("Ops couldn't calculate")
         else:
             await say('Add an expression')
 
