@@ -5,39 +5,34 @@ import yaml
 from random import randint,random
 import functions as fns
 from platform import platform
-from sympy import S as mathEval
 from shutil import rmtree, copytree
 from time import perf_counter as currentTime
 
+isLinux = platform(True,True) != 'Windows-10'
 client = dis.Client()
-
 prefix = 'fo!'
-respondstxtPath='./extra/responds.txt'
-reactstxtPath='./extra/reacts.txt'
-tokenPath = '../../Safe/Fire-Owl-bot.yaml'
-botDir = '../'
-codeDir='./'
-extraDir='./extra'
-savestateDir = "../../data/Fire-Owl-data"
-isLinux=platform(True,True) != 'Windows-10'
-if not isLinux:
-    loc             = 'C:/Users/brian/Persinal/discBots/'
-    savestateDir    = loc+"data/Fire-Owl-data"
-    extraDir        = loc+'Fire-Owl-bot/code/extra/'
-    respondstxtPath = extraDir+'responds.txt'
-    reactstxtPath   = extraDir+'reacts.txt'
-    tokenPath       = loc+'Safe/Fire-Owl-bot.yaml'
-    botDir          = loc+'Fire-Owl-bot/'
-    codeDir         = botDir+'code/'
 
+
+loc             = 'C:/Users/brian/Persinal/discBots/'
+if isLinux: loc = '../../'
+tokenPath       = loc+'Safe/Fire-Owl-bot.yaml'
+savestateDir    = loc+'data/Fire-Owl-data'
+extraDir        = loc+'Fire-Owl-bot/code/extra/'
+botDir          = loc+'Fire-Owl-bot/'
+codeDir         = botDir+'code/'
+respondstxtPath = extraDir+'responds.txt'
+reactstxtPath   = extraDir+'reacts.txt'
+settingstxtPath = extraDir+'settings'
 
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote']
+userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote']
 userCommands.sort()
-adminCommands=['NewResponse','DelResponse','DelReact','RestoreBackup','EmergencyQuit','ChangeReplyDelay','Update']
+adminCommands = ['NewResponse','DelResponse','DelReact','RestoreBackup','EmergencyQuit','ChangeReplyDelay','NewSettings']
 adminCommands.sort()
+ownerCommands = ['Update','MakeFile','ListFiles']
+ownerCommands.sort()
 
 global responses,reacts,lastReplyTime,replyDelay
 responses:dict = fns.openR(respondstxtPath)
@@ -58,36 +53,44 @@ async def on_ready():
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
 async def on_message(msg):
+    if msg.author.bot:return
+
     say = msg.channel.send
     args = msg.content.split(' ')
 
-    if msg.author.bot:return
-    isBrian=msg.author.id==671689100331319316
-    isAdmin=msg.author.top_role.permissions.administrator and msg.guild.id==497131548282191892 or isBrian
-    if isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
-    else:       commands = [i.lower() for i in userCommands]
+    isOwner=msg.author.id== 671689100331319316
+    isAdmin=msg.guild.id == 497131548282191892 and msg.author.top_role.permissions.administrator or isOwner
+    
+    if   isOwner: commands = [i.lower() for i in userCommands+adminCommands+ownerCommands]
+    elif isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
+    else:         commands = [i.lower() for i in userCommands]
     global responses,reacts,dataChannel,lastReplyTime,replyDelay
     
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
-        for i in responses.keys():
-            if fns.isSublist(argsL,i.split(' ')):
+        for i in argsL:
+            if i in responses:
                 if lastReplyTime+replyDelay<currentTime():
                     lastReplyTime=currentTime()
                     await say(responses[i])
                     break
                 else: break
 
-        for i in reacts.keys():
-            if fns.isSublist(argsL,i.split(' ')):
+        for i in argsL:
+            if i in reacts:
                 await msg.add_reaction(reacts[i])
                 break
         return
 
-
     args[0] = fns.commandHandler(prefix,args[0],commands)
 
-    if args[0] == 'rick':
+    if args[0] == 'help':
+        r ='List of commands: '+', '.join(userCommands)
+        if isAdmin: r+='\nList of admin commands: '+', '.join(adminCommands)
+        if isOwner: r+='\nList of owner commands: '+', '.join(ownerCommands)
+        await say(r)
+
+    elif args[0] == 'rick':
         await msg.author.send('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
         await asySleep(15)
         await msg.author.send('Ok i am so sorry... please forgive me. here are some cats :D\nhttps://www.youtube.com/watch?v=VZrDxD0Za9I')
@@ -95,13 +98,6 @@ async def on_message(msg):
         await msg.author.send('cope')
         await asySleep(5)
         await msg.author.send('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw')
-    
-    
-    if args[0] == 'help':
-        r='List of commands: '+', '.join(userCommands)
-        if isAdmin:
-            r+='\nList of admin commands: '+', '.join(adminCommands)
-        await say(r)
 
     elif args[0] == '8ball':
         ball8=['Yes','No','Not sure','You know it','Absolutely not',
@@ -134,34 +130,22 @@ async def on_message(msg):
                 await say('You need to include " replywith: " or " reactwith: " in the message. Not both btw.')
                 return
 
-        aStr=' '.join(args[1:indexOf])
-        bStr=' '.join(args[indexOf+1:])
-        
-        if args[-2] == 'replydelay:' and not args[-1].isnumeric():
-            await say('the delay needs to be a number')
-            return
+        KeyStr=' '.join(args[1:indexOf]).lower()
+        ValStr=' '.join(args[indexOf+1:])
 
         if isReact:
             reacts=fns.openR(reactstxtPath)
-            reacts[aStr]=bStr
+            reacts[KeyStr]=ValStr
             fns.openW(reactstxtPath,reacts)
         else:
             responses=fns.openR(respondstxtPath)
-            responses[aStr]=bStr
+            responses[KeyStr]=ValStr
             fns.openW(respondstxtPath,responses)
 
         await say(f'Alas it is done')
 
     elif args[0] == 'listresponses':
         await say('Responses: '+', '.join(list(responses.keys()))+'\nReacts: '+', '.join(list(reacts.keys())))
-    
-    #elif args[0] == 'calculate':
-    #    if len(args)>1:
-    #        try:
-    #            await say(mathEval(' '.join(args[1:])))
-    #        except: await say("Ops couldn't calculate")
-    #    else:
-    #        await say('Add an expression')
 
     elif args[0] == 'flip':
         if randint(0,1):r=' heads'
@@ -205,7 +189,7 @@ async def on_message(msg):
         else: await say('https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:]))
     
     elif args[0] == 'info':
-        await say(f"You're admin: {isAdmin}\nYour user ID: {msg.author.id}\nThis server's ID: {msg.guild.id}")
+        await say(f"You're admin: {isAdmin}\nYou're owner: {isOwner}\nReplies cooldown: {replyDelay}")
 
     elif args[0] == 'delresponse':
         responses=fns.openR(respondstxtPath)
@@ -216,7 +200,7 @@ async def on_message(msg):
         except:
             await say("reply doesn't exist")
     
-    elif args[0] == 'delreact' and isBrian:
+    elif args[0] == 'delreact' and isOwner:
         reacts=fns.openR(reactstxtPath)
         try:
             reacts.pop(' '.join(args[1:]))
@@ -225,7 +209,7 @@ async def on_message(msg):
         except:
             await say("reply doesn't exist")
 
-    elif args[0] == 'update' and isBrian and isLinux:
+    elif args[0] == 'update' and isOwner and isLinux:
         await say("updating...")
 
         rmtree(savestateDir)
@@ -261,6 +245,19 @@ async def on_message(msg):
         else:
             await say('done')
             replyDelay=int(args[1])
+
+    elif args[0] == 'makefile' and isOwner:
+        if len(args)<3:
+            await say(f'Not correct syntax\n{prefix}makefile <fileName> <contents>')
+        else:
+            fns.openW(extraDir+args[1],args[2])
+            await say(f'You wrote file {args[1]} with the contents {args[2]}')
+    
+    elif args[0] == 'listfiles':
+        await say(', '.join(os.listdir(extraDir)))
+    
+    elif args[0] == 'NewSettings':
+        await say('Work in progress')
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
