@@ -7,11 +7,17 @@ import functions as fns
 from platform import platform
 from shutil import rmtree, copytree
 from time import perf_counter as currentTime
+from pynapl import APL
+apl=APL.APL()
+apl.eval("""
+         ⎕FIX 'file://C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/dyalog-safe-exec/Safe.dyalog'
+         ns←⎕NS ⍬
+         """)
+APLSafeEval=apl.fn("{1 ns Safe.Exec ⍵}")
 
 isLinux = platform(True,True) != 'Windows-10'
 client = dis.Client()
 prefix = 'fo!'
-
 
 loc             = 'C:/Users/brian/Persinal/discBots/'
 if isLinux: loc = '../../'
@@ -22,28 +28,28 @@ botDir          = loc+'Fire-Owl-bot/'
 codeDir         = botDir+'code/'
 respondstxtPath = extraDir+'responds.txt'
 reactstxtPath   = extraDir+'reacts.txt'
-settingstxtPath = extraDir+'settings'
+datatxtPath = extraDir+'data.txt'
 
+# load backup
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote']
+userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','APLSafeEval']
 userCommands.sort()
-adminCommands = ['NewResponse','DelResponse','DelReact','RestoreBackup','EmergencyQuit','ChangeReplyDelay','NewSettings']
+adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','ChangeReplyDelay','ChannelIDs']
 adminCommands.sort()
-ownerCommands = ['Update','MakeFile','ListFiles']
+ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','test']
 ownerCommands.sort()
 
 global responses,reacts,lastReplyTime,replyDelay
 responses:dict = fns.openR(respondstxtPath)
 reacts   :dict = fns.openR(reactstxtPath)
+data   :dict = fns.openR(reactstxtPath)
 lastReplyTime = currentTime()
 replyDelay=10
 
 @client.event
 async def on_ready():
-    global dataChannel
-    dataChannel = client.get_channel(979056674503540806)
     await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL {client.guilds[0].member_count}'))
     print('Logged in as')
     print(client.user.name)
@@ -64,7 +70,7 @@ async def on_message(msg):
     if   isOwner: commands = [i.lower() for i in userCommands+adminCommands+ownerCommands]
     elif isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
     else:         commands = [i.lower() for i in userCommands]
-    global responses,reacts,dataChannel,lastReplyTime,replyDelay
+    global responses,reacts,lastReplyTime,replyDelay
     
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
@@ -133,6 +139,7 @@ async def on_message(msg):
         KeyStr=' '.join(args[1:indexOf]).lower()
         ValStr=' '.join(args[indexOf+1:])
 
+        msg.channel
         if isReact:
             reacts=fns.openR(reactstxtPath)
             reacts[KeyStr]=ValStr
@@ -215,7 +222,7 @@ async def on_message(msg):
         rmtree(savestateDir)
         copytree(extraDir, savestateDir)
 
-        asySleep(.5)
+        await asySleep(.5)
         
         os.system('cd '+botDir)
         os.system('git reset --hard')
@@ -224,12 +231,24 @@ async def on_message(msg):
         os.system('cd '+codeDir)
         os.system("python3 main.py")
         await say("done")
-        asySleep(0.5)
+        await asySleep(0.5)
         quit()
+    
+    elif args[0] == 'aplsafeeval':
+        if len(args)<2:
+            await say('You need to give something for me to evaluate')
+        else:
+            await say(APLSafeEval(' '.join(args[1:])))
     
     elif args[0] == 'restorebackup':
         rmtree(extraDir)
         copytree(savestateDir, extraDir)
+        await say(f"You restored the files: {', '.join(os.listdir(savestateDir))}")
+    
+    elif args[0] == 'backup':
+        rmtree(savestateDir)
+        copytree(extraDir, savestateDir)
+        await say(f"You backuped the files: {', '.join(os.listdir(extraDir))}")
     
     elif args[0] == 'zote':
         await say(fns.zoteQuotes[randint(0,len(fns.zoteQuotes)-1)])
@@ -256,8 +275,21 @@ async def on_message(msg):
     elif args[0] == 'listfiles':
         await say(', '.join(os.listdir(extraDir)))
     
-    elif args[0] == 'NewSettings':
+    elif args[0] == 'test':
         await say('Work in progress')
+
+    elif args[0] == 'newsettings':
+        fns.openW(datatxtPath,{i.id:fns.defaultGuildSettings for i in client.guilds})
+        data=fns.openR(datatxtPath)
+        reacts=fns.openR(reactstxtPath)
+        responses=fns.openR(respondstxtPath)
+        data[497131548282191892]['Reacts']    = reacts
+        data[497131548282191892]['Responses'] = responses
+        await say('New settings have now migrated')
+    
+    elif args[0] == 'ChannelIDs':
+        print([[i.position,i.name,i.id] for i in msg.guild.text_channels])
+        
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
