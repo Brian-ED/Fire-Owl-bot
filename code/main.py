@@ -10,7 +10,7 @@ from time import perf_counter as currentTime
 
 from pynapl import APL
 apl=APL.APL()
-apl.eval("⎕FIX 'file://C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/Safe.dyalog'⋄ns←⎕NS ⍬")
+apl.eval("⎕FIX 'file://',(⊃1⎕NPARTS''),'Safe.dyalog'⋄ns←⎕NS ⍬")
 APLSafeEval=apl.fn("{1 ns Safe.Exec ⍵}")
 
 client = dis.Client()
