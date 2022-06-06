@@ -7,15 +7,21 @@ import functions as fns
 from platform import platform
 from shutil import rmtree, copytree
 from time import perf_counter as currentTime
-
+isLinux = platform(True,True) != 'Windows-10'
+print(1)
 from pynapl import APL
-apl=APL.APL()
+print(2)
+if isLinux:
+    apl=APL.APL(dyalog='/opt/mdyalog/18.2/32/unicode/dyalog')
+    print(3)
+else:apl=APL.APL()
+print(4)
+print(apl.eval('1+1 1'))
 apl.eval("⎕FIX 'file://',(⊃1⎕NPARTS''),'Safe.dyalog'⋄ns←⎕NS ⍬")
-APLSafeEval=apl.fn("{1 ns Safe.Exec ⍵}")
+APLSafeEval=apl.fn("1 ns∘Safe.Exec")
 
 client = dis.Client()
 
-isLinux = platform(True,True) != 'Windows-10'
 prefix = 'fo!'
 
 loc             = 'C:/Users/brian/Persinal/discBots/'
