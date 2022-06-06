@@ -9,7 +9,7 @@ def commandHandler(prefix:str,cmd:str,commands:list[str])->str:
     else:
         return
 
-randItem:function=lambda i:i[randint(0,len(i)-1)]
+randItem=lambda i:i[randint(0,len(i)-1)]
 
 def rps(userChoice,botChoice):
     if userChoice == botChoice:
