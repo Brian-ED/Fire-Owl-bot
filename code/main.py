@@ -8,21 +8,16 @@ from platform import platform
 from shutil import rmtree, copytree
 from time import perf_counter as currentTime
 isLinux = platform(True,True) != 'Windows-10'
-print(1)
-from pynapl import APL
-print(2)
-if isLinux:
+
+# APL stuff::
+if not isLinux:
+    from imports.pynapl import APL
+    apl=APL.APL()
     apl=APL.APL(dyalog='/usr/bin/dyalog')
-    print(3)
-else:apl=APL.APL()
-print(4)
-print(apl.eval('1+1 1'))
-apl.eval("⎕FIX 'file://',(⊃1⎕NPARTS''),'Safe.dyalog'⋄ns←⎕NS ⍬")
-APLSafeEval=apl.fn("1 ns∘Safe.Exec")
-
+    APLSafeEval=apl.fn("1 ns∘Safe.Exec")
+    # I think ⎕FIX is just import in APL, although sometimes it's ⎕CY ¯\_(ツ)_/¯
+    apl.eval("⎕FIX 'file://',¯1↓⊃1⎕NPARTS'./imports/safe.dyalog/'⋄ns←⎕NS ⍬")
 client = dis.Client()
-
-prefix = 'fo!'
 
 loc             = 'C:/Users/brian/Persinal/discBots/'
 if isLinux: loc = '../../'
@@ -40,9 +35,9 @@ reactstxtPath   = extraDir+'reacts.txt'
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','APLSafeEval']
+userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','APLSafeEval','muteMyself']
 userCommands.sort()
-adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','ChannelIDs','ChangeServerSettings']
+adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','ChannelIDs','ChangeServerSettings','Prefix']
 adminCommands.sort()
 ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','test']
 ownerCommands.sort()
@@ -60,12 +55,26 @@ async def on_ready():
     print(f'In {len(client.guilds)} servers')
     print('------')
 
+#defaultGuildSettings={'Prefix':'fo!',
+#                      'Bot channels: ':[],
+#                      'Replies channels: ':[],
+#                      'Reacts channels: ':[],
+#                      'Reply delay':0,
+#                      'How many replies in one min':10,
+#                      'Chance for reply':0,
+#                      'Chance for react':0,
+#                      'Reacts':defaultReactsList,
+#                      'Responses':defaultResponsesList}
+
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
 async def on_message(msg):
     if msg.author.bot:return
 
-    guildID=msg.guild.id
+    msgAuthor = msg.author.id
+    guildID   = msg.guild.id
+    prefix    = data[guildID]['Prefix']
+
     say  = msg.channel.send
     args = msg.content.split(' ')
 
@@ -80,8 +89,8 @@ async def on_message(msg):
     
     global responses,reacts,lastReplyTime,replyDelay
 
-    #if guildID not in data:
-    #    data[guildID]=fns.defaultGuildSettings
+    if guildID not in data:
+        data[guildID]=fns.defaultGuildSettings
     
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
@@ -106,6 +115,14 @@ async def on_message(msg):
         if isAdmin: r+='\nList of admin commands: '+', '.join(adminCommands)
         if isOwner: r+='\nList of owner commands: '+', '.join(ownerCommands)
         await say(r)
+
+    elif args[0] == 'prefix':
+        if len(args)<2:
+            await say(f'You need to enter a prefix that the current prefix "{prefix}" will be changed to.')
+            return
+        data=fns.openR(datatxtPath)
+        data[guildID]['Prefix']=args[1]
+        fns.openW(datatxtPath,data)
 
     elif args[0] == 'rick':
         await msg.author.send('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
@@ -151,7 +168,6 @@ async def on_message(msg):
                 await say(f'Alas it is done')
                 return
         await say('You need to include " replywith: " or " reactwith: " in the message. Not both btw.')
-        return
 
     elif args[0] == 'listresponses':
         await say('Responses: '+', '.join(list(responses.keys()))+'\nReacts: '+', '.join(list(reacts.keys())))
@@ -162,8 +178,25 @@ async def on_message(msg):
         await say(msg.author.mention+r)
     
     elif args[0] == 'muteMyself':
+        if isLinux:
+            await say("work in progress")
+            return
         await say('Alright will do. For how many hours?')
-        
+
+        def check(msg):
+            return msg.channel == msg.channel and (msg.author.id is msgAuthor)
+        msg = await client.wait_for("message", check=check)
+        await say(f"You gave the time: {msg.author}!")
+
+        roleobject = dis.utils.get(msg.guild.roles, id=730016083871793163)
+        await say(f"✅ Muted {user} for {duration}{unit}")
+        await user.add_roles(roleobject)
+        if unit == "s":
+            await asySleep(duration)
+        elif unit == "m":
+            await asySleep(60 * duration)
+        await user.remove_roles(roleobject)
+        await say(f"✅ {user} was unmuted") 
 
     elif args[0] == 'rps':
         if len(args)<2:
@@ -236,6 +269,8 @@ async def on_message(msg):
         quit()
     
     elif args[0] == 'aplsafeeval':
+        await say("This command is still a work in progress")
+        if isLinux: return
         if len(args)<2:
             await say('You need to give something for me to evaluate')
         else:

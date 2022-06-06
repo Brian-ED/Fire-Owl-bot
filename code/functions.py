@@ -1,7 +1,6 @@
 from random import randint
-from typing import List
 
-def commandHandler(prefix:str,cmd:str,commands:List[str])->str:
+def commandHandler(prefix:str,cmd:str,commands:list[str])->str:
     if cmd == prefix:
         cmd+='help'
     validityTable=[i.startswith(cmd[len(prefix):].lower()) for i in commands]
@@ -10,7 +9,7 @@ def commandHandler(prefix:str,cmd:str,commands:List[str])->str:
     else:
         return
 
-randItem=lambda i:i[randint(0,len(i)-1)]
+randItem:function=lambda i:i[randint(0,len(i)-1)]
 
 def rps(userChoice,botChoice):
     if userChoice == botChoice:
