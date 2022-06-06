@@ -41,8 +41,7 @@ adminCommands.sort()
 ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','test']
 ownerCommands.sort()
 
-global data,lastReplyTime,replyDelay
-data     :dict = fns.openR(datatxtPath)
+global lastReplyTime,replyDelay
 lastReplyTime = currentTime()
 replyDelay=10
 
@@ -73,10 +72,10 @@ async def on_message(msg):
     elif isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
     else:         commands = [i.lower() for i in userCommands]
     
-    global responses,reacts,data,lastReplyTime,replyDelay
+    global responses,reacts,lastReplyTime,replyDelay
 
-    if guildID not in data:
-        data[guildID]=fns.defaultGuildSettings
+    #if guildID not in data:
+    #    data[guildID]=fns.defaultGuildSettings
     
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
@@ -227,7 +226,6 @@ async def on_message(msg):
         os.system('git pull')
         os.system('cd '+codeDir)
         os.system("python3 main.py")
-        await say("done")
         await asySleep(0.5)
         quit()
     
