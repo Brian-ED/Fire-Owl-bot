@@ -7,16 +7,15 @@ import functions as fns
 from platform import platform
 from shutil import rmtree, copytree
 from time import perf_counter as currentTime
-from pynapl import APL
-apl=APL.APL()
-apl.eval("""
-         ⎕FIX 'file://C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/dyalog-safe-exec/Safe.dyalog'
-         ns←⎕NS ⍬
-         """)
-APLSafeEval=apl.fn("{1 ns Safe.Exec ⍵}")
+
+#from pynapl import APL
+#apl=APL.APL()
+#apl.eval("⎕FIX 'file://C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/Safe.dyalog'⋄ns←⎕NS ⍬")
+#APLSafeEval=apl.fn("{1 ns Safe.Exec ⍵}")
+
+client = dis.Client()
 
 isLinux = platform(True,True) != 'Windows-10'
-client = dis.Client()
 prefix = 'fo!'
 
 loc             = 'C:/Users/brian/Persinal/discBots/'
@@ -26,9 +25,10 @@ savestateDir    = loc+'data/Fire-Owl-data'
 extraDir        = loc+'Fire-Owl-bot/code/extra/'
 botDir          = loc+'Fire-Owl-bot/'
 codeDir         = botDir+'code/'
+datatxtPath     = extraDir+'data.txt'
 respondstxtPath = extraDir+'responds.txt'
 reactstxtPath   = extraDir+'reacts.txt'
-datatxtPath = extraDir+'data.txt'
+
 
 # load backup
 rmtree(extraDir)
@@ -36,15 +36,13 @@ copytree(savestateDir, extraDir)
 
 userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','APLSafeEval']
 userCommands.sort()
-adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','ChangeReplyDelay','ChannelIDs']
+adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','ChannelIDs','ChangeServerSettings']
 adminCommands.sort()
 ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','test']
 ownerCommands.sort()
 
-global responses,reacts,lastReplyTime,replyDelay
-responses:dict = fns.openR(respondstxtPath)
-reacts   :dict = fns.openR(reactstxtPath)
-data   :dict = fns.openR(reactstxtPath)
+global data,lastReplyTime,replyDelay
+data     :dict = fns.openR(datatxtPath)
 lastReplyTime = currentTime()
 replyDelay=10
 
@@ -54,6 +52,7 @@ async def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
+    print(f'In {len(client.guilds)} servers')
     print('------')
 
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
@@ -61,16 +60,23 @@ async def on_ready():
 async def on_message(msg):
     if msg.author.bot:return
 
-    say = msg.channel.send
+    guildID=msg.guild.id
+    say  = msg.channel.send
     args = msg.content.split(' ')
 
-    isOwner=msg.author.id== 671689100331319316
-    isAdmin=msg.guild.id == 497131548282191892 and msg.author.top_role.permissions.administrator or isOwner
+    isOwner = msg.author.id== 671689100331319316
+    if not isOwner:
+        return
+    isAdmin = msg.author.top_role.permissions.administrator or isOwner
     
     if   isOwner: commands = [i.lower() for i in userCommands+adminCommands+ownerCommands]
     elif isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
     else:         commands = [i.lower() for i in userCommands]
-    global responses,reacts,lastReplyTime,replyDelay
+    
+    global responses,reacts,data,lastReplyTime,replyDelay
+
+    if guildID not in data:
+        data[guildID]=fns.defaultGuildSettings
     
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
@@ -115,41 +121,32 @@ async def on_message(msg):
     elif args[0] == 'roll':
         if len(args)<2:
             r=randint(1,6)
-        elif len(args) == 2:
-            if '0'==args[1]:
-                r=random()
-            else:
-                r=randint(1,int(args[1]))
         else:
-            r=randint(int(args[1]),int(args[2]))
+            sum([i.isnumeric() for i in args[1:]])
+            if len(args) == 2:
+                if '0'==args[1]:
+                    r=random()
+                else:
+                    r=randint(1,int(args[1]))
+            else:
+                r=randint(int(args[1]),int(args[2]))
         await say(r)
 
+# Full command Code ^_^
     elif args[0] == 'newresponse':
-        try:
-            indexOf=args.index('replywith:')
-            isReact=0
-        except ValueError:
-            try:
-                indexOf=args.index('reactwith:')
-                isReact=1
-            except ValueError:
-                await say('You need to include " replywith: " or " reactwith: " in the message. Not both btw.')
+        d = {'replywith:': 'Reacts', 'reactwith:': 'Responses'}
+        for k in d:
+            if k in args:
+                indexOf=args.index(k)
+                KeyStr=' '.join(args[1:indexOf]).lower()
+                ValStr=' '.join(args[indexOf+1:])
+                data:dict = fns.openR(datatxtPath)
+                data[guildID][d[k]][KeyStr]=ValStr
+                fns.openW(datatxtPath,data)
+                await say(f'Alas it is done')
                 return
-
-        KeyStr=' '.join(args[1:indexOf]).lower()
-        ValStr=' '.join(args[indexOf+1:])
-
-        msg.channel
-        if isReact:
-            reacts=fns.openR(reactstxtPath)
-            reacts[KeyStr]=ValStr
-            fns.openW(reactstxtPath,reacts)
-        else:
-            responses=fns.openR(respondstxtPath)
-            responses[KeyStr]=ValStr
-            fns.openW(respondstxtPath,responses)
-
-        await say(f'Alas it is done')
+        await say('You need to include " replywith: " or " reactwith: " in the message. Not both btw.')
+        return
 
     elif args[0] == 'listresponses':
         await say('Responses: '+', '.join(list(responses.keys()))+'\nReacts: '+', '.join(list(reacts.keys())))
@@ -235,6 +232,8 @@ async def on_message(msg):
         quit()
     
     elif args[0] == 'aplsafeeval':
+        await say("Under maintanance")
+        return
         if len(args)<2:
             await say('You need to give something for me to evaluate')
         else:
@@ -283,12 +282,16 @@ async def on_message(msg):
         data=fns.openR(datatxtPath)
         reacts=fns.openR(reactstxtPath)
         responses=fns.openR(respondstxtPath)
-        data[497131548282191892]['Reacts']    = reacts
-        data[497131548282191892]['Responses'] = responses
+        data[831963301289132052]['Reacts']    = reacts
+        data[831963301289132052]['Responses'] = responses
         await say('New settings have now migrated')
     
     elif args[0] == 'ChannelIDs':
         print([[i.position,i.name,i.id] for i in msg.guild.text_channels])
+    else:
+        r=f'''Not a valid command. Use the help command "{prefix}help" if you're stuck'''
+        if isAdmin:
+            r+=f', or disable this message server wide by changing the server setting (see how to with "{prefix}help ChangeServerSettings")'
         
 
 with open(tokenPath, encoding='utf-8') as f:

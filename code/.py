@@ -1,9 +1,7 @@
 from pynapl import APL
 apl=APL.APL()
-apl.eval("""
-         ⎕FIX 'file://C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/dyalog-safe-exec/Safe.dyalog'
-         ns←⎕NS ⍬
-         """)
-APLSafeEval=apl.fn("{1 ns Safe.Exec ⍵}")
 
-print(APLSafeEval('100+111+1 2 3 4'))
+d = [['replywith:','Responses'],['reactwith:','Reacts']]
+dfn=apl.fn("{y x←⊃⍸⍺∘.≡⊃¨⍵⋄(⊂x⊃⊃∘⌽¨⍵),⍨¯1 0{|⍺:⍺⎕C⍵⋄⍵}¨{1↓∊' ',⍪⍵}¨⍺⊆⍨0@y⊢1⍴⍨≢⍺}")
+KeyStr,ValStr,k=dfn(args[1:],d)
+if ValStr: data[123][k][KeyStr]=ValStr
