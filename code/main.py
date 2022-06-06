@@ -12,7 +12,7 @@ print(1)
 from pynapl import APL
 print(2)
 if isLinux:
-    apl=APL.APL(dyalog='/opt/mdyalog/18.2/32/unicode/dyalog')
+    apl=APL.APL(dyalog='/usr/bin/dyalog')
     print(3)
 else:apl=APL.APL()
 print(4)
