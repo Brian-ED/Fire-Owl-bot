@@ -8,10 +8,10 @@ from platform import platform
 from shutil import rmtree, copytree
 from time import perf_counter as currentTime
 
-#from pynapl import APL
-#apl=APL.APL()
-#apl.eval("⎕FIX 'file://C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/Safe.dyalog'⋄ns←⎕NS ⍬")
-#APLSafeEval=apl.fn("{1 ns Safe.Exec ⍵}")
+from pynapl import APL
+apl=APL.APL()
+apl.eval("⎕FIX 'file://C:/Users/brian/Persinal/discBots/Fire-Owl-bot/code/Safe.dyalog'⋄ns←⎕NS ⍬")
+APLSafeEval=apl.fn("{1 ns Safe.Exec ⍵}")
 
 client = dis.Client()
 
@@ -230,8 +230,6 @@ async def on_message(msg):
         quit()
     
     elif args[0] == 'aplsafeeval':
-        await say("Under maintanance")
-        return
         if len(args)<2:
             await say('You need to give something for me to evaluate')
         else:
