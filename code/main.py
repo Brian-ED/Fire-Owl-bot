@@ -42,9 +42,19 @@ adminCommands.sort()
 ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','test']
 ownerCommands.sort()
 
-global lastReplyTime,replyDelay
+global lastReplyTime
 lastReplyTime = currentTime()
-replyDelay=10
+
+defaultGuildSettings={'prefix'          :'fo!',
+                      'Bot channels'    :[],
+                      'Replies channels':[],
+                      'Reacts channels' :[],
+                      'Reply delay'     :0,
+                      'Replies per min' :10,
+                      'Chance for reply':0,
+                      'Chance for react':0,
+                      'Reacts'          :fns.defaultReactsList,
+                      'Responses'       :fns.defaultResponsesList}
 
 @client.event
 async def on_ready():
@@ -55,25 +65,10 @@ async def on_ready():
     print(f'In {len(client.guilds)} servers')
     print('------')
 
-#defaultGuildSettings={'Prefix':'fo!',
-#                      'Bot channels: ':[],
-#                      'Replies channels: ':[],
-#                      'Reacts channels: ':[],
-#                      'Reply delay':0,
-#                      'How many replies in one min':10,
-#                      'Chance for reply':0,
-#                      'Chance for react':0,
-#                      'Reacts':defaultReactsList,
-#                      'Responses':defaultResponsesList}
-
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
 async def on_message(msg):
     if msg.author.bot:return
-
-    msgAuthor = msg.author.id
-    guildID   = msg.guild.id
-    prefix    = data[guildID]['Prefix']
 
     say  = msg.channel.send
     args = msg.content.split(' ')
@@ -87,26 +82,36 @@ async def on_message(msg):
     elif isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
     else:         commands = [i.lower() for i in userCommands]
     
-    global responses,reacts,lastReplyTime,replyDelay
+    global responses,reacts,lastReplyTime
 
+    data = fns.openR(datatxtPath)
     if guildID not in data:
         data[guildID]=fns.defaultGuildSettings
+        fns.openW(datatxtPath,data)
     
+    channelID   = msg.channel.id
+    msgAuthor   = msg.author.id
+    guildID     = msg.guild.id
+    prefix      = data[guildID]['Prefix']
+    BotChannels = data[guildID]['Bot channels']
+    replyDelay  = data[guildID]['Reply delay']
+
     if not args[0].startswith(prefix):
         argsL=[x.lower() for x in args]
-        for i in argsL:
-            if i in responses:
-                if lastReplyTime+replyDelay<currentTime():
-                    lastReplyTime=currentTime()
+        
+        if lastReplyTime+replyDelay<currentTime() or (channelID in BotChannels):
+            lastReplyTime=currentTime()
+            for i in argsL:
+                if i in responses:
                     await say(responses[i])
                     break
-                else: break
 
         for i in argsL:
             if i in reacts:
                 await msg.add_reaction(reacts[i])
                 break
         return
+
 
     args[0] = fns.commandHandler(prefix,args[0],commands)
 
