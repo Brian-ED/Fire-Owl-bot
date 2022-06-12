@@ -364,7 +364,7 @@ async def on_message(msg):
     
     elif args[0]=='setbotchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
-            data[guildID]['Bot channels']=[i.int for i in args[1:]]
+            data[guildID]['Bot channels']=[int(i) for i in args[1:]]
             save(data)
             r ='done'
         else:r='Not valid channel IDs'
