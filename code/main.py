@@ -6,7 +6,6 @@ from random import randint,random
 import functions as fns
 from platform import platform
 from shutil import rmtree, copytree
-from time import perf_counter as currentTime
 isLinux = platform(True,True) != 'Windows-10'
 from imports.zote import zoteQuotes
 
@@ -39,7 +38,7 @@ copytree(savestateDir, extraDir)
 
 userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','APLSafeEval','muteMyself']
 adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance']
-ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','test']
+ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','Testing']
 userCommands.sort()
 adminCommands.sort()
 ownerCommands.sort()
@@ -81,9 +80,9 @@ async def on_message(msg):
         await msg.channel.send("I don't work in DMs sadly.")
         return
 
-    say    = msg.channel.send
-    args   = msg.content.split(' ')
-    lArgs  = msg.content.lower().split(' ')
+    say     = msg.channel.send
+    args    = msg.content.split(' ')
+    lArgs   = msg.content.lower().split(' ')
     isOwner = msg.author.id == 671689100331319316
     isAdmin = msg.author.top_role.permissions.administrator or isOwner
 
@@ -315,7 +314,7 @@ async def on_message(msg):
     elif args[0] == 'listfiles':
         r=', '.join(os.listdir(extraDir))
     
-    elif args[0] == 'test':
+    elif args[0] == 'testing':
         if 'TEST' in [i.name for i in msg.guild.roles]:
             r='Role already exists'
         else:
@@ -371,14 +370,14 @@ async def on_message(msg):
 
     elif args[0]=='setreplychannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
-            data[guildID]['Replies channels']=args[1:]
+            data[guildID]['Replies channels']=[int(i) for i in args[1:]]
             save(data)
             r ='done'
         else:r='Not valid channel IDs'
     
     elif args[0]=='setreactchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
-            data[guildID]['Reacts channels']=args[1:]
+            data[guildID]['Reacts channels']=[int(i) for i in args[1:]]
             save(data)
             r ='done'
         else:r='Not valid channel IDs'
