@@ -6,14 +6,14 @@ from random import randint,random
 import functions as fns
 from platform import platform
 from shutil import rmtree, copytree
-isLinux = platform(True,True) != 'Windows-10'
 from imports.zote import zoteQuotes
+isLinux = platform(True,True) != 'Windows-10'
 
 # APL stuff::
 if not isLinux:
     from imports.pynapl import APL
     apl=APL.APL()
-    APLSafeEval=apl.fn("1 ns∘Safe.Exec")
+    APLSafeEval=apl.fn("⎕se.Dyalog.Utils.repObj 1 ns∘Safe.Exec")
     apl.eval("⎕FIX 'file://',¯1↓⊃1⎕NPARTS'./imports/safe.dyalog/'⋄ns←⎕NS ⍬")
 #apl=APL.APL(dyalog='/usr/bin/dyalog')
 
@@ -61,7 +61,7 @@ def save(data):
     fns.openW(datatxtPath,data)
 
 def randItem(i):
-    i[randint(0,len(i)-1)]
+    return i[randint(0,len(i)-1)]
 
 @client.event
 async def on_ready():
@@ -196,8 +196,8 @@ async def on_message(msg):
         r='You need to include " replywith: " or " reactwith: " in the message. Not both btw.'
 
     elif args[0] == 'listresponses':
-        r=f"""Responses: {', '.join(list(responses.keys()))}
-              Reacts: {', '.join(list(reacts.keys()))}"""
+        r='Responses: '+', '.join(list(responses.keys()))
+        r+='\nReacts: '+', '.join(list(reacts.keys()))
 
     elif args[0] == 'flip':
         r=msg.author.mention
@@ -238,7 +238,7 @@ async def on_message(msg):
         else: r='https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:])
     
     elif args[0] == 'info':
-        r=f"You're admin: {isAdmin}\nYou're owner: {isOwner}\nReplies cooldown: {replyDelay}"
+        r=f"You're admin: {isAdmin}\nYou're bot owner: {isOwner}\nReplies cooldown: {replyDelay}"
 
     elif args[0] == 'delresponse':
         try:
@@ -274,7 +274,7 @@ async def on_message(msg):
         quit()
     
     elif args[0] == 'aplsafeeval':
-        if isLinux:       r="This command is still a work in progress"
+        if isLinux:       r='This command is still a work in progress'
         elif len(args)<2: r='You need to give something for me to evaluate'
         else:             r=APLSafeEval(' '.join(args[1:]))
     
