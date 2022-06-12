@@ -382,6 +382,11 @@ async def on_message(msg):
             r ='done'
         else:r='Not valid channel IDs'
     
+    elif args[0]=='newsettings':
+        (data[guildID]['Responses'],data[guildID]['Reacts'])=[fns.openR(i) for i in [respondstxtPath,reactstxtPath]]
+        save(data)
+        r='done'
+    
     if r:await say(r)
 
 with open(tokenPath, encoding='utf-8') as f:

@@ -8,7 +8,7 @@ codeDir         = botDir+'code/'
 datatxtPath     = extraDir+'data.txt'
 respondstxtPath = extraDir+'responds.txt'
 reactstxtPath   = extraDir+'reacts.txt'
-import  functions as fns
+import functions as fns
 
 defaultGuildSettings={'Prefix'          :'fo!',
                       'Bot channels'    :[],

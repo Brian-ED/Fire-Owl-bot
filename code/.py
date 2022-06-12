@@ -1,7 +1,2 @@
-if 1:
-    if 1:
-        r=f"""
-        Responses:
-        Reacts: 
-        """
-print(r)
+x,y=[1,2]
+print(x,y)
