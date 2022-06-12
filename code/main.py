@@ -296,7 +296,7 @@ async def on_message(msg):
         asySleep(0.5)
         quit()
     
-    elif args[0] == 'changereplydelay':
+    elif args[0] == 'replydelay':
         if len(args)<2:               r='Remember to add a delay time in seconds'
         elif not args[1].isnumeric(): r='Time has to be an intiger number'
         else:
