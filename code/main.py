@@ -108,7 +108,7 @@ async def on_message(msg):
     reacts         = data[guildID]['Reacts']
     prefix         = data[guildID]['Prefix']
     replyDelay     = data[guildID]['Reply delay']
-    isBotChannel   = channelID in botChannels    or not botChannels
+    isBotChannel   = (channelID in botChannels)    or (not botChannels)
     isReplyChannel = channelID in replyChannels  or not replyChannels
     isReactChannel = channelID in reactsChannels or not reactsChannels
     chanceForReply = data[guildID]['Chance for reply']
