@@ -1,4 +1,5 @@
 loc             = 'C:/Users/brian/Persinal/discBots/'
+loc             = '../../'
 tokenPath       = loc+'Safe/Fire-Owl-bot.yaml'
 savestateDir    = loc+'data/Fire-Owl-data'
 extraDir        = loc+'Fire-Owl-bot/code/extra/'

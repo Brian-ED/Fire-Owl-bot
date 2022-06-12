@@ -8,6 +8,7 @@ from platform import platform
 from shutil import rmtree, copytree
 from time import perf_counter as currentTime
 isLinux = platform(True,True) != 'Windows-10'
+from imports.zote import zoteQuotes
 
 # APL stuff::
 if not isLinux:
@@ -37,10 +38,10 @@ rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
 userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','APLSafeEval','muteMyself']
-userCommands.sort()
-adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','ChannelIDs','ChangeSettings','Prefix','ReplyDelay','ReplyChance']
-adminCommands.sort()
+adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance']
 ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','test']
+userCommands.sort()
+adminCommands.sort()
 ownerCommands.sort()
 
 
@@ -289,7 +290,7 @@ async def on_message(msg):
         r='You backuped the files: '+', '.join(os.listdir(extraDir))
     
     elif args[0] == 'zote':
-        r=fns.zoteQuotes[randint(0,len(fns.zoteQuotes)-1)]
+        r=randItem(zoteQuotes)
 
     elif args[0] == 'emergencyquit':
         await say("I'm sorry for what i did :(\nBye lovely folks!")
@@ -383,14 +384,6 @@ async def on_message(msg):
         else:r='Not valid channel IDs'
     
     if r:await say(r)
-
-
-#defaultGuildSettings={,
-#                      'Chance for reply':1,
-#                      'Chance for react':1,
-#                      'Reacts'          :fns.defaultReactsList,
-#                      'Responses'       :fns.defaultResponsesList}
-                
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
