@@ -124,7 +124,7 @@ async def on_message(msg):
                     break
 
         global replyDelayList
-        if channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply:
+        if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:
             for i in lArgs:
                 if i in responses:
                     await say(responses[i])
