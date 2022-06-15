@@ -112,14 +112,14 @@ async def on_message(msg):
         if isReactChannel:
             for x in reacts:
                 if all(i in lArgs for i in x.split(' ')):
-                    await msg.add_reaction(reacts[i])
+                    await msg.add_reaction(reacts[x])
                     break
 
         global replyDelayList
         if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:   
             for x in responses:
                 if all(i in lArgs for i in x.split(' ')):
-                    await say(responses[i])
+                    await say(responses[x])
                     replyDelayList += [channelID]
                     await asySleep(replyDelay)
                     replyDelayList.remove(channelID)
