@@ -28,10 +28,13 @@ reactstxtPath   = extraDir+'reacts.txt'
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself'].sort()
-adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance'].sort()
-selectPeople  = {486619954745966594:['EmergencyQuit'].sort()}
-ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','Testing','Highlow','SettingAdded'].sort()
+userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
+adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance']
+selectPeople  = {486619954745966594:['EmergencyQuit']}
+ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','Testing','Highlow','SettingAdded']
+adminCommands.sort()
+userCommands.sort()
+ownerCommands.sort() 
 
 defaultGuildSettings={'Prefix'          :'fo!',
                       'Bot channels'    :[],
@@ -78,10 +81,12 @@ async def on_message(msg):
     channelID = msg.channel.id
     msgAuthor = msg.author.id
 
-    commands = userCommands
-    if isAdmin                  :commands += adminCommands
-    if isOwner                  :commands += ownerCommands+sum(list(selectPeople.values()),[])
+    commands = []
+    commands += userCommands
+    if isAdmin                    :commands += adminCommands
+    if isOwner                    :commands += ownerCommands+sum(list(selectPeople.values()),[])
     elif msgAuthor in selectPeople:commands += selectPeople[msgAuthor]
+    commands=[i.lower() for i in commands]
 
     data = fns.openR(datatxtPath)
     if guildID not in data:
@@ -95,14 +100,13 @@ async def on_message(msg):
     reacts         = data[guildID]['Reacts']
     prefix         = data[guildID]['Prefix']
     replyDelay     = data[guildID]['Reply delay']
+    chanceForReply = data[guildID]['Chance for reply']
     isBotChannel   = channelID in botChannels    or not botChannels
     isReplyChannel = channelID in replyChannels  or not replyChannels
     isReactChannel = channelID in reactsChannels or not reactsChannels
-    chanceForReply = data[guildID]['Chance for reply']
 
     # r will be the reply message
     r=''
-
     if not args[0].startswith(prefix):
 
         if isReactChannel:
@@ -124,7 +128,6 @@ async def on_message(msg):
 
     if not isBotChannel:
         return
-
     args[0] = fns.commandHandler(prefix,args[0],commands)
 
     if args[0] == 'help':

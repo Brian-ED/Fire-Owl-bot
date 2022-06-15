@@ -5,7 +5,7 @@ def commandHandler(prefix:str,cmd:str,commands:list[str])->str:
     if 1==sum(validityTable):
         return commands[validityTable.index(1)]
     else:
-        return
+        return ''
 
 def rps(userChoice,botChoice):
     if userChoice == botChoice:
