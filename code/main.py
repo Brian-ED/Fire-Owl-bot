@@ -28,7 +28,7 @@ reactstxtPath   = extraDir+'reacts.txt'
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
+userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
 adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance']
 selectPeople  = {486619954745966594:['EmergencyQuit']}
 ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','Testing','Highlow','SettingAdded']
@@ -110,15 +110,15 @@ async def on_message(msg):
     if not args[0].startswith(prefix):
 
         if isReactChannel:
-            for i in lArgs:
-                if i in reacts:
+            for i in reacts:
+                if i in ' '.join(lArgs):
                     await msg.add_reaction(reacts[i])
                     break
 
         global replyDelayList
-        if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:
-            for i in lArgs:
-                if i in responses:
+        if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:   
+            for i in responses:
+                if i in ' '.join(lArgs):
                     await say(responses[i])
                     replyDelayList += [channelID]
                     await asySleep(replyDelay)
