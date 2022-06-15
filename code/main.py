@@ -6,16 +6,8 @@ from random import randint,random
 import functions as fns
 from platform import platform
 from shutil import rmtree, copytree
-from imports.zote import zoteQuotes
+from imports.vars import zoteQuotes,defaultReactsList,defaultResponsesList
 isLinux = platform(True,True) != 'Windows-10'
-
-# APL stuff::
-if not isLinux:
-    from imports.pynapl import APL
-    apl=APL.APL()
-    APLSafeEval=apl.fn("⎕se.Dyalog.Utils.repObj 1 ns∘Safe.Exec")
-    apl.eval("⎕FIX 'file://',¯1↓⊃1⎕NPARTS'./imports/safe.dyalog/'⋄ns←⎕NS ⍬")
-#apl=APL.APL(dyalog='/usr/bin/dyalog')
 
 prefix = 'fo!' 
 client = dis.Client()
@@ -36,13 +28,10 @@ reactstxtPath   = extraDir+'reacts.txt'
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','APLSafeEval','muteMyself']
-adminCommands = ['NewResponse','DelResponse','DelReact','EmergencyQuit','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance']
-ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','Testing']
-userCommands.sort()
-adminCommands.sort()
-ownerCommands.sort()
-
+userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','yt','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself'].sort()
+adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance'].sort()
+selectPeople  = {486619954745966594:['EmergencyQuit'].sort()}
+ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','Testing','Highlow','SettingAdded'].sort()
 
 defaultGuildSettings={'Prefix'          :'fo!',
                       'Bot channels'    :[],
@@ -51,8 +40,8 @@ defaultGuildSettings={'Prefix'          :'fo!',
                       'Reply delay'     :0,
                       'Replies per min' :10,
                       'Chance for reply':1,
-                      'Reacts'          :fns.defaultReactsList,
-                      'Responses'       :fns.defaultResponsesList}
+                      'Reacts'          :defaultReactsList,
+                      'Responses'       :defaultResponsesList}
 
 global replyDelayList
 replyDelayList=[]
@@ -80,26 +69,25 @@ async def on_message(msg):
         await msg.channel.send("I don't work in DMs sadly.")
         return
 
-    say     = msg.channel.send
-    args    = msg.content.split(' ')
-    lArgs   = msg.content.lower().split(' ')
-    isOwner = msg.author.id == 671689100331319316
-    isAdmin = msg.author.top_role.permissions.administrator or isOwner
+    say       = msg.channel.send
+    args      = msg.content.split(' ')
+    lArgs     = msg.content.lower().split(' ')
+    isOwner   = msg.author.id == 671689100331319316
+    isAdmin   = msg.author.top_role.permissions.administrator or isOwner
+    guildID   = msg.guild.id
+    channelID = msg.channel.id
+    msgAuthor = msg.author.id
 
-    if   isOwner: commands = [i.lower() for i in userCommands+adminCommands+ownerCommands]
-    elif isAdmin: commands = [i.lower() for i in userCommands+adminCommands]
-    else:         commands = [i.lower() for i in userCommands]
-    
-
-    guildID     = msg.guild.id
-    channelID   = msg.channel.id
-    msgAuthor   = msg.author.id
+    commands = userCommands
+    if isAdmin                  :commands += adminCommands
+    if isOwner                  :commands += ownerCommands+sum(list(selectPeople.values()),[])
+    elif msgAuthor in selectPeople:commands += selectPeople[msgAuthor]
 
     data = fns.openR(datatxtPath)
     if guildID not in data:
         data[guildID]=defaultGuildSettings
         save(data)
-    
+
     botChannels    = data[guildID]['Bot channels']
     reactsChannels = data[guildID]['Reacts channels']
     replyChannels  = data[guildID]['Replies channels']
@@ -107,7 +95,7 @@ async def on_message(msg):
     reacts         = data[guildID]['Reacts']
     prefix         = data[guildID]['Prefix']
     replyDelay     = data[guildID]['Reply delay']
-    isBotChannel   = (channelID in botChannels)    or (not botChannels)
+    isBotChannel   = channelID in botChannels    or not botChannels
     isReplyChannel = channelID in replyChannels  or not replyChannels
     isReactChannel = channelID in reactsChannels or not reactsChannels
     chanceForReply = data[guildID]['Chance for reply']
@@ -238,22 +226,29 @@ async def on_message(msg):
         else: r='https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:])
     
     elif args[0] == 'info':
-        r=f"You're admin: {isAdmin}\nYou're bot owner: {isOwner}\nReplies cooldown: {replyDelay}"
+        r=f"""
+        You're admin: {isAdmin}
+        You're bot owner: {isOwner}
+        Replies cooldown: {replyDelay}
+        {isBotChannel=}, {isReplyChannel=}, {isReactChannel=}
+        """
 
     elif args[0] == 'delresponse':
-        try:
-            data[guildID]['Responses'].pop(' '.join(args[1:]))
+        ValStr=' '.join(args[1:])
+        if ValStr in responses:
+            del data[guildID]['Responses'][' '.join(args[1:])]
             save(data)
             r=('deleted')
-        except:
+        else:
             r="Reply doesn't exist"
     
     elif args[0] == 'delreact' and isOwner:
-        try:
-            data[guildID]['Reacts'].pop(' '.join(args[1:]))
+        ValStr=' '.join(args[1:])
+        if ValStr in reacts:
+            del data[guildID]['Reacts'][' '.join(args[1:])]
             save(data)
             r='deleted'
-        except:
+        else:
             r="reply doesn't exist"
 
     elif args[0] == 'update' and isOwner and isLinux:
@@ -261,23 +256,16 @@ async def on_message(msg):
 
         rmtree(savestateDir)
         copytree(extraDir, savestateDir)
-
         await asySleep(.5)
-        
         os.system('cd '+botDir)
         os.system('git reset --hard')
         os.system('git clean -fd')
         os.system('git pull')
         os.system('cd '+codeDir)
-        os.system("python3 main.py")
+        os.system('python3 main.py')
         await asySleep(0.5)
         quit()
-    
-    elif args[0] == 'aplsafeeval':
-        if isLinux:       r='This command is still a work in progress'
-        elif len(args)<2: r='You need to give something for me to evaluate'
-        else:             r=APLSafeEval(' '.join(args[1:]))
-    
+
     elif args[0] == 'restorebackup':
         rmtree(extraDir)
         copytree(savestateDir, extraDir)
@@ -387,6 +375,45 @@ async def on_message(msg):
         save(data)
         r='done'
     
+    elif args[0]=='highlow':
+        if len(args)>1 and args[1].isnumeric():
+            correct=randint(1,args[1])
+            await say(f'Game started. Guess a number between 1-{args[1]}')
+        else:
+            correct=randint(1,100)
+            await say('Game started. Guess a number between 1-100')
+        
+        def check(msg):
+            return msg.channel.id == channelID and\
+            msg.author.id == msgAuthor and\
+            msg.content.isnumeric()
+        
+        guess=-1
+        while guess!=correct:
+            guess = int(await client.wait_for("message", check=check).content)
+            if   guess<correct:
+                await say('Higher!')
+            elif guess>correct:
+                await say('Lower!')
+        r='You won!'
+    
+    elif args[0]=='SettingAdded':
+        for i in defaultGuildSettings:
+            for j in data.values():
+                if i not in j:
+                    for y in data:
+                        data[y][i]=defaultGuildSettings[i]
+        r='Done. Updated settings'
+    
+    elif args[0]=='eval':
+        if len(args)>2:
+            r='This requires two arguments minimum'
+        else:
+            await say('running')
+            eval(' '.join(args[1:]))
+            r='Run sucsessfully'
+
+
     if r:await say(r)
 
 with open(tokenPath, encoding='utf-8') as f:

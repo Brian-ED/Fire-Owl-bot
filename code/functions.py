@@ -1,5 +1,3 @@
-from random import randint
-
 def commandHandler(prefix:str,cmd:str,commands:list[str])->str:
     if cmd == prefix:
         cmd+='help'
@@ -32,7 +30,3 @@ def openR(path):
 def openW(path:str,value):
     with open(path, "w", encoding="utf-8") as f:
         f.write(str(value))
-
-defaultReactsList={'<#523899469960445962>': '🤓', 'ban': '<:bongo_ban:907103281040482375>', 'deeztopia': '<:KEKW:854415812534468627>'}
-
-defaultResponsesList={'sad': 'https://cdn.discordapp.com/attachments/524028403922501643/967264997099077724/trim.CB4E854B-055F-4F93-8A1C-FFA9E7AFEF00.mov'}
