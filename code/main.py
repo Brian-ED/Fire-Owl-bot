@@ -173,7 +173,7 @@ async def on_message(msg):
                 r=randint(int(args[1]),int(args[2]))
 
     elif args[0] == 'newresponse':
-        d = {'replywith:': 'Reacts', 'reactwith:': 'Responses'}
+        d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
         for k in d:
             if k in args:
                 indexOf=args.index(k)
