@@ -1,4 +1,5 @@
 from asyncio import sleep as asySleep
+from dataclasses import dataclass
 import os
 import discord as dis
 import yaml
@@ -6,6 +7,7 @@ from random import randint,random
 import functions as fns
 from platform import platform
 from shutil import rmtree, copytree
+from dataclasses import dataclass
 from imports.vars import zoteQuotes,defaultReactsList,defaultResponsesList
 isLinux = platform(True,True) != 'Windows-10'
 
@@ -30,7 +32,7 @@ copytree(savestateDir, extraDir)
 
 userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
 adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance']
-selectPeople  = {486619954745966594:['EmergencyQuit']}
+vip           = {486619954745966594:['EmergencyQuit']}
 adminCommands.sort()
 userCommands.sort()
 
@@ -69,43 +71,42 @@ async def on_ready():
 @client.event
 async def on_message(msg):
     if msg.author.bot:return
-    if not msg.guild:
-        await msg.channel.send("I don't work in DMs sadly.")
-        return
-
-    say       = msg.channel.send
-    args      = msg.content.split(' ')
-    lArgs     = msg.content.lower().split(' ')
-    isOwner   = msg.author.id == 671689100331319316
-    isAdmin   = msg.author.top_role.permissions.administrator or isOwner
-    guildID   = msg.guild.id
-    channelID = msg.channel.id
-    msgAuthor = msg.author.id
-
-    commands = []
-    commands += userCommands
-    if isAdmin                    :commands += adminCommands
-    if isOwner                    :commands += ownerCommands+sum(list(selectPeople.values()),[])
-    elif msgAuthor in selectPeople:commands += selectPeople[msgAuthor]
-    commands=[i.lower() for i in commands]
+    if not msg.guild: return await msg.channel.send("I don't work in DMs sadly.")
 
     data = fns.openR(datatxtPath)
-    if guildID not in data:
-        data[guildID]=defaultGuildSettings
+    if msg.guild.id not in data:
+        data[msg.guild.id]=defaultGuildSettings
         save(data)
 
-    botChannels    = data[guildID]['Bot channels']
-    reactsChannels = data[guildID]['Reacts channels']
-    replyChannels  = data[guildID]['Replies channels']
-    responses      = data[guildID]['Responses']
-    reacts         = data[guildID]['Reacts']
-    prefix         = data[guildID]['Prefix']
-    replyDelay     = data[guildID]['Reply delay']
-    chanceForReply = data[guildID]['Chance for reply']
-    isBotChannel   = channelID in botChannels    or not botChannels
-    isReplyChannel = channelID in replyChannels  or not replyChannels
-    isReactChannel = channelID in reactsChannels or not reactsChannels
+    @dataclass
+    class c: 
+        say            = msg.channel.send
+        args           = msg.content.split(' ')
+        lArgs          = msg.content.lower().split(' ')
+        isOwner        = msg.author.id == 671689100331319316
+        isAdmin        = msg.author.top_role.permissions.administrator or isOwner
+        guildID        = msg.guild.id
+        channelID      = msg.channel.id
+        msgAuthor      = msg.author.id
 
+        
+        commands = userCommands[:]
+        if isOwner          :commands += ownerCommands+sum(list(selectPeople.values()),[])
+        elif isAdmin        :commands += adminCommands
+        if msgAuthor in vip :commands += vip[msgAuthor]
+        commands=[i.lower() for i in commands]
+
+        botChannels    = data[guildID]['Bot channels']
+        reactsChannels = data[guildID]['Reacts channels']
+        replyChannels  = data[guildID]['Replies channels']
+        responses      = data[guildID]['Responses']
+        reacts         = data[guildID]['Reacts']
+        prefix         = data[guildID]['Prefix']
+        replyDelay     = data[guildID]['Reply delay']
+        chanceForReply = data[guildID]['Chance for reply']
+        isBotChannel   = channelID in botChannels    or not botChannels
+        isReplyChannel = channelID in replyChannels  or not replyChannels
+        isReactChannel = channelID in reactsChannels or not reactsChannels
     # r will be the reply message
     r=''
     if not args[0].startswith(prefix):

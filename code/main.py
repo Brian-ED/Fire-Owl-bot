@@ -167,10 +167,8 @@ async def on_message(msg):
             if len(args) == 2:
                 if '0'==args[1]:
                     r=random()
-                else:
-                    r=randint(1,int(args[1]))
-            else:
-                r=randint(int(args[1]),int(args[2]))
+                else:r=randint(1,int(args[1]))
+            else:    r=randint(int(args[1]),int(args[2]))
 
     elif args[0] == 'newresponse':
         d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
@@ -245,7 +243,7 @@ async def on_message(msg):
         else:
             r="Reply doesn't exist"
     
-    elif args[0] == 'delreact' and isOwner:
+    elif args[0] == 'delreact':
         ValStr=' '.join(args[1:])
         if ValStr in reacts:
             del data[guildID]['Reacts'][' '.join(args[1:])]

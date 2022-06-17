@@ -1,9 +1,8 @@
-mat = [
-    ['D', 'E', 'M', 'X', 'B'],
-    ['A', 'O', 'E', 'P', 'E'],
-    ['D', 'D', 'C', 'O', 'D'],
-    ['E', 'B', 'E', 'D', 'S'],
-    ['C', 'P', 'Y', 'E', 'N']
-]
+a=[1,2,3,4]
+print(id(a))
+b=a[:]
+b+=[5]
 
-print(mat[0])
+print(a)
+print(id(a))
+print(id(b))
