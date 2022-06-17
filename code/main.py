@@ -125,8 +125,7 @@ async def on_message(msg):
                         embedVar.add_field(name='*', value=responses[x][1000:2000], inline=False,)
                         if len(responses[x])>2000:embedVar.add_field(name='*', value=responses[x][2000:3000], inline=False,)
                         await msg.channel.send(embed=embedVar)
-                    else:
-                        await say(responses[x])
+                    else: await say(responses[x])
                     replyDelayList += [channelID]
                     await asySleep(replyDelay)
                     replyDelayList.remove(channelID)
