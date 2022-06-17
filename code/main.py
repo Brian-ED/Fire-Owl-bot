@@ -119,7 +119,14 @@ async def on_message(msg):
         if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:   
             for x in responses:
                 if all(i in lArgs for i in x.split(' ')):
-                    await say(responses[x])
+                    if 1000<len(responses[x]):
+                        embedVar = dis.Embed(color=0x336EFF)
+                        embedVar.add_field(name='*', value=responses[x][:1000], inline=False,)
+                        embedVar.add_field(name='*', value=responses[x][1000:2000], inline=False,)
+                        if len(responses[x])>2000:embedVar.add_field(name='*', value=responses[x][2000:3000], inline=False,)
+                        await msg.channel.send(embed=embedVar)
+                    else:
+                        await say(responses[x])
                     replyDelayList += [channelID]
                     await asySleep(replyDelay)
                     replyDelayList.remove(channelID)
@@ -252,7 +259,7 @@ async def on_message(msg):
         else:
             r="reply doesn't exist"
 
-    elif args[0] == 'update' and isOwner and isLinux:
+    elif args[0] == 'update' and isLinux:
         await say("updating...")
 
         rmtree(savestateDir)
@@ -293,7 +300,7 @@ async def on_message(msg):
             data[guildID]['Reply delay'] = int(args[1])
             save(data)
 
-    elif args[0] == 'makefile' and isOwner:
+    elif args[0] == 'makefile':
         if len(args)<3:
             r=f'Not correct syntax\n{prefix}makefile <fileName> <contents>'
         else:
