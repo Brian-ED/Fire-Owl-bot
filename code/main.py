@@ -73,7 +73,7 @@ async def on_message(msg):
         await msg.channel.send("I don't work in DMs sadly.")
         return
 
-    def say(i): msg.channel.send(i)
+    async def say(i): await msg.channel.send(i)
     args      = msg.content.split(' ')
     lArgs     = msg.content.lower().split(' ')
     isOwner   = msg.author.id == 671689100331319316
