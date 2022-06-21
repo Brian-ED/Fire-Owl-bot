@@ -29,7 +29,7 @@ rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
 userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
-adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance']
+adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance','ToggleReactSpam']
 selectPeople  = {486619954745966594:['EmergencyQuit']}
 ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','Testing','Highlow','SettingAdded']
 adminCommands.sort()
@@ -44,7 +44,8 @@ defaultGuildSettings={'Prefix'          :'fo!',
                       'Replies per min' :10,
                       'Chance for reply':1,
                       'Reacts'          :defaultReactsList,
-                      'Responses'       :defaultResponsesList}
+                      'Responses'       :defaultResponsesList,
+                      'React spam'      :0}
 
 global replyDelayList
 replyDelayList=[]
@@ -114,6 +115,12 @@ async def on_message(msg):
                 if all(i in lArgs for i in x.split(' ')):
                     await msg.add_reaction(reacts[x])
                     break
+            if data[guildID]['React spam']:
+                for i in args:
+                    if i in [i.name for i in client.emojis]:
+                        await msg.add_reaction(f'<:{i}:{dis.utils.get(client.emojis,name=i).id}>')
+                if 'star' in args:
+                    await msg.add_reaction('⭐')
 
         global replyDelayList
         if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:   
@@ -198,6 +205,11 @@ async def on_message(msg):
         r=msg.author.mention
         if randint(0,1):r+=' heads'
         else:           r+=' tails'
+    
+    elif args[0] == 'togglereactspam':
+        data[guildID]['React spam'] = not data[guildID]['React spam']
+        save(data)
+        r=f'Set to {bool(data[guildID]["React spam"])}'
 
     elif args[0] == 'rps':
         if len(args)<2:
@@ -310,52 +322,55 @@ async def on_message(msg):
         r=', '.join(os.listdir(extraDir))
     
     elif args[0] == 'testing':
-        if 'TEST' in [i.name for i in msg.guild.roles]:
-            r='Role already exists'
-        else:
-            await msg.guild.create_role(name="TEST", colour=dis.Colour.from_rgb(0,0,0))
-            r='Made role'
+        ''
+
     elif args[0] == 'mutemyself':
         if not isOwner: return
-        if len(args)<2:
-            await say(f"Wrong syntax. Please rephrase the command like so:\n{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>\nThey can be in any order you'd like :D")
-        def check(msg):
-            return msg.channel == msg.channel and msg.author.id == msgAuthor
+        if len(args)<2: return await say(f"""Wrong syntax. Please rephrase the command like so:\n{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>\nThey can be in any order you'd like :D""")
+        
+        muteDuration=0
+        timeUnits={'s':1,'m':60,'h':3600,'d':86400}
+        for i in lArgs [1:]:
+            if i[-1] in timeUnits and i[:-1].isnumeric():
+                muteDuration+=int(i[:-1])*timeUnits[i[-1]]
+            else: return await say(f'**** hit the fan. Huston we have a problem!.. Or you just inputted wrong idk.\nCorrect syntax with numbers+unit in any order is:\n{prefix}MuteMyself 3d 4h 5m 2s')
 
-        msg = await client.wait_for("message", check=check)
-        await say(msg)
+        if not muteDuration: return await say('The time values you provided totalled 0')
 
-        if isLinux:
-            await say("work in progress")
-            return
-        await say('Alright will do. For how many hours?')
+        muteRoleName='MUTED(by Fire-Bot)'
 
-        def check(msg):
-            return msg.channel == msg.channel and msg.author.id == msgAuthor
+        def getMuteRoleObj():
+            return dis.utils.get(
+                msg.guild.roles,
+                name=muteRoleName, 
+                colour=dis.colour.Color.dark_gray(),
+                permissions=dis.Permissions(permissions=0)
+            )
+        roleobject = getMuteRoleObj()
+        
+        if roleobject is None:
+            await msg.guild.create_role(
+                name=muteRoleName, 
+                colour=dis.colour.Color.dark_gray(),
+                permissions=dis.Permissions(permissions=0)
+            )
 
-        msg = await client.wait_for("message", check=check)
-        await say(f"You gave the time: {msg.author}!")
-        await client.create_role(msg.author.server, name="MUTED-9352",
-                                 colour=dis.Colour(0),
-                                 permissions=dis.Permissions(permissions=''))
+        roleobject = getMuteRoleObj()
 
-        user = msg.author
-        role = dis.utils.get(user.server.roles, name="MUTED-9352")
-        await client.add_roles(user, role)
+        await say(f"Done. Muted {msg.author.name} for {args[1:]} ({muteDuration} seconds)")
+        await msg.author.add_roles(roleobject)
+        await asySleep(muteDuration)
+        await msg.author.remove_roles(roleobject)
+        r = f"✅ {msg.author.name} was unmuted"
 
-        roleobject = dis.utils.get(msg.guild.roles, id=730016083871793163)
-        await say(f"✅ Muted {msg.author.name} for {duration}{unit}")
-        await user.add_roles(roleobject)
-        if unit == "s":
-            await asySleep(duration)
-        elif unit == "m":
-            await asySleep(60 * duration)
-        await user.remove_roles(roleobject)
-        await say(f"✅ {user} was unmuted")
-    
     elif args[0] == 'channelids':
-        r=[[i.position,i.name,i.id] for i in msg.guild.text_channels]
-    
+        channelsList=[(str(1+i.position),i.name,str(i.id)) for i in msg.guild.text_channels]
+        lengthEach = [len(' '.join(i)) for i in channelsList]
+        formatedCmdsList='\n'.join(map((lambda x, y,:f"{' '.join(x[:-1])}{y*' '} {x[-1]}"),channelsList,(max(lengthEach)-i for i in lengthEach)))
+        print(lengthEach)
+        print()
+        r=f'```pos, name, {" "*(max([29]+lengthEach)-29)}ID:\n{formatedCmdsList}```'
+
     elif args[0]=='setbotchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Bot channels']=[int(i) for i in args[1:]]
@@ -404,21 +419,25 @@ async def on_message(msg):
                 await say('Lower!')
         r='You won!'
     
-    elif args[0]=='SettingAdded':
+    elif args[0]=='settingadded':
         for i in defaultGuildSettings:
             for j in data.values():
                 if i not in j:
                     for y in data:
                         data[y][i]=defaultGuildSettings[i]
+                    save(data)
+                break
         r='Done. Updated settings'
-    
+
     elif args[0]=='eval':
-        if len(args)>2:
+        if len(args)<2:
             r='This requires two arguments minimum'
         else:
             await say('running')
             eval(' '.join(args[1:]))
             r='Run sucsessfully'
+    
+    # make an import react/response x from other discords command
 
 
     if r:await say(r)

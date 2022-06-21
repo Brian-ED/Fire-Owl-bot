@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from imports.vars import zoteQuotes,defaultReactsList,defaultResponsesList
 isLinux = platform(True,True) != 'Windows-10'
 
-prefix = 'fo!' 
 client = dis.Client()
 
 loc             = 'C:/Users/brian/Persinal/discBots/'
@@ -58,6 +57,32 @@ def randItem(i):
 async def say():
     raise "say wasn't defined properly"
 
+class c: 
+
+    def say(x:str):''
+    args            :list[str]
+    lArgs           :list[str]
+    isOwner         :bool
+    isAdmin         :bool
+    guildID         :int
+    channelID       :int
+    msgAuthor       :int
+    data            :dict
+    gData           :dict
+    commands        :list[str]
+    botChannels     :list[int]
+    reactsChannels  :list[int]
+    replyChannels   :list[int]
+    responses       :list[str]
+    reacts          :list[str]
+    prefix          :str
+    replyDelay      :int
+    chanceForReply  :float
+    isBotChannel    :bool
+    isReplyChannel  :bool
+    isReactChannel  :bool
+
+
 @client.event
 async def on_ready():
     await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
@@ -73,13 +98,9 @@ async def on_message(msg):
     if msg.author.bot:return
     if not msg.guild: return await msg.channel.send("I don't work in DMs sadly.")
 
-    data = fns.openR(datatxtPath)
-    if msg.guild.id not in data:
-        data[msg.guild.id]=defaultGuildSettings
-        save(data)
-
     @dataclass
     class c: 
+    
         say            = msg.channel.send
         args           = msg.content.split(' ')
         lArgs          = msg.content.lower().split(' ')
@@ -89,10 +110,15 @@ async def on_message(msg):
         channelID      = msg.channel.id
         msgAuthor      = msg.author.id
 
+        data = fns.openR(datatxtPath)
+        if channelID not in data:
+            data[channelID]=defaultGuildSettings
+            save(data)
+        gData           = data[guildID]
         
         commands = userCommands[:]
-        if isOwner          :commands += ownerCommands+sum(list(selectPeople.values()),[])
-        elif isAdmin        :commands += adminCommands
+        if isOwner          :commands += ownerCommands+sum(list(vip.values()),[])
+        elif isAdmin        :commands += adminCommandsw
         if msgAuthor in vip :commands += vip[msgAuthor]
         commands=[i.lower() for i in commands]
 
@@ -109,28 +135,16 @@ async def on_message(msg):
         isReactChannel = channelID in reactsChannels or not reactsChannels
     # r will be the reply message
     r=''
-    if not args[0].startswith(prefix):
+    if c.args[0].startswith(c.prefix):
+        # HandleCommand()
+        handleCommand()
+    else:
+        # Handle responses and such
+        handleElse(c)
 
-        if isReactChannel:
-            for x in reacts:
-                if all(i in lArgs for i in x.split(' ')):
-                    await msg.add_reaction(reacts[x])
-                    break
-
-        global replyDelayList
-        if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:   
-            for x in responses:
-                if all(i in lArgs for i in x.split(' ')):
-                    await say(responses[x])
-                    replyDelayList += [channelID]
-                    await asySleep(replyDelay)
-                    replyDelayList.remove(channelID)
-                    break
+    if not c.isBotChannel:
         return
-
-    if not isBotChannel:
-        return
-    args[0] = fns.commandHandler(prefix,args[0],commands)
+    c.args[0] = fns.commandHandler(c.prefix,c.args[0],c.commands)
 
     if args[0] in commands:
         await msg.add_reaction('✅')
@@ -141,9 +155,10 @@ async def on_message(msg):
         if isAdmin: r+='\n\nList of admin commands: '+', '.join(adminCommands)
         if isOwner: r+='\n\nList of owner commands: '+', '.join(ownerCommands)
 
-    elif args[0] == 'prefix':
-        if len(args)<2:
-            r=f'Current prefix: "{prefix}".'
+    elif c.args[0] == 'prefix':
+        if len(c.args)<2:
+            r=f'Current prefix: "{c.prefix}".'
+        elif ' ' in c.args[1]: r="Can't have a prefix containing a space"
         else:
             data[guildID]['Prefix']=args[1]
             save(data)
@@ -409,7 +424,6 @@ async def cHighlow(F:list)->str:
             await say('Lower!')
     r='You won!'
 
-
 async def cSettingAdded(data:dict)->str:
     for i in defaultGuildSettings:
         for j in data.values():
@@ -424,9 +438,14 @@ async def cEval(args:list[str])->str:
     else:
         try:return eval(' '.join(args[1:]))
         except: return 'errored'
-    
+
 ownerCommands = {'Update':0,'MakeFile':0,'ListFiles':0,'Backup':0,'RestoreBackup':0,'NewSettings':0,'Testing':0,'Highlow':0,'SettingAdded':cSettingAdded,'Eval':cEval}
 
+async def handleElse(c):
+    image.png
+
+
+    
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
