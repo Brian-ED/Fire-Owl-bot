@@ -117,10 +117,8 @@ async def on_message(msg):
                     break
             if data[guildID]['React spam'] and isBotChannel:
                 for i in args:
-                    if i in [i.name for i in client.emojis]:
+                    if i in [i.name.lower for i in client.emojis]:
                         await msg.add_reaction(f'<:{i}:{dis.utils.get(client.emojis,name=i).id}>')
-                if 'star' in args:
-                    await msg.add_reaction('⭐')
 
         global replyDelayList
         if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:   
@@ -367,8 +365,7 @@ async def on_message(msg):
         channelsList=[(str(1+i.position),i.name,str(i.id)) for i in msg.guild.text_channels]
         lengthEach = [len(' '.join(i)) for i in channelsList]
         formatedCmdsList='\n'.join(map((lambda x, y,:f"{' '.join(x[:-1])}{y*' '} {x[-1]}"),channelsList,(max(lengthEach)-i for i in lengthEach)))
-        print(lengthEach)
-        print()
+        await say(len(channelsList))
         r=f'```pos, name, {" "*(max([29]+lengthEach)-29)}ID:\n{formatedCmdsList}```'
 
     elif args[0]=='setbotchannels':
