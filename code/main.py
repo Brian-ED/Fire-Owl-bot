@@ -31,7 +31,7 @@ copytree(savestateDir, extraDir)
 userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
 adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance','ToggleReactSpam']
 selectPeople  = {486619954745966594:['EmergencyQuit']}
-ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','Testing','Highlow','SettingAdded']
+ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','eval','Testing','Highlow','SettingAdded']
 adminCommands.sort()
 userCommands.sort()
 ownerCommands.sort() 
@@ -431,9 +431,7 @@ async def on_message(msg):
         if len(args)<2:
             r='This requires two arguments minimum'
         else:
-            await say('running')
-            eval(' '.join(args[1:]))
-            r='Run sucsessfully'
+            r=eval(' '.join(args[1:]))
     
     # make an import react/response x from other discords command
 
