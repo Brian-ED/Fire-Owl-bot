@@ -115,7 +115,7 @@ async def on_message(msg):
                 if all(i in lArgs for i in x.split(' ')):
                     await msg.add_reaction(reacts[x])
                     break
-            if data[guildID]['React spam']:
+            if data[guildID]['React spam'] and isBotChannel:
                 for i in args:
                     if i in [i.name for i in client.emojis]:
                         await msg.add_reaction(f'<:{i}:{dis.utils.get(client.emojis,name=i).id}>')
