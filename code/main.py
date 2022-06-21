@@ -362,11 +362,12 @@ async def on_message(msg):
         r = f"✅ {msg.author.name} was unmuted"
 
     elif args[0] == 'channelids':
-        await say(len(channelsList))
         channelsList=[(str(1+i.position),i.name,str(i.id)) for i in msg.guild.text_channels]
         lengthEach = [len(' '.join(i)) for i in channelsList]
         formatedCmdsList='\n'.join(map((lambda x, y,:f"{' '.join(x[:-1])}{y*' '} {x[-1]}"),channelsList,(max(lengthEach)-i for i in lengthEach)))
         r=f'```pos, name, {" "*(max([29]+lengthEach)-29)}ID:\n{formatedCmdsList}```'
+        if len(r)>2000:
+            r=r[:1990]+'```'
 
     elif args[0]=='setbotchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
