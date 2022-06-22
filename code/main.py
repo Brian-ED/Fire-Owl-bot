@@ -243,12 +243,11 @@ async def on_message(msg):
         else: r='https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:])
     
     elif args[0] == 'info':
-        r=f"""
-        You're admin: {isAdmin}
-        You're bot owner: {isOwner}
-        Replies cooldown: {replyDelay}
-        {isBotChannel=}, {isReplyChannel=}, {isReactChannel=}
-        """
+        r='\n'.join((
+        "You're admin:"+isAdmin,
+        "You're bot owner:"+isOwner,
+        'Replies cooldown:'+replyDelay,
+        f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}'))
 
     elif args[0] == 'delresponse':
         ValStr=' '.join(args[1:])
