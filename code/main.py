@@ -325,7 +325,6 @@ async def on_message(msg):
         ''
 
     elif args[0] == 'mutemyself':
-        if not isOwner: return
         if len(args)<2: return await say('\n'.join(
             'Wrong syntax. Please rephrase the command like so:',
             f'{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>',
@@ -355,9 +354,8 @@ async def on_message(msg):
             await msg.guild.create_role(
                 name=muteRoleName, 
                 colour=dis.colour.Color.dark_gray(),
-                permissions=dis.Permissions(permissions=0)
-            )
-        roleobject = getMuteRoleObj()
+                permissions=dis.Permissions(permissions=0))
+            roleobject = getMuteRoleObj()
 
         await say(f"Done. Muted {msg.author.name} for {args[1:]} ({muteDuration} seconds)")
         await msg.author.add_roles(roleobject)
