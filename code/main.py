@@ -244,10 +244,13 @@ async def on_message(msg):
     
     elif args[0] == 'info':
         r='\n'.join((
-        "You're admin:"+isAdmin,
-        "You're bot owner:"+isOwner,
-        'Replies cooldown:'+replyDelay,
-        f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}'))
+        '```',
+        'This command is mostly for debugging btw',
+        f"You're admin: {isAdmin}",
+        f"You're bot owner: {isOwner}",
+        f'Replies cooldown: {replyDelay}',
+        f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}',
+        '```'))
 
     elif args[0] == 'delresponse':
         ValStr=' '.join(args[1:])
@@ -323,7 +326,10 @@ async def on_message(msg):
 
     elif args[0] == 'mutemyself':
         if not isOwner: return
-        if len(args)<2: return await say(f"""Wrong syntax. Please rephrase the command like so:\n{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>\nThey can be in any order you'd like :D""")
+        if len(args)<2: return await say('\n'.join(
+            'Wrong syntax. Please rephrase the command like so:',
+            f'{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>',
+            "They can be in any order you'd like :D"))
         
         muteDuration=0
         timeUnits={'s':1,'m':60,'h':3600,'d':86400}
@@ -351,7 +357,6 @@ async def on_message(msg):
                 colour=dis.colour.Color.dark_gray(),
                 permissions=dis.Permissions(permissions=0)
             )
-
         roleobject = getMuteRoleObj()
 
         await say(f"Done. Muted {msg.author.name} for {args[1:]} ({muteDuration} seconds)")
