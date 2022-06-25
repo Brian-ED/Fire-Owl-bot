@@ -324,6 +324,7 @@ async def on_message(msg):
     elif args[0] == 'testing':''
 
     elif args[0] == 'mutemyself':
+        if isLinux:return await say('This command is temperarily disabled')
         if len(args)<2: return await say('\n'.join((
             'Wrong syntax. Please rephrase the command like so:',
             f'{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>',
@@ -434,6 +435,8 @@ async def on_message(msg):
             r=eval(' '.join(args[1:]))
     
     # make an import react/response x from other discords command
+    elif args[0]=='importreplies':
+        ''  
 
 
     if r:await say(r)
