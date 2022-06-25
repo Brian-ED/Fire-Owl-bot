@@ -337,13 +337,22 @@ async def on_message(msg):
             else: return await say(f'**** hit the fan. Huston we have a problem!.. Or you just inputted wrong idk.\nCorrect syntax with numbers+unit in any order is:\n{prefix}MuteMyself 3d 4h 5m 2s')
 
         if not muteDuration: return await say('The time values you provided totalled 0')
-        
-        roleobject = await msg.guild.create_role(
-            name='MUTED(by Fire-Bot)', 
-            colour=dis.colour.Color.dark_gray(),
-            permissions=dis.Permissions(permissions=0))
-        for channel in msg.guild.channels:
-            await channel.set_permissions(roleobject, speak=False, send_messages=False, read_message_history=True, read_messages=False)
+
+        muteRoleName='MUTED(by Fire-Bot)'
+
+        roleobject = dis.utils.get(
+                msg.guild.roles,
+                name=muteRoleName, 
+                colour=dis.colour.Color.dark_gray(),
+                permissions=dis.Permissions(permissions=0))
+
+        if roleobject is None:
+            roleobject = await msg.guild.create_role(
+                name=muteRoleName, 
+                colour=dis.colour.Color.dark_gray(),
+                permissions=dis.Permissions(permissions=0))
+            for channel in msg.guild.channels:
+                await channel.set_permissions(roleobject, speak=False, send_messages=False, read_message_history=True, read_messages=False)
 
         await say(f"Done. Muted {msg.author.name} for {' '.join(args[1:])} ({muteDuration} seconds)")
         await msg.author.add_roles(roleobject)
