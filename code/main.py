@@ -3,9 +3,9 @@ import os
 import discord as dis
 import yaml
 from random import randint,random
-import functions as fns
 from platform import platform
 from shutil import rmtree, copytree
+from imports import functions as fns
 from imports.vars import zoteQuotes,defaultReactsList,defaultResponsesList
 isLinux = platform(True,True) != 'Windows-10'
 
