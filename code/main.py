@@ -321,14 +321,13 @@ async def on_message(msg):
     elif args[0] == 'listfiles':
         r=', '.join(os.listdir(extraDir))
     
-    elif args[0] == 'testing':
-        ''
+    elif args[0] == 'testing':''
 
     elif args[0] == 'mutemyself':
-        if len(args)<2: return await say('\n'.join(
+        if len(args)<2: return await say('\n'.join((
             'Wrong syntax. Please rephrase the command like so:',
             f'{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>',
-            "They can be in any order you'd like :D"))
+            "They can be in any order you'd like :D")))
         
         muteDuration=0
         timeUnits={'s':1,'m':60,'h':3600,'d':86400}
@@ -338,30 +337,20 @@ async def on_message(msg):
             else: return await say(f'**** hit the fan. Huston we have a problem!.. Or you just inputted wrong idk.\nCorrect syntax with numbers+unit in any order is:\n{prefix}MuteMyself 3d 4h 5m 2s')
 
         if not muteDuration: return await say('The time values you provided totalled 0')
-
-        muteRoleName='MUTED(by Fire-Bot)'
-
-        def getMuteRoleObj():
-            return dis.utils.get(
-                msg.guild.roles,
-                name=muteRoleName, 
-                colour=dis.colour.Color.dark_gray(),
-                permissions=dis.Permissions(permissions=0)
-            )
-        roleobject = getMuteRoleObj()
         
-        if roleobject is None:
-            await msg.guild.create_role(
-                name=muteRoleName, 
-                colour=dis.colour.Color.dark_gray(),
-                permissions=dis.Permissions(permissions=0))
-            roleobject = getMuteRoleObj()
+        roleobject = await msg.guild.create_role(
+            name='MUTED(by Fire-Bot)', 
+            colour=dis.colour.Color.dark_gray(),
+            permissions=dis.Permissions(permissions=0))
+        for channel in msg.guild.channels:
+            await channel.set_permissions(roleobject, speak=False, send_messages=False, read_message_history=True, read_messages=False)
 
-        await say(f"Done. Muted {msg.author.name} for {args[1:]} ({muteDuration} seconds)")
+        await say(f"Done. Muted {msg.author.name} for {' '.join(args[1:])} ({muteDuration} seconds)")
         await msg.author.add_roles(roleobject)
         await asySleep(muteDuration)
         await msg.author.remove_roles(roleobject)
         r = f"✅ {msg.author.name} was unmuted"
+        
 
     elif args[0] == 'channelids':
         channelsList=[(str(1+i.position),i.name,str(i.id)) for i in msg.guild.text_channels]
