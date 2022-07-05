@@ -24,3 +24,4 @@ lastly some utility commands:
 
 
 **If the bot breaks, please either send me a message on discord or submit an issue on this github repo**
+My discord name: Brian E#0926
