@@ -1,5 +1,7 @@
 # Fire-Owl-bot
 ## A discord bot for the Fire Owl discord
+> invite: https://discordapp.com/oauth2/authorize?&client_id=975188865415536661&scope=bot
+
 start a command with a prefix where the default prefix is `fo!`. Example: `fo!roll`
 
 ### list of user commands
