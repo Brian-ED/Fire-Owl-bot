@@ -321,7 +321,7 @@ async def on_message(msg):
     elif args[0] == 'listfiles':
         r=', '.join(os.listdir(extraDir))
     
-    elif args[0] == 'testing':"Track cases globally, or in a country, by supplying 2-letter [country codes](https://countrycode.org/)."
+    elif args[0] == 'testing':r="Track cases globally, or in a country, by supplying 2-letter [country codes](https://countrycode.org/)."
 
     elif args[0] == 'mutemyself':
         if isLinux:return await say('This command is temperarily disabled')
