@@ -13,7 +13,7 @@ start a command with a prefix where the default prefix is `fo!`. Example: `fo!ro
 
 **Flip**: Sends heads or tails
 
-**rps**:
+**rps**: Include either rock, paper, or scissors after the command and play a game. The bot replies with results of the game + a witty response  
 
 **yt or Youtube**: Sends a link to yt based on your search
 
