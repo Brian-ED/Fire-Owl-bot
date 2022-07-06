@@ -321,7 +321,7 @@ async def on_message(msg):
     elif args[0] == 'listfiles':
         r=', '.join(os.listdir(extraDir))
     
-    elif args[0] == 'testing':''
+    elif args[0] == 'testing':"Track cases globally, or in a country, by supplying 2-letter [country codes](https://countrycode.org/)."
 
     elif args[0] == 'mutemyself':
         if isLinux:return await say('This command is temperarily disabled')
@@ -433,7 +433,7 @@ async def on_message(msg):
             r='This requires two arguments minimum'
         else:
             r=eval(' '.join(args[1:]))
-    
+
     # make an import react/response x from other discords command
     elif args[0]=='importreplies':
         ''  
