@@ -7,7 +7,7 @@ start a command with a prefix where the default prefix is `fo!`. Example: `fo!ro
 
 **Help**: Sends a list of all commands.
 
-**Roll**: Sends a random number between 1-6, or if you give a number with the command then it rolls a random number from 1 to it, example being `roll`
+**Roll**: Sends a random number between 1-6, or if you give a number with the command then it rolls a random number from 1 to it, example being `fo!roll 10` or you can do a range from one number to another, example being `fo!roll 50 100`, output: `64` 
 
 **Flip**: Sends heads or tails
 
