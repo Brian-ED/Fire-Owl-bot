@@ -31,7 +31,7 @@ copytree(savestateDir, extraDir)
 userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
 adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance','ToggleReactSpam']
 selectPeople  = {486619954745966594:['EmergencyQuit']}
-ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','eval','Testing','Highlow','SettingAdded']
+ownerCommands = ['Update','EmergencyQuit','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','eval','Testing','Highlow','SettingAdded','importreplies']
 adminCommands.sort()
 userCommands.sort()
 ownerCommands.sort() 
@@ -59,11 +59,11 @@ def randItem(i):
 @client.event
 async def on_ready():
     await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
-    print('Logged in as')
-    print(client.user.name)
-    print(client.user.id)
-    print(f'In {len(client.guilds)} servers')
-    print('------')
+    print('Logged in as',
+    client.user.name,
+    client.user.id,
+    f'In {len(client.guilds)} servers',
+    '------', sep='\n')
 
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
@@ -73,21 +73,23 @@ async def on_message(msg):
         await msg.channel.send("I don't work in DMs sadly.")
         return
 
-    async def say(i): await msg.channel.send(i)
-    args      = msg.content.split(' ')
-    lArgs     = msg.content.lower().split(' ')
-    isOwner   = msg.author.id == 671689100331319316
-    isAdmin   = msg.author.top_role.permissions.administrator or isOwner
-    guildID   = msg.guild.id
-    channelID = msg.channel.id
-    msgAuthor = msg.author.id
+    async def say(*values,sep='\n'):
+        await msg.channel.send(sep.join(values))
+    args:list[str]  = msg.content.split(' ')
+    lArgs:list[str] = msg.content.lower().split(' ')
+    isOwner:bool    = msg.author.id == 671689100331319316
+    isAdmin:bool    = msg.author.top_role.permissions.administrator or isOwner
+    guildID:int     = msg.guild.id
+    channelID:int   = msg.channel.id
+    msgAuthor:int   = msg.author.id
 
-    commands = []
-    commands += userCommands
-    if isAdmin                    :commands += adminCommands
-    if isOwner                    :commands += ownerCommands+sum(list(selectPeople.values()),[])
-    elif msgAuthor in selectPeople:commands += selectPeople[msgAuthor]
-    commands=[i.lower() for i in commands]
+    commands = [i.lower() for i in\
+        userCommands+\
+        ([],adminCommands)[isAdmin]+\
+        ([],ownerCommands+sum(selectPeople.values(),[]))[isOwner]]
+    if msgAuthor in selectPeople:
+        commands += selectPeople[msgAuthor]
+    commands = list(set(commands))
 
     data = fns.openR(datatxtPath)
     if guildID not in data:
@@ -110,7 +112,7 @@ async def on_message(msg):
     r=''
     if not args[0].startswith(prefix):
 
-        if isReactChannel:
+        if isReactChannel or isBotChannel:
             for x in reacts:
                 if all(i in lArgs for i in x.split(' ')):
                     await msg.add_reaction(reacts[x])
@@ -121,14 +123,14 @@ async def on_message(msg):
                         await msg.add_reaction(f'<:{i}:{dis.utils.get(client.emojis,name=i).id}>')
 
         global replyDelayList
-        if (channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply) or isBotChannel:   
+        if channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply or isBotChannel:   
             for x in responses:
                 if all(i in lArgs for i in x.split(' ')):
                     if 1000<len(responses[x]):
                         embedVar = dis.Embed(color=0x336EFF)
-                        embedVar.add_field(name='*', value=responses[x][:1000], inline=False,)
-                        embedVar.add_field(name='*', value=responses[x][1000:2000], inline=False,)
-                        if len(responses[x])>2000:embedVar.add_field(name='*', value=responses[x][2000:3000], inline=False,)
+                        embedVar.add_field(name='', value=responses[x][    :1000], inline=False,)
+                        embedVar.add_field(name='', value=responses[x][1000:2000], inline=False,)
+                        if len(responses[x])>2000:embedVar.add_field(name='', value=responses[x][2000:3000], inline=False,)
                         await msg.channel.send(embed=embedVar)
                     else: await say(responses[x])
                     replyDelayList += [channelID]
@@ -196,13 +198,11 @@ async def on_message(msg):
         r='You need to include " replywith: " or " reactwith: " in the message. Not both btw.'
 
     elif args[0] == 'listresponses':
-        r='Responses: '+', '.join(list(responses.keys()))
-        r+='\nReacts: '+', '.join(list(reacts.keys()))
+        r='Responses: '+', '.join(list(responses.keys())),
+        'Reacts: '+', '.join(list(reacts.keys()))
 
     elif args[0] == 'flip':
-        r=msg.author.mention
-        if randint(0,1):r+=' heads'
-        else:           r+=' tails'
+        r=msg.author.mention+(' heads',' tails')[randint(0,1)]
     
     elif args[0] == 'togglereactspam':
         data[guildID]['React spam'] = not data[guildID]['React spam']
@@ -210,10 +210,7 @@ async def on_message(msg):
         r=f'Set to {bool(data[guildID]["React spam"])}'
 
     elif args[0] == 'rps':
-        if len(args)<2:
-            await say('Please enter rock, paper, or scissors')
-            return
-
+        if len(args)<2: return await say('Please enter rock, paper, or scissors as second argument')
         RPS = ['rock','paper','scissors']    
         userChoice = args[1].lower()
         botChoice = randItem(RPS)
@@ -231,33 +228,38 @@ async def on_message(msg):
             r=f'Remember to recommend something\n{prefix}recommend <recommendation>'
 
     elif args[0] == 'google':
-        if len(args)<2:r='Remember to search something'
-        else:r='https://www.google.com/search?q='+'+'.join(args[1:])
+        r=(
+        'https://www.google.com/search?q='+'+'.join(args[1:]),
+        'Remember to search something'
+        )[len(args)<2]
 
     elif args[0] in ['yt','youtube']:
-        if len(args)<2:r='Remember to search something'
-        r='https://www.youtube.com/results?search_query=' + '+'.join(args[1:])
+        r=(
+        'https://www.youtube.com/results?search_query='+'+'.join(args[1:]),
+        'Remember to search something'
+        )[len(args)<2]
     
     elif args[0] == 'hkwiki':
-        if len(args)<2:r='Remember to search something'
-        else: r='https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:])
-    
+        r=(
+        'https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:]),
+        'Remember to search something'
+        )[len(args)<2]
+
     elif args[0] == 'info':
-        r='\n'.join((
-        '```',
+        r='```',
         'This command is mostly for debugging btw',
         f"You're admin: {isAdmin}",
         f"You're bot owner: {isOwner}",
         f'Replies cooldown: {replyDelay}',
         f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}',
-        '```'))
+        '```'
 
     elif args[0] == 'delresponse':
         ValStr=' '.join(args[1:])
         if ValStr in responses:
             del data[guildID]['Responses'][' '.join(args[1:])]
             save(data)
-            r=('deleted')
+            r='deleted'
         else:
             r="Reply doesn't exist"
     
@@ -320,22 +322,23 @@ async def on_message(msg):
     
     elif args[0] == 'listfiles':
         r=', '.join(os.listdir(extraDir))
-    
-    elif args[0] == 'testing':''
 
     elif args[0] == 'mutemyself':
         if isLinux:return await say('This command is temperarily disabled')
-        if len(args)<2: return await say('\n'.join((
+        if len(args)<2: return await say(
             'Wrong syntax. Please rephrase the command like so:',
             f'{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>',
-            "They can be in any order you'd like :D")))
+            "They can be in any order you'd like :D")
         
         muteDuration=0
         timeUnits={'s':1,'m':60,'h':3600,'d':86400}
         for i in lArgs [1:]:
             if i[-1] in timeUnits and i[:-1].isnumeric():
                 muteDuration+=int(i[:-1])*timeUnits[i[-1]]
-            else: return await say(f'**** hit the fan. Huston we have a problem!.. Or you just inputted wrong idk.\nCorrect syntax with numbers+unit in any order is:\n{prefix}MuteMyself 3d 4h 5m 2s')
+            else: return await say(
+                '!#$& hit the fan. Huston we have a problem!.. Or you just inputted wrong idk.',
+                'Correct syntax with numbers+unit in any order is:'
+                f'{prefix}MuteMyself 3d 4h 5m 2s')
 
         if not muteDuration: return await say('The time values you provided totalled 0')
 
@@ -360,15 +363,13 @@ async def on_message(msg):
         await asySleep(muteDuration)
         await msg.author.remove_roles(roleobject)
         r = f"✅ {msg.author.name} was unmuted"
-        
 
     elif args[0] == 'channelids':
         channelsList=[(str(1+i.position),i.name,str(i.id)) for i in msg.guild.text_channels]
         lengthEach = [len(' '.join(i)) for i in channelsList]
         formatedCmdsList='\n'.join(map((lambda x, y,:f"{' '.join(x[:-1])}{y*' '} {x[-1]}"),channelsList,(max(lengthEach)-i for i in lengthEach)))
         r=f'```pos, name, {" "*(max([29]+lengthEach)-29)}ID:\n{formatedCmdsList}```'
-        if len(r)>2000:
-            r=r[:1990]+'```'
+        if len(r)>2000: r=r[:1990]+'```'
 
     elif args[0]=='setbotchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
@@ -388,7 +389,7 @@ async def on_message(msg):
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Reacts channels']=[int(i) for i in args[1:]]
             save(data)
-            r ='done'
+            r='done'
         else:r='Not valid channel IDs'
     
     elif args[0]=='newsettings':
@@ -397,21 +398,24 @@ async def on_message(msg):
         r='done'
     
     elif args[0]=='highlow':
+        x=100
         if len(args)>1 and args[1].isnumeric():
-            correct=randint(1,args[1])
-            await say(f'Game started. Guess a number between 1-{args[1]}')
-        else:
-            correct=randint(1,100)
-            await say('Game started. Guess a number between 1-100')
-        
+            x=int(args[1])
+        await say(f'Game started. Guess a number between 1-{x}')
+        correct=randint(1,x)
+
         def check(msg):
-            return msg.channel.id == channelID and\
+            return\
+            msg.channel.id == channelID and\
             msg.author.id == msgAuthor and\
             msg.content.isnumeric()
-        
+
         guess=-1
         while guess!=correct:
-            guess = int(await client.wait_for("message", check=check).content)
+            try:
+                guess = int(await client.wait_for("message", check=check, timeout=10*60).content)
+            except:
+                return await say(f'I got impatient waiting for {msg.author.name}')
             if   guess<correct:
                 await say('Higher!')
             elif guess>correct:
@@ -435,11 +439,25 @@ async def on_message(msg):
             r=eval(' '.join(args[1:]))
     
     # make an import react/response x from other discords command
-    elif args[0]=='importreplies':
-        ''  
+    elif args[0]=='import':
+        options='Responses','Reacts'
+        if len(args)<2:
+            r='You probably wrote improper syntax:',
+            f"fo!import <which discord:id> <optional:{'/'.join(options)}> <optional:spesific reply or react>"
+        elif args[1].isnumeric():
+            if int(args[1]) not in data:
+                r="I don't recognize the discord you tried to import from"
+            else:
+                if 1:1
+                for option in options:
+                    data[guildID][option]+=data[int(args[1])][option]
+                save(data)
+                r=f"Imported {', '.join(options[:-1])+' and '+options[-1]} from {dis.utils.get(client.guilds,int(args[1])).name}"
 
+    if str(type(r)) in (f"<class '{i}'>"for i in ('tuple','list','range','generator')):
+        await say(*r)
+    else: await say(r)
 
-    if r:await say(r)
 
 with open(tokenPath, encoding='utf-8') as f:
     client.run(yaml.safe_load(f)['Token'])
