@@ -6,7 +6,7 @@ from random import randint,random
 from platform import platform
 from shutil import rmtree, copytree
 from imports import functions as fns
-from imports.vars import zoteQuotes,defaultReactsList,defaultResponsesList
+from imports.vars import zoteQuotes,defaultReactsList,defaultResponsesList,ball8
 isLinux = platform(True,True) != 'Windows-10'
 
 prefix = 'fo!' 
@@ -29,12 +29,12 @@ rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
 userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
-adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance','ToggleReactSpam']
+adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance','ToggleReactSpam','Add8ball']
 selectPeople  = {486619954745966594:['EmergencyQuit']}
 ownerCommands = ['Update','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','eval','Testing','Highlow','SettingAdded']
 adminCommands.sort()
 userCommands.sort()
-ownerCommands.sort() 
+ownerCommands.sort()
 
 defaultGuildSettings={'Prefix'          :'fo!',
                       'Bot channels'    :[],
@@ -45,7 +45,8 @@ defaultGuildSettings={'Prefix'          :'fo!',
                       'Chance for reply':1,
                       'Reacts'          :defaultReactsList,
                       'Responses'       :defaultResponsesList,
-                      'React spam'      :0}
+                      'React spam'      :0
+                      '8ball'           :ball8}
 
 global replyDelayList
 replyDelayList=[]
@@ -164,11 +165,7 @@ async def on_message(msg):
         await msg.author.send('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw')
 
     elif args[0] == '8ball':
-        ball8=['Yes','No','Not sure','You know it','Absolutely not',
-               'Absolutely yes','Cannot tell','Sure','Mmm, I have no idea',
-               'Haha ye boi','What? No!','Yep','Nope','Maybe',"I'm too afraid to tell",
-               "Sorry that's too hard to answer",'Most likely']
-        r=randItem(ball8)
+        r=randItem(data[guildID]['8ball'])
 
     elif args[0] == 'roll':
         if len(args)<2:
