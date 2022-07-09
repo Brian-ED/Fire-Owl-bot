@@ -427,9 +427,18 @@ async def on_message(msg):
 
     elif args[0]=='eval':
         if len(args)<2:
-            r='This requires two arguments minimum'
+            r='This requires 2 arguments minimum'
         else:
             r=eval(' '.join(args[1:]))
+    
+    elif args[0]=='Add8ball':
+      if len(args)<2:
+          r='This requires 2 arguments minimum'
+      else:
+          data[guildID]['8ball'] += [args[1]]
+          save(data)
+          r='Added'
+          
 
     # make an import react/response x from other discords command
     elif args[0]=='importreplies':
