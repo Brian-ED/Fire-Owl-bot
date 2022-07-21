@@ -1,17 +1,14 @@
 from asyncio import sleep as asySleep
 import os
 import discord as dis
-import yaml
 from random import randint,random
-from platform import platform
 from shutil import rmtree, copytree
-from imports import functions as fns
-from imports.vars import zoteQuotes,defaultReactsList,defaultResponsesList,ball8
-isLinux = platform(True,True) != 'Windows-10'
+import imports.functions as fns
+import imports.vars as vars
 
-prefix = 'fo!' 
 client = dis.Client()
 
+isLinux=__file__[0]!='c'
 loc             = 'C:/Users/brian/Persinal/discBots/'
 if isLinux: loc = '../../'
 tokenPath       = loc+'Safe/Fire-Owl-bot.yaml'
@@ -19,43 +16,62 @@ savestateDir    = loc+'data/Fire-Owl-data'
 extraDir        = loc+'Fire-Owl-bot/code/extra/'
 botDir          = loc+'Fire-Owl-bot/'
 codeDir         = botDir+'code/'
+BQNpath         = codeDir+'imports/BQNEval/BQNEval.bqn'
 datatxtPath     = extraDir+'data.txt'
-respondstxtPath = extraDir+'responds.txt'
-reactstxtPath   = extraDir+'reacts.txt'
-
 
 # load backup
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
 
-userCommands  = ['8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google','Youtube','ListResponses','Info','hkWiki','Recommend','Rick','Zote','muteMyself']
-adminCommands = ['NewResponse','DelResponse','DelReact','SetReplyChannels','SetReactChannels','SetBotChannels','ChannelIDs','Prefix','ReplyDelay','ReplyChance','ToggleReactSpam','Add8ball']
-selectPeople  = {486619954745966594:['EmergencyQuit']}
-ownerCommands = ['Update','EmergencyQuit','MakeFile','ListFiles','Backup','RestoreBackup','NewSettings','eval','Testing','Highlow','SettingAdded','importreplies']
-adminCommands.sort()
-userCommands.sort()
-ownerCommands.sort()
+userCommands = {
+    '8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google',
+    'Youtube','ListResponses','Info','hkWiki','Recommend',
+    'Rick','Zote','muteMyself','SpamMe','UnSpamMe','List8Ball'}
+
+adminCommands = {
+    'NewResponse','DelResponse','DelReact','SetReplyChannels',
+    'SetReactChannels','SetBotChannels','ChannelIDs','Prefix',
+    'ReplyDelay','ReplyChance','ToggleReactSpam','Add8ball','remove8ball'
+    }
+
+VIPCommands = {
+    486619954745966594:{'EmergencyQuit'} # Fire Owl
+    }
+
+# Owner commands (+ all other commands because owner is a higher being)
+ownerCommands = {
+    'Update','EmergencyQuit','MakeFile','ListFiles','Backup',
+    'RestoreBackup','NewSettings','Testing','Highlow','SettingAdded',
+    'importreplies','BQNEval'
+    }.union(userCommands,adminCommands,*VIPCommands.values())
 
 defaultGuildSettings={'Prefix'          :'fo!',
-                      'Bot channels'    :[],
-                      'Replies channels':[],
-                      'Reacts channels' :[],
+                      'Bot channels'    :set(),
+                      'Replies channels':set(),
+                      'Reacts channels' :set(),
                       'Reply delay'     :0,
                       'Replies per min' :10,
                       'Chance for reply':1,
-                      'Reacts'          :defaultReactsList,
-                      'Responses'       :defaultResponsesList,
+                      'Reacts'          :vars.defaultReactsList,
+                      'Responses'       :vars.defaultResponsesList,
                       'React spam'      :0,
-                      '8ball'           :ball8}
+                      '8ball'           :vars.ball8}
 
-global replyDelayList
-replyDelayList=[]
+replyDelayList=set()
+spamPing=set()
 
 def save(data):
     fns.openW(datatxtPath,data)
 
-def randItem(i):
-    return i[randint(0,len(i)-1)]
+def randItem(i:list):
+    return list(i)[randint(0,len(i)-1)]
+
+if not isLinux:
+    import subprocess
+
+    def BQNeval(i:str,BQNpath:str=BQNpath)->str:
+        fns.openW(BQNpath,i)
+        return subprocess.Popen(['BQN',BQNpath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout.read().decode('utf8')
 
 @client.event
 async def on_ready():
@@ -63,38 +79,32 @@ async def on_ready():
     print('Logged in as',
     client.user.name,
     client.user.id,
-    f'In {len(client.guilds)} servers',
+    f'In {len(client.guilds)} servers:',
+    '------',
+    *(i.name for i in client.guilds),
     '------', sep='\n')
 
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
 async def on_message(msg):
     if msg.author.bot:return
-    if not msg.guild:
-        await msg.channel.send("I don't work in DMs sadly.")
-        return
+    if not msg.guild :return await msg.channel.send("I don't work in DMs sadly.")
 
     async def say(*values,sep='\n'):
         await msg.channel.send(sep.join(values))
-    args:list[str]  = msg.content.split(' ')
+
+    args :list[str] = msg.content.split(' ')
     lArgs:list[str] = msg.content.lower().split(' ')
-    isOwner:bool    = msg.author.id == 671689100331319316
-    isAdmin:bool    = msg.author.top_role.permissions.administrator or isOwner
-    guildID:int     = msg.guild.id
+    guildID  :int   = msg.guild.id
     channelID:int   = msg.channel.id
     msgAuthor:int   = msg.author.id
-
-    commands = [i.lower() for i in\
-        userCommands+\
-        ([],adminCommands)[isAdmin]+\
-        ([],ownerCommands+sum(selectPeople.values(),[]))[isOwner]]
-    if msgAuthor in selectPeople:
-        commands += selectPeople[msgAuthor]
-    commands = list(set(commands))
-
+    isOwner  :bool  = msgAuthor == 671689100331319316
+    isAdmin  :bool  = msg.author.top_role.permissions.administrator or isOwner
+    isVIP    :bool  = msgAuthor in VIPCommands
+    
     data = fns.openR(datatxtPath)
     if guildID not in data:
-        data[guildID]=defaultGuildSettings
+        data[guildID] = defaultGuildSettings
         save(data)
 
     botChannels    = data[guildID]['Bot channels']
@@ -134,20 +144,30 @@ async def on_message(msg):
                         if len(responses[x])>2000:embedVar.add_field(name='', value=responses[x][2000:3000], inline=False,)
                         await msg.channel.send(embed=embedVar)
                     else: await say(responses[x])
-                    replyDelayList += [channelID]
+                    replyDelayList.add(channelID)
                     await asySleep(replyDelay)
                     replyDelayList.remove(channelID)
                     break
         return
 
+    if isOwner: 
+        commands=ownerCommands
+    else:
+        commands=set(userCommands)
+        if isAdmin:
+            commands|=adminCommands
+        if msgAuthor in VIPCommands:
+            commands|=VIPCommands[msgAuthor]
+    commands={i.lower() for i in commands}
     if not isBotChannel:
         return
-    args[0] = fns.commandHandler(prefix,args[0],commands)
+    args[0] = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
     if args[0] == 'help':
-        r ='List of commands: '+', '.join(userCommands)
+        r = 'List of commands: '+', '.join(userCommands)
         if isAdmin: r+='\n\nList of admin commands: '+', '.join(adminCommands)
         if isOwner: r+='\n\nList of owner commands: '+', '.join(ownerCommands)
+        if isVIP:   r+='\n\nList of VIP commands (Available to you): '+', '.join(VIPCommands[msgAuthor])
 
     elif args[0] == 'prefix':
         if len(args)<2:
@@ -160,7 +180,9 @@ async def on_message(msg):
     elif args[0] == 'rick':
         await msg.author.send('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
         await asySleep(15)
-        await msg.author.send('Ok i am so sorry... please forgive me. here are some cats :D\nhttps://www.youtube.com/watch?v=VZrDxD0Za9I')
+        await msg.author.send(
+            'Ok i am so sorry... please forgive me. here are some cats :D',
+            'https://www.youtube.com/watch?v=VZrDxD0Za9I')
         await asySleep(200)
         await msg.author.send('cope')
         await asySleep(5)
@@ -178,7 +200,8 @@ async def on_message(msg):
                 if '0'==args[1]:
                     r=random()
                 else:r=randint(1,int(args[1]))
-            else:    r=randint(int(args[1]),int(args[2]))
+            else:
+                r=randint(int(args[1]),int(args[2]))
 
     elif args[0] == 'newresponse':
         d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
@@ -196,7 +219,7 @@ async def on_message(msg):
 
     elif args[0] == 'listresponses':
         r='Responses: '+', '.join(list(responses.keys())),
-        'Reacts: '+', '.join(list(reacts.keys()))
+        '\nReacts: '+', '.join(list(reacts.keys()))
 
     elif args[0] == 'flip':
         r=msg.author.mention+(' heads',' tails')[randint(0,1)]
@@ -230,7 +253,7 @@ async def on_message(msg):
         'Remember to search something'
         )[len(args)<2]
 
-    elif args[0] in ['yt','youtube']:
+    elif args[0] in ('yt','youtube'):
         r=(
         'https://www.youtube.com/results?search_query='+'+'.join(args[1:]),
         'Remember to search something'
@@ -240,7 +263,7 @@ async def on_message(msg):
         r=(
         'https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:]),
         'Remember to search something'
-        )[len(args)<2]
+        )[len(args)==2]
 
     elif args[0] == 'info':
         r='```',
@@ -295,7 +318,7 @@ async def on_message(msg):
         r='You backuped the files: '+', '.join(os.listdir(extraDir))
     
     elif args[0] == 'zote':
-        r=randItem(zoteQuotes)
+        r=randItem(vars.zoteQuotes)
 
     elif args[0] == 'emergencyquit':
         await say("I'm sorry for what i did :(\nBye lovely folks!")
@@ -383,24 +406,26 @@ async def on_message(msg):
             save(data)
             r ='done'
         else:r='Not valid channel IDs'
-    
+
     elif args[0]=='setreactchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Reacts channels']=[int(i) for i in args[1:]]
             save(data)
             r='done'
         else:r='Not valid channel IDs'
-    
+
     elif args[0]=='newsettings':
-        (data[guildID]['Responses'],data[guildID]['Reacts'])=[fns.openR(i) for i in [respondstxtPath,reactstxtPath]]
+        for i in data:
+            data[i]['Bot channels']     = set(data[i]['Bot channels'])
+            data[i]['Replies channels'] = set(data[i]['Replies channels'])
+            data[i]['Reacts channels']  = set(data[i]['Reacts channels'])
         save(data)
         r='done'
     
     elif args[0]=='highlow':
-        x=100
-        if len(args)>1 and args[1].isnumeric():
-            x=int(args[1])
+        x = int(args[1]) if len(args)>1 and args[1].isnumeric() else 100
         await say(f'Game started. Guess a number between 1-{x}')
+        print(1)
         correct=randint(1,x)
 
         def check(msg):
@@ -431,41 +456,74 @@ async def on_message(msg):
                 break
         r='Done. Updated settings'
 
-    elif args[0]=='eval':
-        if len(args)<2:
-            r='This requires 2 arguments minimum'
-        else:
-            r=eval(' '.join(args[1:]))
-    
-    elif args[0]=='Add8ball':
-      if len(args)<2:
-          r='This requires 2 arguments minimum'
+    elif args[0]=='add8ball':
+      if len(args)==1:
+            r=data[guildID]['8ball']
       else:
-          data[guildID]['8ball'] += [args[1]]
-          save(data)
-          r='Added'
-          
+            data[guildID]['8ball']|={' '.join(args[1:])}
+            save(data)
+            r='Added'
 
     # make an import react/response x from other discords command
+    #TODO make Import command complete
     elif args[0]=='import':
-        options='Responses','Reacts'
-        if len(args)<2:
-            r='You probably wrote improper syntax:',
-            f"fo!import <which discord:id> <optional:{'/'.join(options)}> <optional:spesific reply or react>"
-        elif args[1].isnumeric():
-            if int(args[1]) not in data:
-                r="I don't recognize the discord you tried to import from"
-            else:
-                if 1:1
-                for option in options:
-                    data[guildID][option]+=data[int(args[1])][option]
+        options='Responses','Reacts','8ball'
+        if len(args)!=3 or (not args[1].isnumeric()):
+            r='You probably wrote improper syntax. Correct syntax is:',
+            f"fo!import <which discord:id> <{'/'.join(options)}>"
+
+        elif int(args[1]) not in data:
+            r="I don't recognize the discord you tried to import from"
+        
+        elif args[2] not in options:
+            r="I don't recognize the thing you tried to import. (argument 2).",
+            f"Available options are: {', '.join(options)}"
+        else:
+            data[guildID][args[2]]|=data[int(args[1])][args[2]]
+            save(data)
+            r=f"Imported {args[2]} from {dis.utils.get(client.guilds,id=int(args[1])).name}"
+
+    elif args[0]=='spamme':
+        global spamPing
+        if msgAuthor in spamPing:
+            spamPing.remove(msgAuthor)
+            r='Ok i stopped spamming :D'
+        else:
+            await say('I will now spam you :D')
+            spamPing.add(msgAuthor)
+            while msgAuthor in spamPing:
+                asySleep(5)
+                await msg.author.send('This is spam ping')
+
+    elif args[0]=='list8ball':
+        r='8ball list: '+', '.join(data[guildID]['8ball'])
+
+    elif args[0] == 'bqneval':
+        # make safe
+        for i in ' '.join(args[1:]).split('•')[1:]:
+            if not any(i.startswith(j) for j in ['Show ','Out ']):
+                return await say('Invalid use of •')
+        r=BQNeval(' '.join(args[1:]))
+
+
+    elif args[0] == 'remove8ball':
+        if len(args)==1:
+            r=data[guildID]['8ball']
+        else: 
+            try:
+                data[guildID]['8ball'].remove(' '.join(args[1:]))
+                r='Removed'
                 save(data)
-                r=f"Imported {', '.join(options[:-1])+' and '+options[-1]} from {dis.utils.get(client.guilds,int(args[1])).name}"
+            except:
+                r='There was no reply found'
 
-    if str(type(r)) in (f"<class '{i}'>"for i in ('tuple','list','range','generator')):
-        await say(*r)
-    else: await say(r)
+    if r:
+        if str(type(r)) in (f"<class '{i}'>"for i in ('tuple','list','range','generator','set')):
+            await say(*r)
+        else:
+            await say(r)
 
 
+from yaml import safe_load
 with open(tokenPath, encoding='utf-8') as f:
-    client.run(yaml.safe_load(f)['Token'])
+    client.run(safe_load(f)['Token'])

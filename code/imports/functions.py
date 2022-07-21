@@ -1,9 +1,12 @@
-def commandHandler(prefix:str,cmd:str,commands:list[str])->str:
-    if cmd == prefix:
-        cmd+='help'
-    validityTable=[i.startswith(cmd[len(prefix):].lower()) for i in commands]
-    if 1==sum(validityTable):
-        return commands[validityTable.index(1)]
+def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str:
+    if command == prefix:
+        return ifEmpty
+    posValues=[]
+    for i in commands:
+        if i.startswith(command[len(prefix):].lower()):
+            posValues.append(i)
+    if len(posValues)==1:
+        return posValues[0]
     else:
         return ''
 
@@ -35,3 +38,7 @@ def openR(path):
 def openW(path:str,value):
     with open(path, "w", encoding="utf-8") as f:
         f.write(str(value))
+
+
+def game(boardSize,maxMoves=None): # none means infinite
+    1
