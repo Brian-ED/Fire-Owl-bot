@@ -36,8 +36,6 @@ start a command with a prefix where the default prefix is `fo!`. Example: `fo!ro
 ### work in progress:
 **MuteMyself**: soft kick yourself (the user) from the discord. Meaning you won't see any channel messages or get any pings but you will still be in the discord. Used if you need a break from a discord to focus on homework and such.
 
-**Calc**: calculate an expression
-
 ### list of user features
 Autocompletes the command, so if you write the command "go" then the bot runs "Google".
 Ignores capitilization on the command.
