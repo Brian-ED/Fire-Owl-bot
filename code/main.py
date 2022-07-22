@@ -1,5 +1,6 @@
 from asyncio import sleep as asySleep
 import os
+from typing import Iterable
 import discord as dis
 from random import randint,random
 from shutil import rmtree, copytree
@@ -22,40 +23,48 @@ datatxtPath     = extraDir+'data.txt'
 # load backup
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
+cmds = {
+    'userCommands':{
+        '8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google',
+        'Youtube','ListResponses','Info','hkWiki','Recommend',
+        'Rick','Zote','muteMyself','SpamMe','List8Ball'
+    },
 
-userCommands = {
-    '8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google',
-    'Youtube','ListResponses','Info','hkWiki','Recommend',
-    'Rick','Zote','muteMyself','SpamMe','UnSpamMe','List8Ball'}
+    'modCommands':{
+        'Move'
+    },
 
-adminCommands = {
-    'NewResponse','DelResponse','DelReact','SetReplyChannels',
-    'SetReactChannels','SetBotChannels','ChannelIDs','Prefix',
-    'ReplyDelay','ReplyChance','ToggleReactSpam','Add8ball','remove8ball'
-    }
+    'adminCommands':{
+        'NewResponse','Add','DelResponse','DelReact','SetReplyChannels',
+        'SetReactChannels','SetBotChannels','ChannelIDs','Prefix','addModRole',
+        'ReplyDelay','ReplyChance','ToggleReactSpam','Add8ball','remove8ball',
+        'removemodrole'
+    },
 
-VIPCommands = {
-    486619954745966594:{'EmergencyQuit'} # Fire Owl
-    }
 
-# Owner commands (+ all other commands because owner is a higher being)
-ownerCommands = {
-    'Update','EmergencyQuit','MakeFile','ListFiles','Backup',
-    'RestoreBackup','NewSettings','Testing','Highlow','SettingAdded',
-    'importreplies','BQNEval'
-    }.union(userCommands,adminCommands,*VIPCommands.values())
+    'VIPCommands':{
+        486619954745966594:{'EmergencyQuit'} # Fire Owl
+    },
 
-defaultGuildSettings={'Prefix'          :'fo!',
-                      'Bot channels'    :set(),
-                      'Replies channels':set(),
-                      'Reacts channels' :set(),
-                      'Reply delay'     :0,
-                      'Replies per min' :10,
-                      'Chance for reply':1,
-                      'Reacts'          :vars.defaultReactsList,
-                      'Responses'       :vars.defaultResponsesList,
-                      'React spam'      :0,
-                      '8ball'           :vars.ball8}
+    'ownerCommands':{
+        'Update','EmergencyQuit','MakeFile','ListFiles','Backup',
+        'RestoreBackup','Testing','Highlow','SettingAdded',
+        'importreplies','BQNEval'}
+}
+defaultGuildSettings={
+    'Prefix'          :'fo!',
+    'Bot channels'    :set(),
+    'Replies channels':set(),
+    'Reacts channels' :set(),
+    'Reply delay'     :0,
+    'Replies per min' :10,
+    'Chance for reply':1,
+    'Reacts'          :vars.defaultReactsList,
+    'Responses'       :vars.defaultResponsesList,
+    'React spam'      :0,
+    '8ball'           :vars.ball8,
+    'ModRoles'        :set()
+}
 
 replyDelayList=set()
 spamPing=set()
@@ -67,11 +76,13 @@ def randItem(i:list):
     return list(i)[randint(0,len(i)-1)]
 
 if not isLinux:
-    import subprocess
+    from subprocess import Popen, PIPE, STDOUT
 
     def BQNeval(i:str,BQNpath:str=BQNpath)->str:
         fns.openW(BQNpath,i)
-        return subprocess.Popen(['BQN',BQNpath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout.read().decode('utf8')
+        return Popen(['BQN',BQNpath], stdout=PIPE, stderr=STDOUT).stdout.read().decode('utf8')
+
+def Join(i): return ', '.join(sorted(i))
 
 @client.event
 async def on_ready():
@@ -100,8 +111,9 @@ async def on_message(msg):
     msgAuthor:int   = msg.author.id
     isOwner  :bool  = msgAuthor == 671689100331319316
     isAdmin  :bool  = msg.author.top_role.permissions.administrator or isOwner
-    isVIP    :bool  = msgAuthor in VIPCommands
-    
+    isVIP    :bool  = msgAuthor in cmds['VIPCommands']
+    isMod    :bool  = isAdmin #or msgAuthor in modRoles 
+
     data = fns.openR(datatxtPath)
     if guildID not in data:
         data[guildID] = defaultGuildSettings
@@ -137,6 +149,7 @@ async def on_message(msg):
         if channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply or isBotChannel:   
             for x in responses:
                 if all(i in lArgs for i in x.split(' ')):
+                    #TODO Fix this, it doesn't seem to work
                     if 1000<len(responses[x]):
                         embedVar = dis.Embed(color=0x336EFF)
                         embedVar.add_field(name='', value=responses[x][    :1000], inline=False,)
@@ -150,26 +163,29 @@ async def on_message(msg):
                     break
         return
 
-    if isOwner: 
-        commands=ownerCommands
-    else:
-        commands=set(userCommands)
-        if isAdmin:
-            commands|=adminCommands
-        if msgAuthor in VIPCommands:
-            commands|=VIPCommands[msgAuthor]
-    commands={i.lower() for i in commands}
-    if not isBotChannel:
+    if not isBotChannel and not isMod:
         return
-    args[0] = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
-    if args[0] == 'help':
-        r = 'List of commands: '+', '.join(userCommands)
-        if isAdmin: r+='\n\nList of admin commands: '+', '.join(adminCommands)
-        if isOwner: r+='\n\nList of owner commands: '+', '.join(ownerCommands)
-        if isVIP:   r+='\n\nList of VIP commands (Available to you): '+', '.join(VIPCommands[msgAuthor])
+    def If(cond:bool,i:set)->set:return i if cond else set()
+    
+    commands=cmds['userCommands']\
+        |If(isOwner,cmds['ownerCommands'])\
+        |If(isAdmin,cmds['adminCommands'])\
+        |If(isMod,cmds['modCommands'])
+    if isVIP:commands|=cmds['VIPCommands'][msgAuthor]
 
-    elif args[0] == 'prefix':
+    commands={i.lower() for i in commands}
+    
+    cmd = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
+
+    if cmd == 'help':
+        r =             'User commands:\n'+ Join(cmds['userCommands']),
+        if isMod:  r+='\nMod commands:\n'+  Join(cmds['modCommands']),
+        if isAdmin:r+='\nAdmin commands:\n'+Join(cmds['adminCommands']),
+        if isOwner:r+='\nOwner commands:\n'+Join(cmds['ownerCommands']),
+        if isVIP:  r+='\nVIP commands (Available to you):\n'+Join(cmds['VIPCommands'][msgAuthor]),
+
+    elif cmd == 'prefix':
         if len(args)<2:
             r=f'Current prefix: "{prefix}".'
         else:
@@ -177,7 +193,7 @@ async def on_message(msg):
             save(data)
             r=f'Prefix changed to: "{args[1]}"'
 
-    elif args[0] == 'rick':
+    elif cmd == 'rick':
         await msg.author.send('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
         await asySleep(15)
         await msg.author.send(
@@ -188,10 +204,10 @@ async def on_message(msg):
         await asySleep(5)
         await msg.author.send('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw')
 
-    elif args[0] == '8ball':
+    elif cmd == '8ball':
         r=randItem(data[guildID]['8ball'])
 
-    elif args[0] == 'roll':
+    elif cmd == 'roll':
         if len(args)<2:
             r=randint(1,6)
         else:
@@ -203,7 +219,7 @@ async def on_message(msg):
             else:
                 r=randint(int(args[1]),int(args[2]))
 
-    elif args[0] == 'newresponse':
+    elif cmd == 'newresponse':
         d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
         for k in d:
             if k in args:
@@ -217,19 +233,19 @@ async def on_message(msg):
                 return
         r='You need to include " replywith: " or " reactwith: " in the message. Not both btw.'
 
-    elif args[0] == 'listresponses':
+    elif cmd == 'listresponses':
         r='Responses: '+', '.join(list(responses.keys())),
         '\nReacts: '+', '.join(list(reacts.keys()))
 
-    elif args[0] == 'flip':
+    elif cmd == 'flip':
         r=msg.author.mention+(' heads',' tails')[randint(0,1)]
     
-    elif args[0] == 'togglereactspam':
+    elif cmd == 'togglereactspam':
         data[guildID]['React spam'] = not data[guildID]['React spam']
         save(data)
         r=f'Set to {bool(data[guildID]["React spam"])}'
 
-    elif args[0] == 'rps':
+    elif cmd == 'rps':
         if len(args)<2: return await say('Please enter rock, paper, or scissors as second argument')
         RPS = ['rock','paper','scissors']    
         userChoice = args[1].lower()
@@ -240,32 +256,32 @@ async def on_message(msg):
             (userChoice,botChoice,reply)=fns.rps(userChoice,botChoice)
             r=f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{reply}'
     
-    elif args[0] == 'recommend':
+    elif cmd == 'recommend':
         if len(args)!=1:
             await client.get_channel(980859412564553738).send(' '.join(args[1:]))
             r='Thanks for the recommendation :D'
         else:
             r=f'Remember to recommend something\n{prefix}recommend <recommendation>'
 
-    elif args[0] == 'google':
+    elif cmd == 'google':
         r=(
         'https://www.google.com/search?q='+'+'.join(args[1:]),
         'Remember to search something'
         )[len(args)<2]
 
-    elif args[0] in ('yt','youtube'):
+    elif cmd in ('yt','youtube'):
         r=(
         'https://www.youtube.com/results?search_query='+'+'.join(args[1:]),
         'Remember to search something'
         )[len(args)<2]
     
-    elif args[0] == 'hkwiki':
+    elif cmd == 'hkwiki':
         r=(
         'https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:]),
         'Remember to search something'
         )[len(args)==2]
 
-    elif args[0] == 'info':
+    elif cmd == 'info':
         r='```',
         'This command is mostly for debugging btw',
         f"You're admin: {isAdmin}",
@@ -274,7 +290,7 @@ async def on_message(msg):
         f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}',
         '```'
 
-    elif args[0] == 'delresponse':
+    elif cmd == 'delresponse':
         ValStr=' '.join(args[1:])
         if ValStr in responses:
             del data[guildID]['Responses'][' '.join(args[1:])]
@@ -283,7 +299,7 @@ async def on_message(msg):
         else:
             r="Reply doesn't exist"
     
-    elif args[0] == 'delreact':
+    elif cmd == 'delreact':
         ValStr=' '.join(args[1:])
         if ValStr in reacts:
             del data[guildID]['Reacts'][' '.join(args[1:])]
@@ -292,7 +308,7 @@ async def on_message(msg):
         else:
             r="reply doesn't exist"
 
-    elif args[0] == 'update' and isLinux:
+    elif cmd == 'update' and isLinux:
         await say("updating...")
 
         rmtree(savestateDir)
@@ -307,25 +323,25 @@ async def on_message(msg):
         await asySleep(0.5)
         quit()
 
-    elif args[0] == 'restorebackup':
+    elif cmd == 'restorebackup':
         rmtree(extraDir)
         copytree(savestateDir, extraDir)
         r='You restored the files: '+', '.join(os.listdir(savestateDir))
     
-    elif args[0] == 'backup':
+    elif cmd == 'backup':
         rmtree(savestateDir)
         copytree(extraDir, savestateDir)
         r='You backuped the files: '+', '.join(os.listdir(extraDir))
     
-    elif args[0] == 'zote':
+    elif cmd == 'zote':
         r=randItem(vars.zoteQuotes)
 
-    elif args[0] == 'emergencyquit':
+    elif cmd == 'emergencyquit':
         await say("I'm sorry for what i did :(\nBye lovely folks!")
         asySleep(0.5)
         quit()
     
-    elif args[0] == 'replydelay':
+    elif cmd == 'replydelay':
         if len(args)<2:               r='Remember to add a delay time in seconds'
         elif not args[1].isnumeric(): r='Time has to be an intiger number'
         else:
@@ -333,19 +349,39 @@ async def on_message(msg):
             data[guildID]['Reply delay'] = int(args[1])
             save(data)
 
-    elif args[0] == 'makefile':
+    elif cmd == 'makefile':
         if len(args)<3:
             r=f'Not correct syntax\n{prefix}makefile <fileName> <contents>'
         else:
             fns.openW(extraDir+args[1],args[2])
             r=f'You wrote file {args[1]} with the contents {args[2]}'
     
-    elif args[0] == 'listfiles':
+    elif cmd == 'listfiles':
         r=', '.join(os.listdir(extraDir))
     
-    elif args[0] == 'testing':0
+    
+    elif cmd == 'move':
+        await msg.delete()
+        if len(args)!=3:
+            return await msg.author.send(f'This command requires 2 arguments minimum.\n{prefix}move <#Channel> <number of messages(10 if none given)>')
+        
+        if not args[1][2:-1].isnumeric():
+            return await msg.author.send(f'Channel ID was invalid. remember to do #ChannelName')
 
-    elif args[0] == 'mutemyself':
+        if not args[2].isnumeric():
+            return await msg.author.send(f'Number of messages to move was invalid. remember to do have it as a intiger')
+        
+        webhook = await (await client.fetch_channel(int(args[1][2:-1]))).create_webhook(name=msg.author.name)
+        history = await msg.channel.history(limit=int(args[2])).flatten()
+
+        for i in history[::-1]:
+            await i.delete()
+            await webhook.send(i.content, username=i.author.name, avatar_url=i.author.avatar_url)
+        await webhook.delete()
+
+        r=f"Please move to {args[1]}, Where it's way more cozy for this convo :>"
+
+    elif cmd == 'mutemyself':
         if isLinux:return await say('This command is temperarily disabled')
         if len(args)<2: return await say(
             'Wrong syntax. Please rephrase the command like so:',
@@ -386,43 +422,35 @@ async def on_message(msg):
         await msg.author.remove_roles(roleobject)
         r = f"✅ {msg.author.name} was unmuted"
 
-    elif args[0] == 'channelids':
+    elif cmd == 'channelids':
         channelsList=[(str(1+i.position),i.name,str(i.id)) for i in msg.guild.text_channels]
         lengthEach = [len(' '.join(i)) for i in channelsList]
         formatedCmdsList='\n'.join(map((lambda x, y,:f"{' '.join(x[:-1])}{y*' '} {x[-1]}"),channelsList,(max(lengthEach)-i for i in lengthEach)))
         r=f'```pos, name, {" "*(max([29]+lengthEach)-29)}ID:\n{formatedCmdsList}```'
         if len(r)>2000: r=r[:1990]+'```'
 
-    elif args[0]=='setbotchannels':
+    elif cmd=='setbotchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Bot channels']=[int(i) for i in args[1:]]
             save(data)
             r ='done'
         else:r='Not valid channel IDs'
 
-    elif args[0]=='setreplychannels':
+    elif cmd=='setreplychannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Replies channels']=[int(i) for i in args[1:]]
             save(data)
             r ='done'
         else:r='Not valid channel IDs'
 
-    elif args[0]=='setreactchannels':
+    elif cmd=='setreactchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Reacts channels']=[int(i) for i in args[1:]]
             save(data)
             r='done'
         else:r='Not valid channel IDs'
-
-    elif args[0]=='newsettings':
-        for i in data:
-            data[i]['Bot channels']     = set(data[i]['Bot channels'])
-            data[i]['Replies channels'] = set(data[i]['Replies channels'])
-            data[i]['Reacts channels']  = set(data[i]['Reacts channels'])
-        save(data)
-        r='done'
     
-    elif args[0]=='highlow':
+    elif cmd=='highlow':
         x = int(args[1]) if len(args)>1 and args[1].isnumeric() else 100
         await say(f'Game started. Guess a number between 1-{x}')
         print(1)
@@ -445,8 +473,8 @@ async def on_message(msg):
             elif guess>correct:
                 await say('Lower!')
         r='You won!'
-    
-    elif args[0]=='settingadded':
+
+    elif cmd=='settingadded':
         for i in defaultGuildSettings:
             for j in data.values():
                 if i not in j:
@@ -456,7 +484,7 @@ async def on_message(msg):
                 break
         r='Done. Updated settings'
 
-    elif args[0]=='add8ball':
+    elif cmd=='add8ball':
       if len(args)==1:
             r=data[guildID]['8ball']
       else:
@@ -466,7 +494,7 @@ async def on_message(msg):
 
     # make an import react/response x from other discords command
     #TODO make Import command complete
-    elif args[0]=='import':
+    elif cmd=='import':
         options='Responses','Reacts','8ball'
         if len(args)!=3 or (not args[1].isnumeric()):
             r='You probably wrote improper syntax. Correct syntax is:',
@@ -483,7 +511,7 @@ async def on_message(msg):
             save(data)
             r=f"Imported {args[2]} from {dis.utils.get(client.guilds,id=int(args[1])).name}"
 
-    elif args[0]=='spamme':
+    elif cmd=='spamme':
         global spamPing
         if msgAuthor in spamPing:
             spamPing.remove(msgAuthor)
@@ -495,10 +523,10 @@ async def on_message(msg):
                 asySleep(5)
                 await msg.author.send('This is spam ping')
 
-    elif args[0]=='list8ball':
+    elif cmd=='list8ball':
         r='8ball list: '+', '.join(data[guildID]['8ball'])
 
-    elif args[0] == 'bqneval':
+    elif cmd == 'bqneval':
         # make safe
         for i in ' '.join(args[1:]).split('•')[1:]:
             if not any(i.startswith(j) for j in ['Show ','Out ']):
@@ -506,7 +534,7 @@ async def on_message(msg):
         r=BQNeval(' '.join(args[1:]))
 
 
-    elif args[0] == 'remove8ball':
+    elif cmd == 'remove8ball':
         if len(args)==1:
             r=data[guildID]['8ball']
         else: 
@@ -516,6 +544,24 @@ async def on_message(msg):
                 save(data)
             except:
                 r='There was no reply found'
+    
+    elif cmd == 'addmodrole': # args[1][3:-1] is how to get role ID from role: '<@&975765928333701130>'
+        if len(args)==1 or not args[1][3:-1].isnumeric():
+            r=f'This command requires one extra argument.\n{prefix}AddModRole @Rolename'
+        data[guildID]['ModRoles']|={int(args[1][3:-1])}
+        save(data)
+        r='done'
+
+    elif cmd == 'removemodrole':
+        if len(args)==1 or not args[1][3:-1].isnumeric():
+            r=f'This command requires one extra argument.\n{prefix}AddModRole @Rolename'
+        data[guildID]['ModRoles'].remove(int(args[1][3:-1]))
+        save(data)
+        r='done'
+
+    elif cmd == 'testing':
+        r=args[1][2:-1]
+        print(args[1][2:-1])
 
     if r:
         if str(type(r)) in (f"<class '{i}'>"for i in ('tuple','list','range','generator','set')):
