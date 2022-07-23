@@ -376,7 +376,8 @@ async def on_message(msg):
 
         for i in history[::-1]:
             await i.delete()
-            await webhook.send(i.content, username=i.author.name, avatar_url=i.author.avatar_url)
+            if len(i.content)!=0:
+                await webhook.send(i.content, username=i.author.name, avatar_url=i.author.avatar_url)
         await webhook.delete()
 
         r=f"Please move to {args[1]}, Where it's way more cozy for this convo :>"
@@ -546,16 +547,22 @@ async def on_message(msg):
                 r='There was no reply found'
     
     elif cmd == 'addmodrole': # args[1][3:-1] is how to get role ID from role: '<@&975765928333701130>'
-        if len(args)==1 or not args[1][3:-1].isnumeric():
-            r=f'This command requires one extra argument.\n{prefix}AddModRole @Rolename'
-        data[guildID]['ModRoles']|={int(args[1][3:-1])}
+        if len(args)==1 or not args[1][3:-1].isnumeric() or not args[1].isnumeric():
+            r=f'This command requires one extra argument.\n{prefix}AddModRole <@Rolename or roleID>'
+        if args[1].isnumeric:
+            data[guildID]['ModRoles']|={int(args[1])}
+        else:
+            data[guildID]['ModRoles']|={int(args[1][3:-1])}
         save(data)
         r='done'
 
     elif cmd == 'removemodrole':
-        if len(args)==1 or not args[1][3:-1].isnumeric():
+        if len(args)==1 or not args[1][3:-1].isnumeric() or not args[1].isnumeric():
             r=f'This command requires one extra argument.\n{prefix}AddModRole @Rolename'
-        data[guildID]['ModRoles'].remove(int(args[1][3:-1]))
+        if args[1].isnumeric():
+            data[guildID]['ModRoles'].remove(int(args[1]))
+        else:
+            data[guildID]['ModRoles'].remove(int(args[1][3:-1]))
         save(data)
         r='done'
 
