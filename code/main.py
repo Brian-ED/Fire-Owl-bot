@@ -571,7 +571,7 @@ async def on_message(msg):
         print(args[1][2:-1])
 
     if r:
-        if str(type(r)) in (f"<class '{i}'>"for i in ('tuple','list','range','generator','set')):
+        if str(type(r))[8:-2] in ('tuple','list','range','generator','set'):
             await say(*r)
         else:
             await say(r)
