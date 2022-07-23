@@ -35,7 +35,7 @@ cmds = {
     },
 
     'adminCommands':{
-        'NewResponse','Add','DelResponse','DelReact','SetReplyChannels',
+        'NewResponse','DelResponse','DelReact','SetReplyChannels',
         'SetReactChannels','SetBotChannels','ChannelIDs','Prefix','addModRole',
         'ReplyDelay','ReplyChance','ToggleReactSpam','Add8ball','remove8ball',
         'removemodrole'
@@ -49,8 +49,12 @@ cmds = {
     'ownerCommands':{
         'Update','EmergencyQuit','MakeFile','ListFiles','Backup',
         'RestoreBackup','Testing','Highlow','SettingAdded',
-        'importreplies','BQNEval'}
+        'importreplies','BQNEval','ListServers',
+        
+        'Add','Remove' # work in  progress
+        }
 }
+
 defaultGuildSettings={
     'Prefix'          :'fo!',
     'Bot channels'    :set(),
@@ -528,7 +532,6 @@ async def on_message(msg):
         r='8ball list: '+', '.join(data[guildID]['8ball'])
 
     elif cmd == 'bqneval':
-        # make safe
         for i in ' '.join(args[1:]).split('•')[1:]:
             if not any(i.startswith(j) for j in ['Show ','Out ']):
                 return await say('Invalid use of •')
@@ -566,9 +569,18 @@ async def on_message(msg):
         save(data)
         r='done'
 
+    #TODO
+    elif cmd == 'Add':
+        addables = 'Bot channels','Replies channels','Reacts channels','8ball'
+        if len(args)<3:
+            return await say('This command requires atleast 3 arguments, with the following syntax: ',
+            )
+        
+    elif cmd == 'listservers':
+        r='list of servers:',Join(i.name for i in client.guilds)
+
     elif cmd == 'testing':
-        r=args[1][2:-1]
-        print(args[1][2:-1])
+        1+1
 
     if r:
         if str(type(r))[8:-2] in ('tuple','list','range','generator','set'):
