@@ -117,7 +117,7 @@ async def on_message(msg):
     isOwner  :bool  = msgAuthor == 671689100331319316
     isAdmin  :bool  = msg.author.top_role.permissions.administrator or isOwner
     isVIP    :bool  = msgAuthor in cmds['VIPCommands']
-    isMod    :bool  = isAdmin or msgAuthor in data[guildID]['ModRoles'] 
+    isMod    :bool  = isAdmin or any(i.id in data[guildID]['ModRoles'] for i in msg.author.roles)
 
     data = fns.openR(datatxtPath)
     if guildID not in data:
@@ -239,8 +239,8 @@ async def on_message(msg):
         r='You need to include " replywith: " or " reactwith: " in the message. Not both btw.'
 
     elif cmd == 'listresponses':
-        r='Responses: '+', '.join(list(responses.keys())),
-        '\nReacts: '+', '.join(list(reacts.keys()))
+        r=('Responses:\n'+Join(responses.keys()),
+        '\nReacts:\n'+Join(reacts.keys()))
 
     elif cmd == 'flip':
         r=msg.author.mention+(' heads',' tails')[randint(0,1)]
@@ -256,7 +256,7 @@ async def on_message(msg):
         userChoice = args[1].lower()
         botChoice = randItem(RPS)
         if userChoice not in RPS:
-            r=f'Please enter one of the following items: {", ".join(RPS)}'
+            r=f'Please enter one of the following items: {Join(RPS)}'
         else:
             (userChoice,botChoice,reply)=fns.rps(userChoice,botChoice)
             r=f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{reply}'
@@ -287,13 +287,13 @@ async def on_message(msg):
         )[len(args)==2]
 
     elif cmd == 'info':
-        r='```',
+        r=('```',
         'This command is mostly for debugging btw',
         f"You're admin: {isAdmin}",
         f"You're bot owner: {isOwner}",
         f'Replies cooldown: {replyDelay}',
         f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}',
-        '```'
+        '```')
 
     elif cmd == 'delresponse':
         ValStr=' '.join(args[1:])
@@ -331,12 +331,12 @@ async def on_message(msg):
     elif cmd == 'restorebackup':
         rmtree(extraDir)
         copytree(savestateDir, extraDir)
-        r='You restored the files: '+', '.join(os.listdir(savestateDir))
+        r='You restored the files: '+Join(os.listdir(savestateDir))
     
     elif cmd == 'backup':
         rmtree(savestateDir)
         copytree(extraDir, savestateDir)
-        r='You backuped the files: '+', '.join(os.listdir(extraDir))
+        r='You backuped the files: '+Join(os.listdir(extraDir))
     
     elif cmd == 'zote':
         r=randItem(vars.zoteQuotes)
@@ -362,7 +362,7 @@ async def on_message(msg):
             r=f'You wrote file {args[1]} with the contents {args[2]}'
     
     elif cmd == 'listfiles':
-        r=', '.join(os.listdir(extraDir))
+        r=Join(os.listdir(extraDir))
     
     
     elif cmd == 'move':
@@ -511,7 +511,7 @@ async def on_message(msg):
         
         elif args[2] not in options:
             r="I don't recognize the thing you tried to import. (argument 2).",
-            f"Available options are: {', '.join(options)}"
+            f"Available options are: {Join(options)}"
         else:
             data[guildID][args[2]]|=data[int(args[1])][args[2]]
             save(data)
@@ -530,7 +530,7 @@ async def on_message(msg):
                 await msg.author.send('This is spam ping')
 
     elif cmd=='list8ball':
-        r='8ball list: '+', '.join(data[guildID]['8ball'])
+        r='8ball list: '+Join(data[guildID]['8ball'])
 
     elif cmd == 'bqneval':
         for i in ' '.join(args[1:]).split('•')[1:]:

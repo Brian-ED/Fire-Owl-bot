@@ -1,3 +1,2 @@
-def Join(i): return ', '.join(sorted(i))
-
-print(Join(set()))
+print(any(i in {933100844277186590} for i in (831963301289132052,975765928333701130)))
+print(any(i in {831963301289132052} for i in (831963301289132052,975765928333701130)))
