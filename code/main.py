@@ -51,7 +51,7 @@ cmds = {
         'RestoreBackup','Testing','Highlow','SettingAdded',
         'BQNEval','ListServers',
 
-        'importreplies','Add','Remove' # work in  progress
+        'importreplies','Add','Remove', # work in  progress
         'resetmodroles' # temperary
         }
 }
