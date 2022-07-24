@@ -551,13 +551,11 @@ async def on_message(msg):
     
     elif cmd == 'addmodrole': # args[1][3:-1] is how to get role ID from role: '<@&975765928333701130>'
         if len(args)==1:
-            return await say(Join(data[guildID]['ModRoles']))
-        if len(args)==1 or not args[1][3:-1].isnumeric() or not args[1].isnumeric():
-            r=f'This command requires one extra argument.\n{prefix}AddModRole <@Rolename or roleID>'
+            return await say('Role IDs:\n'+Join(data[guildID]['ModRoles']))
+        if not args[1].isnumeric():
+            r=f'Second argument must be an intiger.\n{prefix}AddModRole <roleID>'
         if args[1].isnumeric():
             data[guildID]['ModRoles']|={int(args[1])}
-        else:
-            data[guildID]['ModRoles']|={int(args[1][3:-1])}
         save(data)
         r='done'
 
@@ -579,7 +577,7 @@ async def on_message(msg):
             )
         
     elif cmd == 'listservers':
-        r='list of servers:',Join(i.name for i in client.guilds)
+        r='list of servers:\n',Join(i.name for i in client.guilds)
 
     elif cmd == 'testing':
         1+1
