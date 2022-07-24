@@ -95,9 +95,7 @@ async def on_ready():
     print('Logged in as',
     client.user.name,
     client.user.id,
-    f'In {len(client.guilds)} servers:',
-    '------',
-    *(i.name for i in client.guilds),
+    f'In {len(client.guilds)} servers',
     '------', sep='\n')
 
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
@@ -107,7 +105,7 @@ async def on_message(msg):
     if not msg.guild :return await msg.channel.send("I don't work in DMs sadly.")
 
     async def say(*values,sep='\n'):
-        await msg.channel.send(sep.join(values))
+        await msg.channel.send(sep.join(str(i)for i in values))
 
     args :list[str] = msg.content.split(' ')
     lArgs:list[str] = msg.content.lower().split(' ')
@@ -223,6 +221,7 @@ async def on_message(msg):
                 else:r=randint(1,int(args[1]))
             else:
                 r=randint(int(args[1]),int(args[2]))
+        
 
     elif cmd == 'newresponse':
         d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
