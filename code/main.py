@@ -184,6 +184,7 @@ async def on_message(msg):
     cmd = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
     if cmd == 'help':
+        if args[1:2]==['mod']: isMod=0 
         r =             'User commands:\n'+ Join(cmds['userCommands']),
         if isMod:  r+='\nMod commands:\n'+  Join(cmds['modCommands']),
         if isAdmin:r+='\nAdmin commands:\n'+Join(cmds['adminCommands']),
