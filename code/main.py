@@ -52,6 +52,7 @@ cmds = {
         'BQNEval','ListServers',
 
         'importreplies','Add','Remove' # work in  progress
+        'resetmodroles' # temperary
         }
 }
 
