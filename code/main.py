@@ -116,7 +116,7 @@ async def on_message(msg):
     isOwner  :bool  = msgAuthor == 671689100331319316
     isAdmin  :bool  = msg.author.top_role.permissions.administrator or isOwner
     isVIP    :bool  = msgAuthor in cmds['VIPCommands']
-    isMod    :bool  = isAdmin #or msgAuthor in modRoles 
+    isMod    :bool  = isAdmin or msgAuthor in data[guildID]['ModRoles'] 
 
     data = fns.openR(datatxtPath)
     if guildID not in data:
