@@ -560,12 +560,10 @@ async def on_message(msg):
         r='done'
 
     elif cmd == 'removemodrole':
-        if len(args)==1 or not args[1][3:-1].isnumeric() or not args[1].isnumeric():
-            r=f'This command requires one extra argument.\n{prefix}AddModRole @Rolename'
+        if len(args)==1 or not args[1].isnumeric():
+            r=f'This command requires one extra argument.\n{prefix}RemoveModRole <RoleID>'
         if args[1].isnumeric():
             data[guildID]['ModRoles'].remove(int(args[1]))
-        else:
-            data[guildID]['ModRoles'].remove(int(args[1][3:-1]))
         save(data)
         r='done'
 
@@ -575,6 +573,11 @@ async def on_message(msg):
         if len(args)<3:
             return await say('This command requires atleast 3 arguments, with the following syntax: ',
             )
+
+    elif cmd == 'resetmodroles':
+        data[guildID]['ModRoles']=set()
+        save(data)
+        r='done'
         
     elif cmd == 'listservers':
         r='list of servers:\n',Join(i.name for i in client.guilds)
