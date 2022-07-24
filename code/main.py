@@ -49,9 +49,9 @@ cmds = {
     'ownerCommands':{
         'Update','EmergencyQuit','MakeFile','ListFiles','Backup',
         'RestoreBackup','Testing','Highlow','SettingAdded',
-        'importreplies','BQNEval','ListServers',
-        
-        'Add','Remove' # work in  progress
+        'BQNEval','ListServers',
+
+        'importreplies','Add','Remove' # work in  progress
         }
 }
 
@@ -243,7 +243,7 @@ async def on_message(msg):
 
     elif cmd == 'flip':
         r=msg.author.mention+(' heads',' tails')[randint(0,1)]
-    
+
     elif cmd == 'togglereactspam':
         data[guildID]['React spam'] = not data[guildID]['React spam']
         save(data)
@@ -550,9 +550,11 @@ async def on_message(msg):
                 r='There was no reply found'
     
     elif cmd == 'addmodrole': # args[1][3:-1] is how to get role ID from role: '<@&975765928333701130>'
+        if len(args)==1:
+            return await say(Join(data[guildID]['ModRoles']))
         if len(args)==1 or not args[1][3:-1].isnumeric() or not args[1].isnumeric():
             r=f'This command requires one extra argument.\n{prefix}AddModRole <@Rolename or roleID>'
-        if args[1].isnumeric:
+        if args[1].isnumeric():
             data[guildID]['ModRoles']|={int(args[1])}
         else:
             data[guildID]['ModRoles']|={int(args[1][3:-1])}
