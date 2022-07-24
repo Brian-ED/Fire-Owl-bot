@@ -117,12 +117,12 @@ async def on_message(msg):
     isOwner  :bool  = msgAuthor == 671689100331319316
     isAdmin  :bool  = msg.author.top_role.permissions.administrator or isOwner
     isVIP    :bool  = msgAuthor in cmds['VIPCommands']
-    isMod    :bool  = any(i.id in data[guildID]['ModRoles'] for i in msg.author.roles)
 
     data = fns.openR(datatxtPath)
     if guildID not in data:
         data[guildID] = defaultGuildSettings
         save(data)
+    isMod    :bool  = any(i.id in data[guildID]['ModRoles'] for i in msg.author.roles)
 
     botChannels    = data[guildID]['Bot channels']
     reactsChannels = data[guildID]['Reacts channels']
