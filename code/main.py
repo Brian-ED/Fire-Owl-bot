@@ -122,7 +122,7 @@ async def on_message(msg):
     if guildID not in data:
         data[guildID] = defaultGuildSettings
         save(data)
-    isMod    :bool  = any(i.id in data[guildID]['ModRoles'] for i in msg.author.roles)
+    isMod    :bool  = isAdmin or any(i.id in data[guildID]['ModRoles'] for i in msg.author.roles)
 
     botChannels    = data[guildID]['Bot channels']
     reactsChannels = data[guildID]['Reacts channels']
