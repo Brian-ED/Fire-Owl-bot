@@ -551,7 +551,7 @@ async def on_message(msg):
     
     elif cmd == 'addmodrole': # args[1][3:-1] is how to get role ID from role: '<@&975765928333701130>'
         if len(args)==1:
-            return await say('Role IDs:\n'+Join(data[guildID]['ModRoles']))
+            return await say(f'Role IDs:\n{data[guildID]["ModRoles"]}')
         if not args[1].isnumeric():
             r=f'Second argument must be an intiger.\n{prefix}AddModRole <roleID>'
         if args[1].isnumeric():
