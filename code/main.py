@@ -117,7 +117,7 @@ async def on_message(msg):
     isOwner  :bool  = msgAuthor == 671689100331319316
     isAdmin  :bool  = msg.author.top_role.permissions.administrator or isOwner
     isVIP    :bool  = msgAuthor in cmds['VIPCommands']
-    isMod    :bool  = isAdmin or any(i.id in data[guildID]['ModRoles'] for i in msg.author.roles)
+    isMod    :bool  = any(i.id in data[guildID]['ModRoles'] for i in msg.author.roles)
 
     data = fns.openR(datatxtPath)
     if guildID not in data:
@@ -184,7 +184,6 @@ async def on_message(msg):
     cmd = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
     if cmd == 'help':
-        if args[1:2]==['mod']: isMod=0 
         r =             'User commands:\n'+ Join(cmds['userCommands']),
         if isMod:  r+='\nMod commands:\n'+  Join(cmds['modCommands']),
         if isAdmin:r+='\nAdmin commands:\n'+Join(cmds['adminCommands']),
