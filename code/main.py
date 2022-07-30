@@ -381,7 +381,7 @@ async def on_message(msg):
         for i in history[::-1]:
             await i.delete()
             if len(i.content)!=0:
-                await webhook.send(i.content, username=i.author.name, avatar_url=i.author.avatar_url)
+                await webhook.send(i.content, username=i.author.name, avatar_url=i.author.avatar_url,file=i.file,files=i.files,embed=i.embed,embeds=i.embeds)
         await webhook.delete()
 
         r=f"Please move to {args[1]}, Where it's way more cozy for this convo :>"
