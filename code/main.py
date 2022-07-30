@@ -283,7 +283,7 @@ async def on_message(msg):
         r=(
         'https://hollowknight.fandom.com/wiki/Special:Search?query='+'+'.join(args[1:]),
         'Remember to search something'
-        )[len(args)==2]
+        )[len(args)<2]
 
     elif cmd == 'info':
         r=('```',
