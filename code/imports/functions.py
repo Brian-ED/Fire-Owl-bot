@@ -1,4 +1,4 @@
-import youtube_dl as ytdl
+# import youtube_dl as ytdl
 import discord as dis
 from . import vars
 
