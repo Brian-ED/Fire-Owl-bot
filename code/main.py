@@ -420,14 +420,13 @@ async def on_message(msg):
         for i in history[::-1]:
             await i.delete()
             if len(i.content)!=0:
-                await webhook.send(
+                msgSent=await webhook.send(
                     i.content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments),
+                    wait=1,
                     username=i.author.name,
                     avatar_url=i.author.avatar_url)
-                if i.reactions:
-                    await asySleep(0.25)
-                    for j in i.reactions:
-                        await (await destinationChannel.history(limit=1).flatten())[0].add_reaction(j)
+                for j in i.reactions:
+                    await msgSent.add_reaction(j)
                     
         await webhook.delete()
 
