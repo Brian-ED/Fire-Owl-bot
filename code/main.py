@@ -4,7 +4,7 @@ import os
 import discord as dis
 from random import randint,random
 from shutil import rmtree, copytree
-import youtube_dl as ytdl
+# import youtube_dl as ytdl
 import imports.functions as fns
 import imports.vars as Vars
 
