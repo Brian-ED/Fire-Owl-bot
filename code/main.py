@@ -124,7 +124,6 @@ async def on_ready():
 @client.event
 async def on_message(msg):
     if msg.author.bot:return
-    if msg.guild!=client.get_guild(998681444253704353):return
 
     async def say(*values,sep='\n',**KWARGS):
         await msg.channel.send(sep.join(str(i)for i in values),**KWARGS)
