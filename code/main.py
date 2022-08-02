@@ -711,4 +711,4 @@ async def on_message(msg):
 
 from yaml import safe_load
 with open(tokenPath, encoding='utf-8') as f:
-    client.run(safe_load(f)['Token2'])
+    client.run(safe_load(f)['Token'])
