@@ -1,10 +1,9 @@
 from asyncio import sleep as asySleep
-from asyncio import run_coroutine_threadsafe
 import os
 import discord as dis
 from random import randint,random
 from shutil import rmtree, copytree
-# import youtube_dl as ytdl
+import youtube_dl as ytdl
 import imports.functions as fns
 import imports.vars as Vars
 
@@ -31,10 +30,10 @@ cmds = {
     'userCommands':{
         '8ball', 'Help', 'Roll', 'Flip', 'rps','yt','Google',
         'Youtube','ListResponses','Info','hkWiki','Recommend',
-        'Rick','Zote','muteMyself','SpamMe','List8Ball','metheus'
-
+        'Rick','Zote','muteMyself','SpamMe','List8Ball','metheus',
+        'play','skip','nowplaying','leavevc'
         # music commands to add:::
-        # playlists, play, p, 
+        # playlists, 
     },
 
     'modCommands':{
@@ -63,6 +62,9 @@ cmds = {
         }
 }
 
+# Music settings:
+max_volume=250 # Max audio volume. Set to -1 for unlimited.
+
 defaultGuildSettings={
     'Prefix'              :'fo!',
     'Bot channels'        :set(),
@@ -83,20 +85,19 @@ defaultGuildSettings={
 
 data:dict[int:dict[str:]] = fns.openR(datatxtPath)
 
-def save(data):
-    fns.openW(datatxtPath,data)
+def save(d):
+    fns.openW(datatxtPath,d)
 
-for i in defaultGuildSettings:
-    if i not in list(data.values())[0]:
-        for y in data:
-            data[y][i]=defaultGuildSettings[i]
-        save(data)
+for guild in data:
+    for setting in defaultGuildSettings:
+        if setting not in data[guild]:
+            data[guild][setting]=defaultGuildSettings[setting]
+save(data)
 
 replyDelayList=set()
 spamPing=set()
 
-
-def randItem(i:list):
+def randItem(i):
     return list(i)[randint(0,len(i)-1)]
 
 if not isLinux:
@@ -134,7 +135,7 @@ async def on_message(msg):
 
 
     guildID:int = msg.guild.id
-    data:dict[int:dict[str:]] = fns.openR(datatxtPath)
+    global data
     if guildID not in data:
         data[guildID] = defaultGuildSettings
         save(data)
@@ -158,7 +159,7 @@ async def on_message(msg):
     isBotChannel   :bool               = channelID in botChannels    or not botChannels
     isReplyChannel :bool               = channelID in replyChannels  or not replyChannels
     isReactChannel :bool               = channelID in reactsChannels or not reactsChannels
-    vcClient                           = msg.guild.voice_client
+
     # r will be the reply message
     r=''
     if not args[0].startswith(prefix):
@@ -207,14 +208,12 @@ async def on_message(msg):
     cmd = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
     async def throw(error,whichArgs=()):
-        errormsg=(
-            error,
-            ' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(args))
-        )
+        errormsg=[error,'```'+' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(args))+'```']
         if cmd in (cmds['adminCommands'],cmds['modCommands'],cmds['ownerCommands'],cmds['VIPCommands']):
             await msg.delete()
             await sayDM(*errormsg)
-        r=errormsg 
+        else:
+            await say(*errormsg) 
 
     if cmd == 'help':
         r =             'User commands:\n'+ Join(cmds['userCommands']),
@@ -267,7 +266,6 @@ async def on_message(msg):
                 indexOf=args.index(k)
                 KeyStr=' '.join(args[1:indexOf]).lower()
                 ValStr=' '.join(args[indexOf+1:])
-                data:dict = fns.openR(datatxtPath)
                 data[guildID][d[k]][KeyStr]=ValStr
                 save(data)
                 await say(f'Alas it is done')
@@ -504,7 +502,6 @@ async def on_message(msg):
     elif cmd=='highlow':
         x = int(args[1]) if len(args)>1 and args[1].isnumeric() else 100
         await say(f'Game started. Guess a number between 1-{x}')
-        print(1)
         correct=randint(1,x)
 
         def check(msg):
@@ -606,91 +603,63 @@ async def on_message(msg):
         # x=await msg.author.voice.channel.connect()
         await msg.channel.send("[hello](https://google.com)")
 
+
+    # DONE 100%
     elif cmd == 'leavevc':
-        if vcClient and vcClient.channel:
-            await vcClient.disconnect()
-            data[guildID]['Playlist']=[]
-            save()
-        else:
-            await throw("Not in a voice channel.")
+        if not(msg.guild.voice_client and msg.guild.voice_client.channel):
+            return await throw("Not in a voice channel.")
+
+        await msg.guild.voice_client.disconnect()
+        data[guildID]['MusicPlaylist'] = []
     
-    elif cmd in ('p','play'):
-        if 0<len(data[guildID]['MusicPlaylist']):
-            if len(args)==1:
-                if vcClient.is_paused():
-                    vcClient.resume()
-                else:vcClient.pause()
+    elif cmd == 'play':
+        if not msg.author.voice:
+            return await throw("You're not in a voice channel.")
+        if len(args)==1:
+            if data[guildID]['MusicPlaylist']:
+                if msg.guild.voice_client.is_paused():
+                    msg.guild.voice_client.resume()
+                else:msg.guild.voice_client.pause()
             else:
-                data[guildID]['MusicPlaylist'].append(' '.join(args[1:]))
-                save(data)
-        else:
-            song=' '.join(args[1:])
-            data[guildID]['MusicSkipVotes'] = set()
-            save(data)
-            source=dis.PCMVolumeTransformer(dis.FFmpegPCMAudio(song.stream_url, before_options=Vars.FFMPEG_BEFORE_OPTS), volume=200)
-            run_coroutine_threadsafe(vcClient.disconnect(),vcClient.loop)
+                await throw("There is no song playing, so you can't pause/resume.")
+            return
 
-        """Plays audio hosted at <url> (or performs a search for <url> and plays the first result)."""
-        if vcClient and vcClient.channel:
-            data[msg.guild.id]['Music'].append(video)
-            await msg.channel.send("Added to queue.", embed=video.get_embed())
-        else:
-            if not (msg.author.voice is not None and msg.author.voice.channel is not None):
-                return await throw("You need to be in a voice channel to do that.")
+        video=fns.get_Video(' '.join(args[1:]))
 
-            vcChannelJoined = await msg.author.voice.channel.connect()
-
-            #get info:::
-            def _get_info(video_url):
-                with ytdl.YoutubeDL(Vars.YTDL_OPTS) as ydl:
-                    info = ydl.extract_info(video_url, download=False)
-                    video = None
-                    if "_type" in info and info["_type"] == "playlist":
-                        return _get_info(
-                            info["entries"][0]["url"])  # get info for first video
-                    else:
-                        video = info
-                    return video
-
-            video=_get_info('https://www.youtube.com/watch?v=v_B3qkp4nO4&list=RDMMXGUS7VnLvZU&index=8')
-
-            ###Defining vars:::
-            # video_format = video["formats"][0]
-            # stream_url =   video["formats"][0]["url"]
-            # video_url = video["webpage_url"]
-            # video["title"]
-            uploader =  video["uploader"] if "uploader" in video else ""
-            thumbnail = video["thumbnail"] if "thumbnail" in video else None
-
-            ###make video embed:::
-            embed = dis.Embed(title=video["title"], description=uploader, url=video["webpage_url"])
-            embed.set_footer(
-                text=f"Requested by {msg.author.name}",
-                icon_url=msg.author.name.avatar_url)
-            if thumbnail:embed.set_thumbnail(url=thumbnail)
-
-            ###
-            await msg.channel.send("", embed=video.get_embed())
-            r=f"Now playing '{video.title}'"
-
-        vcClient.play(source, after=after_playing)
-        save(data)
+        data[guildID]['MusicPlaylist']+=[video]
+        if len(data[guildID]['MusicPlaylist'])==1:
+            await msg.author.voice.channel.connect()
+            fns._play_song(msg,data,client)
     
-    elif cmd in {'skip','s'}:
-        if not data[guildID]['MusicPlayList']:
-            return throw("There's nothing to skip")
+    elif cmd == 'skip':
+        if not data[guildID]['MusicPlaylist']:
+            return await throw("There's nothing to skip")
         data[guildID]['MusicSkipVotes'].add(authorID)
-        users_in_channel = len(i for i in msg.channel.members if not i.bot)
-        currentVoters = data[guildID]['MusicSkipVotes']
-        voteRatio=len(currentVoters)/users_in_channel
+        users_in_channel = len([i for i in msg.author.voice.channel.members if not i.bot])
+        if users_in_channel:
+            voteRatio=len(data[guildID]['MusicSkipVotes'])/users_in_channel
+        else:voteRatio=1
         neededVoteRatio=data[guildID]['MusicNeededVoteRatio']
         if voteRatio >= neededVoteRatio:
             r="Enough votes, skipping..."
+            data[guildID]['MusicPlaylist'].pop(0)
             channel.guild.voice_client.stop()
+            if len(data[guildID]['MusicPlaylist']):
+                await msg.author.voice.channel.connect()
+                fns._play_song(msg,data,client)
         else:
             r=f'Not enough votes. Only {int(100*voteRatio)}% want to skip, when {int(100*neededVoteRatio)}% are needed'
-    
-    elif cmd in {'np','nowplaying'}:
+    elif cmd in {'fs','forceskip'}:
+        if not data[guildID]['MusicPlaylist']:
+            return await throw("There's nothing to skip")
+        r="Skipping..."
+        data[guildID]['MusicPlaylist'].pop(0)
+        channel.guild.voice_client.stop()
+        if len(data[guildID]['MusicPlaylist']):
+            await msg.author.voice.channel.connect()
+            fns._play_song(msg,data,client)
+
+    elif cmd == 'nowplaying':
         if len(data[guildID]['MusicPlaylist']) > 0:
             r = [f"{len(data[guildID]['MusicPlaylist'])} songs in queue:"]+[
                 f"  {index+1}. **{song.title}** (requested by **{song.requested_by.name}**)"
