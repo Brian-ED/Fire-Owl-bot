@@ -1,11 +1,12 @@
 from asyncio import sleep as asySleep
 import os
+from typing import Callable
 import discord as dis
 from random import randint,random
 from shutil import rmtree, copytree
-import youtube_dl as ytdl
 import imports.functions as fns
 import imports.vars as Vars
+DEBUG=1
 
 client = dis.Client()
 
@@ -20,6 +21,7 @@ codeDir         = botDir+'code/'
 BQNpath         = codeDir+'imports/BQNEval/BQNEval.bqn'
 datatxtPath     = extraDir+'data.txt'
 
+os.chdir('/home/brian/personal/discBots/Fire-Owl-bot/code')
 # load backup
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
@@ -109,9 +111,6 @@ if not isLinux:
 
 def Join(i): return ', '.join(sorted(i))
 
-
-recommendsChannel:object = client.get_channel(980859412564553738)
-
 @client.event
 async def on_ready():
     await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
@@ -121,33 +120,33 @@ async def on_ready():
     f'In {len(client.guilds)} servers',
     '------', sep='\n')
 
+
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
-async def on_message(msg):
+async def on_message(msg:dis.Message):
     if msg.author.bot:return
+    if DEBUG and msg.guild.id!=831963301289132052:return
 
-    async def say(*values,sep='\n',**KWARGS):
-        await msg.channel.send(sep.join(str(i)for i in values),**KWARGS)
-    async def sayDM(*values,sep='\n',**KWARGS):
-        await msg.author.send(sep.join(str(i)for i in values),**KWARGS)
-    
-    if not msg.guild: return say(msg.channel.send("I don't work in DMs sadly."))
+    async def say(*values,sep='\n',DM=False,**KWARGS):
+        await (msg.channel,msg.author)[DM].send(sep.join(map(str,values)),**KWARGS)
 
+    if not msg.guild: return say("I don't work in DMs sadly.",DM=1)
 
     guildID:int = msg.guild.id
     global data
     if guildID not in data:
         data[guildID] = defaultGuildSettings
         save(data)
-    botChannels    :set[int]           = data[guildID]['Bot channels']
-    reactsChannels :set[int]           = data[guildID]['Reacts channels']
-    replyChannels  :set[int]           = data[guildID]['Replies channels']
-    modRoles       :set[int]           = data[guildID]['ModRoles']
-    responses      :set[dict[str:str]] = data[guildID]['Responses']
-    reacts         :set[dict[str:str]] = data[guildID]['Reacts']
-    prefix         :str                = data[guildID]['Prefix']
-    replyDelay     :int                = data[guildID]['Reply delay']
-    chanceForReply :float              = data[guildID]['Chance for reply']
+    myData=data[guildID]
+    botChannels    :set[int]           = myData['Bot channels']
+    reactsChannels :set[int]           = myData['Reacts channels']
+    replyChannels  :set[int]           = myData['Replies channels']
+    modRoles       :set[int]           = myData['ModRoles']
+    responses      :set[dict[str:str]] = myData['Responses']
+    reacts         :set[dict[str:str]] = myData['Reacts']
+    prefix         :str                = myData['Prefix']
+    replyDelay     :int                = myData['Reply delay']
+    chanceForReply :float              = myData['Chance for reply']
     args           :list[str]          = msg.content.split(' ')
     lArgs          :list[str]          = msg.content.lower().split(' ')
     channelID      :int                = msg.channel.id
@@ -175,21 +174,21 @@ async def on_message(msg):
                         await msg.add_reaction(f'<:{i}:{dis.utils.get(client.emojis,name=i).id}>')
 
         global replyDelayList
-        if channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply or isBotChannel:   
-            for x in responses:
-                if all(i in lArgs for i in x.split(' ')):
-                    #TODO Fix this, it doesn't seem to work
-                    if 1000<len(responses[x]):
-                        embedVar = dis.Embed(color=0x336EFF).add_field(
-                            name='', value=responses[x][    :1000], inline=False,).add_field(
-                            name='', value=responses[x][1000:2000], inline=False,)
-                        if len(responses[x])>2000:embedVar.add_field(name='', value=responses[x][2000:3000], inline=False,)
-                        await msg.channel.send(embed=embedVar)
-                    else: await say(responses[x])
-                    replyDelayList.add(channelID)
-                    await asySleep(replyDelay)
-                    replyDelayList.remove(channelID)
-                    break
+        if not(channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply or isBotChannel):
+            return
+        for x in responses:
+            if all(i in lArgs for i in x.split(' ')):
+                #TODO Fix this, it doesn't seem to work
+                if 1000<len(responses[x]):
+                    embedVar = dis.Embed(color=0x336EFF)
+                    for i in range(0,len(responses[x]),1000):
+                        embedVar=embedVar.add_field(name='*', value=responses[x][i:i+1000], inline=False)
+                    await msg.channel.send(embed=embedVar)
+                else: await say(responses[x])
+                replyDelayList.add(channelID)
+                await asySleep(replyDelay)
+                replyDelayList.remove(channelID)
+                break
         return
 
     if not isBotChannel and not isMod:
@@ -209,9 +208,9 @@ async def on_message(msg):
 
     async def throw(error,whichArgs=()):
         errormsg=[error,'```'+' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(args))+'```']
-        if cmd in (cmds['adminCommands'],cmds['modCommands'],cmds['ownerCommands'],cmds['VIPCommands']):
+        if cmd in (*cmds['adminCommands'],*cmds['modCommands'],*cmds['ownerCommands'],*cmds['VIPCommands']):
             await msg.delete()
-            await sayDM(*errormsg)
+            await say(*errormsg,DM=1)
         else:
             await say(*errormsg) 
 
@@ -231,15 +230,15 @@ async def on_message(msg):
             r=f'Prefix changed to: "{args[1]}"'
 
     elif cmd == 'rick':
-        await sayDM('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+        await say('https://www.youtube.com/watch?v=dQw4w9WgXcQ',DM=1)
         await asySleep(15)
-        await sayDM(
+        await say(
             'Ok i am so sorry... please forgive me. here are some cats :D',
-            'https://www.youtube.com/watch?v=VZrDxD0Za9I')
+            'https://www.youtube.com/watch?v=VZrDxD0Za9I',DM=1)
         await asySleep(200)
-        await sayDM('cope')
+        await say('cope',DM=1)
         await asySleep(5)
-        await sayDM('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw')
+        await say('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw',DM=1)
 
     elif cmd == '8ball':
         r=randItem(data[guildID]['8ball'])
@@ -296,8 +295,8 @@ async def on_message(msg):
 
     elif cmd == 'recommend':
         if len(args)==1:
-            return await throw(f'Remember to recommend something\n{prefix}recommend <recommendation>')
-        await recommendsChannel.send(' '.join(args[1:]))
+            return await throw(f'Remember to recommend something:\n{prefix}recommend Make the bot better!')
+        await client.get_channel(980859412564553738).send(' '.join(args[1:]))
         r='Thanks for the recommendation :D'
 
     elif cmd == 'google':
@@ -667,6 +666,7 @@ async def on_message(msg):
             ]
         else:
             r="The play queue is empty."
+        
     else:r='That is not a valid command'
 
     if r:
