@@ -21,7 +21,6 @@ codeDir         = botDir+'code/'
 BQNpath         = codeDir+'imports/BQNEval/BQNEval.bqn'
 datatxtPath     = extraDir+'data.txt'
 
-os.chdir('/home/brian/personal/discBots/Fire-Owl-bot/code')
 # load backup
 rmtree(extraDir)
 copytree(savestateDir, extraDir)
