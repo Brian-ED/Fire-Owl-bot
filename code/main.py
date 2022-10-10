@@ -6,7 +6,7 @@ from shutil import rmtree, copytree
 import imports.functions as fns
 import imports.vars as Vars
 from BQN.BQN import BQNfn
-DEBUG=1
+DEBUG=0
 
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 client = dis.Client()
@@ -628,7 +628,7 @@ async def on_message(msg:dis.Message):
         else:
             r="The play queue is empty."
     else:r='That is not a valid command'
-    if not hasattr(r,'__iter__'):r=[r]
+    if not hasattr(r,'__iter__') or type(r)==str:r=[r]
     await say(*r)
 
 
