@@ -5,40 +5,25 @@ from random import randint,random
 from shutil import rmtree, copytree
 import imports.functions as fns
 import imports.vars as Vars
+from BQN.BQN import BQNfn
+DEBUG=0
 from time import sleep
+os.chdir(__file__[:-len(os.path.basename(__file__))])
 client = dis.Client()
 
 isLinux=__file__[0]!='c'
-loc             = 'C:/Users/brian/Persinal/discBots/'
-if isLinux: loc = '../../'
-tokenPath       = loc+'Safe/Fire-Owl-bot.yaml'
-savestateDir    = loc+'data/Fire-Owl-data'
-extraDir        = loc+'Fire-Owl-bot/code/extra/'
-botDir          = loc+'Fire-Owl-bot/'
-codeDir         = botDir+'code/'
-datatxtPath     = extraDir+'data.txt'
+mainPath      = '../../' if isLinux else 'C:/Users/brian/Persinal/discBots/'
+tokenPath     = mainPath+'Safe/Fire-Owl-bot.yaml'
+savestatePath = mainPath+'data/Fire-Owl-data'
+extraPath     = mainPath+'Fire-Owl-bot/code/extra/'
+botPath       = mainPath+'Fire-Owl-bot/'
+codePath      = botPath+'code/'
+datatxtPath   = extraPath+'data.txt'
 
 # load backup
-rmtree(extraDir)
+rmtree(extraPath)  
 sleep(0.1)
-copytree(savestateDir, extraDir)
-
-
-def save(d):
-    fns.openW(datatxtPath,d)
-
-def randItem(i):
-    return list(i)[randint(0,len(i)-1)]
-
-def Join(i):
-    return ', '.join(sorted(i))
-
-if not isLinux:
-    from subprocess import Popen, PIPE, STDOUT
-    def BQNeval(i:str,BQNpath:str=BQNpath)->str:
-        fns.openW(BQNpath,i)
-        return Popen(['BQN',BQNpath], stdout=PIPE, stderr=STDOUT).stdout.read().decode('utf8')
-
+copytree(savestatePath, extraPath)
 
 cmds = {
     'userCommands':{
@@ -76,36 +61,28 @@ cmds = {
         }
 }
 
-defaultGuildSettings={
-    'Prefix'              :'fo!',
-    'Bot channels'        :set(),
-    'Replies channels'    :set(),
-    'Reacts channels'     :set(),
-    'Reply delay'         :0,
-    'Replies per min'     :10,
-    'Chance for reply'    :1,
-    'Reacts'              :Vars.defaultReactsList,
-    'Responses'           :Vars.defaultResponsesList,
-    'React spam'          :0,
-    '8ball'               :Vars.ball8,
-    'ModRoles'            :set(),
-    'MusicPlaylist'       :[],
-    'MusicSkipVotes'      :set(),
-    'MusicNeededVoteRatio':.5
-}
+# Music settings:
+max_volume=250 # Max audio volume. Set to -1 for unlimited.
 
-data:dict[int:dict[str:]] = fns.openR(datatxtPath)
+data:dict[int,dict[str]] = fns.openR(datatxtPath)
+
+def Save(d):
+    fns.openW(datatxtPath,d)
 
 for guild in data:
-    for setting in defaultGuildSettings:
+    for setting in Vars.defaultGuildSettings:
         if setting not in data[guild]:
-            data[guild][setting]=defaultGuildSettings[setting]
-save(data)
+            data[guild][setting]=Vars.defaultGuildSettings[setting]
+Save(data)
 
 replyDelayList=set()
 spamPing=set()
 
-recommendsChannel:object = client.get_channel(980859412564553738)
+def randItem(i):
+    return list(i)[randint(0,len(i)-1)]
+
+def Join(i):
+    return ', '.join(sorted(i))
 
 @client.event
 async def on_ready():
@@ -118,32 +95,30 @@ async def on_ready():
 
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
-async def on_message(msg):
+async def on_message(msg:dis.Message):
     if msg.author.bot:return
+    if DEBUG and msg.guild.id!=831963301289132052:return
 
-    async def say(*values,sep='\n',**KWARGS):
-        return await msg.channel.send(sep.join(str(i)for i in values),**KWARGS)
-    async def sayDM(*values,sep='\n',**KWARGS):
-        return await msg.author.send(sep.join(str(i)for i in values),**KWARGS)
-    
-    if not msg.guild: return say(msg.channel.send("I don't work in DMs sadly."))
+    async def say(*values,sep='\n',DM=False,**KWARGS):
+        return await (msg.channel,msg.author)[DM].send(sep.join(map(str,values)),**KWARGS)
 
+    if not msg.guild: return say("I don't work in DMs sadly.",DM=1)
 
     guildID:int = msg.guild.id
     global data
     if guildID not in data:
-        data[guildID] = defaultGuildSettings
-        save(data)
-
-    botChannels    :set[int]           = data[guildID]['Bot channels']
-    reactsChannels :set[int]           = data[guildID]['Reacts channels']
-    replyChannels  :set[int]           = data[guildID]['Replies channels']
-    modRoles       :set[int]           = data[guildID]['ModRoles']
-    responses      :set[dict[str:str]] = data[guildID]['Responses']
-    reacts         :set[dict[str:str]] = data[guildID]['Reacts']
-    prefix         :str                = data[guildID]['Prefix']
-    replyDelay     :int                = data[guildID]['Reply delay']
-    chanceForReply :float              = data[guildID]['Chance for reply']
+        data[guildID] = Vars.defaultGuildSettings
+        Save(data)
+    myData=data[guildID]
+    botChannels    :set[int]           = myData['Bot channels']
+    reactsChannels :set[int]           = myData['Reacts channels']
+    replyChannels  :set[int]           = myData['Replies channels']
+    modRoles       :set[int]           = myData['ModRoles']
+    responses      :set[dict[str:str]] = myData['Responses']
+    reacts         :set[dict[str:str]] = myData['Reacts']
+    prefix         :str                = myData['Prefix']
+    replyDelay     :int                = myData['Reply delay']
+    chanceForReply :float              = myData['Chance for reply']
     args           :list[str]          = msg.content.split(' ')
     lArgs          :list[str]          = msg.content.lower().split(' ')
     channelID      :int                = msg.channel.id
@@ -155,7 +130,7 @@ async def on_message(msg):
     isBotChannel   :bool               = channelID in botChannels    or not botChannels
     isReplyChannel :bool               = channelID in replyChannels  or not replyChannels
     isReactChannel :bool               = channelID in reactsChannels or not reactsChannels
-
+    
     # r will be the reply message
     r=''
     if not args[0].startswith(prefix):
@@ -171,21 +146,21 @@ async def on_message(msg):
                         await msg.add_reaction(f'<:{i}:{dis.utils.get(client.emojis,name=i).id}>')
 
         global replyDelayList
-        if channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply or isBotChannel:   
-            for x in responses:
-                if all(i in lArgs for i in x.split(' ')):
-                    #TODO Fix this, it doesn't seem to work
-                    if 1000<len(responses[x]):
-                        embedVar = dis.Embed(color=0x336EFF).add_field(
-                            name='', value=responses[x][    :1000], inline=False,).add_field(
-                            name='', value=responses[x][1000:2000], inline=False,)
-                        if len(responses[x])>2000:embedVar.add_field(name='', value=responses[x][2000:3000], inline=False,)
-                        await msg.channel.send(embed=embedVar)
-                    else: await say(responses[x])
-                    replyDelayList.add(channelID)
-                    await asySleep(replyDelay)
-                    replyDelayList.remove(channelID)
-                    break
+        if not(channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply or isBotChannel):
+            return
+        for x in responses:
+            if all(i in lArgs for i in x.split(' ')):
+                #TODO Fix this, it doesn't seem to work
+                if 1000<len(responses[x]):
+                    embedVar = dis.Embed(color=0x336EFF)
+                    for i in range(0,len(responses[x]),1000):
+                        embedVar=embedVar.add_field(name='*', value=responses[x][i:i+1000], inline=False)
+                    await msg.channel.send(embed=embedVar)
+                else: await say(responses[x])
+                replyDelayList.add(channelID)
+                await asySleep(replyDelay)
+                replyDelayList.remove(channelID)
+                break
         return
 
     if not isBotChannel and not isMod:
@@ -198,19 +173,16 @@ async def on_message(msg):
         |If(isAdmin,cmds['adminCommands'])\
         |If(isMod,cmds['modCommands'])
     if isVIP:commands|=cmds['VIPCommands'][authorID]
-
     commands={i.lower() for i in commands}
-
     cmd = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
     async def throw(error,whichArgs=()):
         errormsg=[error,'```'+' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(args))+'```']
-        if cmd in (cmds['adminCommands'],cmds['modCommands'],cmds['ownerCommands'],cmds['VIPCommands']):
+        if cmd in (*cmds['adminCommands'],*cmds['modCommands'],*cmds['ownerCommands'],*cmds['VIPCommands']):
             await msg.delete()
-            await sayDM(*errormsg)
+            await say(*errormsg,DM=1)
         else:
             await say(*errormsg) 
-
     if cmd == 'help':
         r =             'User commands:\n'+ Join(cmds['userCommands']),
         if isMod:  r+='\nMod commands:\n'+  Join(cmds['modCommands']),
@@ -244,37 +216,28 @@ async def on_message(msg):
             r=f'Current prefix: "{prefix}".'
         else:
             data[guildID]['Prefix']=args[1]
-            save(data)
+            Save(data)
             r=f'Prefix changed to: "{args[1]}"'
 
     elif cmd == 'rick':
-        await sayDM('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+        ytUrl='https://youtu.be/'
+        await say(ytUrl+'dQw4w9WgXcQ',DM=1)
         await asySleep(15)
-        await sayDM(
+        await say(
             'Ok i am so sorry... please forgive me. here are some cats :D',
-            'https://www.youtube.com/watch?v=VZrDxD0Za9I')
+            ytUrl+'VZrDxD0Za9I',DM=1)
         await asySleep(200)
-        await sayDM('cope')
+        await say('cope',DM=1)
         await asySleep(5)
-        await sayDM('this can help :)\nhttps://www.youtube.com/watch?v=Lc6db8qfZEw')
+        await say(f'this can help :)\n{ytUrl}Lc6db8qfZEw',DM=1)
 
     elif cmd == '8ball':
         r=randItem(data[guildID]['8ball'])
 
     elif cmd == 'roll':
-        if len(args) == 1:
-            return await say(randint(1,6))
-        elif not all(i.isnumeric() for i in args[1:]):
-            return await throw('This command only accepts intigers',(1,2))
-        i=[int(i) for i in args[1:]]
-        i.sort()
-        if len(i)==1:
-            if i[0]==0: r=random()
-            else: r=randint(1,i[0])
-        elif len(i)==2:
-            r=randint(*i)
-        else:
-            return await throw('This command only accepts max 2 inputs',range(3,len(args)))
+        r=fns.Roll(args[1:3])
+        if type(r)==tuple:
+            return await throw(*r)
 
     elif cmd == 'newresponse':
         d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
@@ -284,7 +247,7 @@ async def on_message(msg):
                 KeyStr=' '.join(args[1:indexOf]).lower()
                 ValStr=' '.join(args[indexOf+1:])
                 data[guildID][d[k]][KeyStr]=ValStr
-                save(data)
+                Save(data)
                 await say(f'Alas it is done')
                 return
         r='You need to include " replywith: " or " reactwith: " in the message. Not both btw.'
@@ -298,7 +261,7 @@ async def on_message(msg):
 
     elif cmd == 'togglereactspam':
         data[guildID]['React spam'] = not data[guildID]['React spam']
-        save(data)
+        Save(data)
         r=f'Set to {bool(data[guildID]["React spam"])}'
 
     elif cmd == 'rps':
@@ -313,8 +276,8 @@ async def on_message(msg):
 
     elif cmd == 'recommend':
         if len(args)==1:
-            return await throw(f'Remember to recommend something\n{prefix}recommend <recommendation>')
-        await recommendsChannel.send(' '.join(args[1:]))
+            return await throw(f'Remember to recommend something:\n{prefix}recommend Make the bot better!')
+        await client.get_channel(980859412564553738).send(' '.join(args[1:]))
         r='Thanks for the recommendation :D'
 
     elif cmd == 'google':
@@ -348,7 +311,7 @@ async def on_message(msg):
         ValStr=' '.join(args[1:])
         if ValStr in responses:
             del data[guildID]['Responses'][' '.join(args[1:])]
-            save(data)
+            Save(data)
             r='deleted'
         else:
             r="Reply doesn't exist"
@@ -357,7 +320,7 @@ async def on_message(msg):
         ValStr=' '.join(args[1:])
         if ValStr in reacts:
             del data[guildID]['Reacts'][' '.join(args[1:])]
-            save(data)
+            Save(data)
             r='deleted'
         else:
             r="reply doesn't exist"
@@ -365,27 +328,27 @@ async def on_message(msg):
     elif cmd == 'update' and isLinux:
         await say("updating...")
 
-        rmtree(savestateDir)
-        copytree(extraDir, savestateDir)
+        rmtree(savestatePath)
+        copytree(extraPath, savestatePath)
         await asySleep(.5)
-        os.system('cd '+botDir)
+        os.system('cd '+botPath)
         os.system('git reset --hard')
         os.system('git clean -fd')
         os.system('git pull')
-        os.system('cd '+codeDir)
+        os.system('cd '+codePath)
         os.system('python3 main.py')
         await asySleep(0.5)
         quit()
 
     elif cmd == 'restorebackup':
-        rmtree(extraDir)
-        copytree(savestateDir, extraDir)
-        r='You restored the files: '+Join(os.listdir(savestateDir))
+        rmtree(extraPath)
+        copytree(savestatePath, extraPath)
+        r='You restored the files: '+Join(os.listdir(savestatePath))
     
     elif cmd == 'backup':
-        rmtree(savestateDir)
-        copytree(extraDir, savestateDir)
-        r='You backuped the files: '+Join(os.listdir(extraDir))
+        rmtree(savestatePath)
+        copytree(extraPath, savestatePath)
+        r='You backuped the files: '+Join(os.listdir(extraPath))
     
     elif cmd == 'zote':
         r=randItem(Vars.zoteQuotes)
@@ -404,19 +367,19 @@ async def on_message(msg):
         else:
             r=f'done, set reply delay to {args[1]}'
             data[guildID]['Reply delay'] = int(args[1])
-            save(data)
+            Save(data)
 
     elif cmd == 'makefile':
         if len(args)<3:
             r=f'Not correct syntax\n{prefix}makefile <fileName> <contents>'
         else:
-            fns.openW(extraDir+args[1],args[2])
+            fns.openW(extraPath+args[1],args[2])
             r=f'You wrote file {args[1]} with the contents {args[2]}'
     
     elif cmd == 'listfiles':
-        r=Join(os.listdir(extraDir))
-
-
+        r=Join(os.listdir(extraPath))
+    
+    
     elif cmd == 'move':
         await msg.delete()
         if len(args)!=3:
@@ -498,21 +461,21 @@ async def on_message(msg):
     elif cmd=='setbotchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Bot channels']=[int(i) for i in args[1:]]
-            save(data)
+            Save(data)
             r ='done'
         else:r='Not valid channel IDs'
 
     elif cmd=='setreplychannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Replies channels']=[int(i) for i in args[1:]]
-            save(data)
+            Save(data)
             r ='done'
         else:r='Not valid channel IDs'
 
     elif cmd=='setreactchannels':
         if 0==sum([not i.isnumeric() for i in args[1:]]):
             data[guildID]['Reacts channels']=[int(i) for i in args[1:]]
-            save(data)
+            Save(data)
             r='done'
         else:r='Not valid channel IDs'
     
@@ -544,7 +507,7 @@ async def on_message(msg):
             r=data[guildID]['8ball']
       else:
             data[guildID]['8ball']|={' '.join(args[1:])}
-            save(data)
+            Save(data)
             r='Added'
 
     # make an import react/response x from other discords command
@@ -563,7 +526,7 @@ async def on_message(msg):
             f"Available options are: {Join(options)}"
         else:
             data[guildID][args[2]]|=data[int(args[1])][args[2]]
-            save(data)
+            Save(data)
             r=f"Imported {args[2]} from {dis.utils.get(client.guilds,id=int(args[1])).name}"
 
     elif cmd=='spamme':
@@ -588,7 +551,7 @@ async def on_message(msg):
             try:
                 data[guildID]['8ball'].remove(' '.join(args[1:]))
                 r='Removed'
-                save(data)
+                Save(data)
             except:
                 r='There was no reply found'
     
@@ -599,7 +562,7 @@ async def on_message(msg):
             r=f'Second argument must be an intiger.\n{prefix}AddModRole <roleID>'
         if args[1].isnumeric():
             data[guildID]['ModRoles']|={int(args[1])}
-        save(data)
+        Save(data)
         r='done'
 
     elif cmd == 'removemodrole':
@@ -607,19 +570,18 @@ async def on_message(msg):
             r=f'This command requires one extra argument.\n{prefix}RemoveModRole <RoleID>'
         if args[1].isnumeric():
             data[guildID]['ModRoles'].remove(int(args[1]))
-        save(data)
+        Save(data)
         r='done'
     
     elif cmd == 'listmodroles':
-        r='Mod roles:\n'+Join(data[guildID]['ModRoles'])
+        r='Mod roles:\n'+Join(myData['ModRoles'])
         
     elif cmd == 'listservers':
         r='list of servers:\n',Join(i.name for i in client.guilds)
 
     elif cmd == 'testing':
         # x=await msg.author.voice.channel.connect()
-        await msg.channel.send("[hello](https://google.com)")
-
+        0
 
     # DONE 100%
     elif cmd == 'leavevc':
@@ -686,12 +648,15 @@ async def on_message(msg):
         else:
             r="The play queue is empty."
     else:r='That is not a valid command'
+    if not hasattr(r,'__iter__') or type(r)==str:r=[r]
+    await say(*r)
 
-    if r:
-        if str(type(r))[8:-2] in {'tuple','list','range','generator','set'}:
-            await say(*r)
-        else:
-            await say(r)
+
+@client.event
+async def on_reaction_add(reaction, author):
+    if author.bot:return
+    reaction.message
+    if reaction.emoji == '📩':1
 
 
 @client.event

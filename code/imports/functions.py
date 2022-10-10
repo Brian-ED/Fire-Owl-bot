@@ -2,6 +2,13 @@ import youtube_dl as ytdl
 import discord as dis
 from asyncio import run_coroutine_threadsafe, TimeoutError
 from typing import Iterable, MutableSequence
+from BQN.BQN import BQNfn
+
+Roll=BQNfn("""
+•rand.Range{∧´𝕩∾⊸∊'0'+↕10?
+    ≠◶⟨𝔽6,𝔽 1+⍟≤⊑,(⊣+⟜𝔽 1+-˜)´∧⟩10⊸×⊸+˜´∘⌽∘-⟜'0'¨𝕩
+    ;"This command only accepts integers"⋈1+𝕩/⟜↕⟜≠˜¬𝕩∧´∘∊¨<'0'+↕10
+}""")
 
 def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str:
     if command == prefix:
@@ -15,7 +22,8 @@ def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str
     else:
         return ''
 
-def rps(userChoice,botChoice):
+def rps(userChoice,botChoice)->str:
+    r=''
     if userChoice == botChoice:
         r="Ah we drew the game m'lad, well played"
 
@@ -37,9 +45,9 @@ def rps(userChoice,botChoice):
             r="Ha my mighty metal scissors can cut throgh any paper! Y'know, your paper might aswell be taken right out of the toilet roll for how much of a fight it put up!"
     return r
 
-def openR(path):
+def openR(path:str):
     with open(path, "r", encoding="utf-8") as f:
-        return eval(str(f.read()))
+        return eval(f.read())
 def openW(path:str,value):
     with open(path, "w", encoding="utf-8") as f:
         f.write(str(value))
@@ -53,17 +61,12 @@ def game(boardSize,maxMoves=None): # none means infinite
 def isMetheusEmote(x:str):
     return x[:8] in {':P1Relic',':P2Relic'}
 
-
-def throw(x):
-    print(x)
-    quit()
-
 def indexInto(indexables:list[list],indexes:Iterable[int]):
     return tuple(tuple(z[i]for i in indexes)for z in indexables)
 
 def ext(l:list[int]):
     return l+(6-len(l))*[l[-1]]
-
+    
 def Min(*x):
     if len(x)==1:return x[0]
     else: return min(*x)
