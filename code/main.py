@@ -5,7 +5,7 @@ from random import randint,random
 from shutil import rmtree, copytree
 import imports.functions as fns
 import imports.vars as Vars
-from BQN.BQN import BQNfn
+
 DEBUG=0
 
 os.chdir(__file__[:-len(os.path.basename(__file__))])
