@@ -3,10 +3,9 @@ import os
 import discord as dis
 from random import randint,random
 from shutil import rmtree, copytree
-import youtube_dl as ytdl
 import imports.functions as fns
 import imports.vars as Vars
-
+from time import sleep
 client = dis.Client()
 
 isLinux=__file__[0]!='c'
@@ -17,13 +16,28 @@ savestateDir    = loc+'data/Fire-Owl-data'
 extraDir        = loc+'Fire-Owl-bot/code/extra/'
 botDir          = loc+'Fire-Owl-bot/'
 codeDir         = botDir+'code/'
-BQNpath         = codeDir+'imports/BQNEval/BQNEval.bqn'
 datatxtPath     = extraDir+'data.txt'
 
 # load backup
 rmtree(extraDir)
+sleep(0.1)
 copytree(savestateDir, extraDir)
 
+
+def save(d):
+    fns.openW(datatxtPath,d)
+
+def randItem(i):
+    return list(i)[randint(0,len(i)-1)]
+
+def Join(i):
+    return ', '.join(sorted(i))
+
+if not isLinux:
+    from subprocess import Popen, PIPE, STDOUT
+    def BQNeval(i:str,BQNpath:str=BQNpath)->str:
+        fns.openW(BQNpath,i)
+        return Popen(['BQN',BQNpath], stdout=PIPE, stderr=STDOUT).stdout.read().decode('utf8')
 
 
 cmds = {
@@ -62,9 +76,6 @@ cmds = {
         }
 }
 
-# Music settings:
-max_volume=250 # Max audio volume. Set to -1 for unlimited.
-
 defaultGuildSettings={
     'Prefix'              :'fo!',
     'Bot channels'        :set(),
@@ -85,9 +96,6 @@ defaultGuildSettings={
 
 data:dict[int:dict[str:]] = fns.openR(datatxtPath)
 
-def save(d):
-    fns.openW(datatxtPath,d)
-
 for guild in data:
     for setting in defaultGuildSettings:
         if setting not in data[guild]:
@@ -96,19 +104,6 @@ save(data)
 
 replyDelayList=set()
 spamPing=set()
-
-def randItem(i):
-    return list(i)[randint(0,len(i)-1)]
-
-if not isLinux:
-    from subprocess import Popen, PIPE, STDOUT
-
-    def BQNeval(i:str,BQNpath:str=BQNpath)->str:
-        fns.openW(BQNpath,i)
-        return Popen(['BQN',BQNpath], stdout=PIPE, stderr=STDOUT).stdout.read().decode('utf8')
-
-def Join(i): return ', '.join(sorted(i))
-
 
 recommendsChannel:object = client.get_channel(980859412564553738)
 
@@ -127,9 +122,9 @@ async def on_message(msg):
     if msg.author.bot:return
 
     async def say(*values,sep='\n',**KWARGS):
-        await msg.channel.send(sep.join(str(i)for i in values),**KWARGS)
+        return await msg.channel.send(sep.join(str(i)for i in values),**KWARGS)
     async def sayDM(*values,sep='\n',**KWARGS):
-        await msg.author.send(sep.join(str(i)for i in values),**KWARGS)
+        return await msg.author.send(sep.join(str(i)for i in values),**KWARGS)
     
     if not msg.guild: return say(msg.channel.send("I don't work in DMs sadly."))
 
@@ -139,6 +134,7 @@ async def on_message(msg):
     if guildID not in data:
         data[guildID] = defaultGuildSettings
         save(data)
+
     botChannels    :set[int]           = data[guildID]['Bot channels']
     reactsChannels :set[int]           = data[guildID]['Reacts channels']
     replyChannels  :set[int]           = data[guildID]['Replies channels']
@@ -204,7 +200,7 @@ async def on_message(msg):
     if isVIP:commands|=cmds['VIPCommands'][authorID]
 
     commands={i.lower() for i in commands}
-    
+
     cmd = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
     async def throw(error,whichArgs=()):
@@ -221,6 +217,27 @@ async def on_message(msg):
         if isAdmin:r+='\nAdmin commands:\n'+Join(cmds['adminCommands']),
         if isOwner:r+='\nOwner commands:\n'+Join(cmds['ownerCommands']),
         if isVIP:  r+='\nVIP commands (Available to you):\n'+Join(cmds['VIPCommands'][authorID]),
+
+    elif cmd == 'testing':
+
+        embed = dis.Embed(
+            title = 'Pick your prounoun(s)! :D',
+            description = '\n'.join((
+                "Use the buttons below to select what pronouns you'd like us to display for you.",
+                "Pick however many you'd like, and if none of them suit you, you may message a mod/admin for a custom pronoun role :>",
+                "1️⃣ They/Them",
+                "2️⃣ She/Her",
+                "3️⃣ He/Him",
+                "4️⃣ Any",
+                "5️⃣ Ask me",
+                "6️⃣ custom (bot dms you)"
+            )), 
+            color=0xE659ff)
+        
+        embed.set_thumbnail(url=msg.guild.icon_url)
+        sentMsg=await say(embed=embed)
+        for i in '1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣':
+            sentMsg.add_reaction(i)
 
     elif cmd == 'prefix':
         if len(args)<2:
@@ -398,8 +415,8 @@ async def on_message(msg):
     
     elif cmd == 'listfiles':
         r=Join(os.listdir(extraDir))
-    
-    
+
+
     elif cmd == 'move':
         await msg.delete()
         if len(args)!=3:
@@ -412,7 +429,7 @@ async def on_message(msg):
             return await msg.author.send(f'Number of messages to move was invalid. remember to do have it as a intiger')
         
         destinationChannel=await client.fetch_channel(int(args[1][2:-1]))
-        webhook = await destinationChannel.create_webhook(name=msg.author.name)
+        webhook = await destinationChannel.create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
         history = await msg.channel.history(limit=int(args[2])).flatten()
 
         for i in history[::-1]:
@@ -623,10 +640,11 @@ async def on_message(msg):
             else:
                 await throw("There is no song playing, so you can't pause/resume.")
             return
-
         video=fns.get_Video(' '.join(args[1:]))
+        await say(video.keys())
 
         data[guildID]['MusicPlaylist']+=[video]
+        await say('Song added to queue')
         if len(data[guildID]['MusicPlaylist'])==1:
             await msg.author.voice.channel.connect()
             fns._play_song(msg,data,client)
@@ -674,6 +692,13 @@ async def on_message(msg):
             await say(*r)
         else:
             await say(r)
+
+
+@client.event
+async def on_reaction_add(reaction, author):
+    if author.bot:return
+    reaction.message
+    if reaction.emoji == '📩':1
 
 
 from yaml import safe_load

@@ -44,6 +44,8 @@ def openW(path:str,value):
     with open(path, "w", encoding="utf-8") as f:
         f.write(str(value))
 
+D=lambda*g:lambda*a:g and D(*g[:-1])(g[-1](*a))or a[0]
+T=lambda*g:lambda*a:g and T(*g[:-3])(g[-2](g[-3](*a),g[-1](*a)))or a[0]
 
 def game(boardSize,maxMoves=None): # none means infinite
     1
