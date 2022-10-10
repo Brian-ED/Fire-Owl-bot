@@ -7,12 +7,11 @@ import imports.functions as fns
 import imports.vars as Vars
 
 DEBUG=0
-
+from time import sleep
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 client = dis.Client()
 
 isLinux=__file__[0]!='c'
-
 mainPath      = '../../' if isLinux else 'C:/Users/brian/Persinal/discBots/'
 tokenPath     = mainPath+'Safe/Fire-Owl-bot.yaml'
 savestatePath = mainPath+'data/Fire-Owl-data'
@@ -23,6 +22,7 @@ datatxtPath   = extraPath+'data.txt'
 
 # load backup
 rmtree(extraPath)  
+sleep(0.1)
 copytree(savestatePath, extraPath)
 
 cmds = {
@@ -64,9 +64,7 @@ cmds = {
 # Music settings:
 max_volume=250 # Max audio volume. Set to -1 for unlimited.
 
-
-
-data:dict[int:dict[str:]] = fns.openR(datatxtPath)
+data:dict[int,dict[str]] = fns.openR(datatxtPath)
 
 def Save(d):
     fns.openW(datatxtPath,d)
@@ -102,7 +100,7 @@ async def on_message(msg:dis.Message):
     if DEBUG and msg.guild.id!=831963301289132052:return
 
     async def say(*values,sep='\n',DM=False,**KWARGS):
-        await (msg.channel,msg.author)[DM].send(sep.join(map(str,values)),**KWARGS)
+        return await (msg.channel,msg.author)[DM].send(sep.join(map(str,values)),**KWARGS)
 
     if not msg.guild: return say("I don't work in DMs sadly.",DM=1)
 
@@ -116,8 +114,8 @@ async def on_message(msg:dis.Message):
     reactsChannels :set[int]           = myData['Reacts channels']
     replyChannels  :set[int]           = myData['Replies channels']
     modRoles       :set[int]           = myData['ModRoles']
-    responses      :set[dict[str,str]] = myData['Responses']
-    reacts         :set[dict[str,str]] = myData['Reacts']
+    responses      :set[dict[str:str]] = myData['Responses']
+    reacts         :set[dict[str:str]] = myData['Reacts']
     prefix         :str                = myData['Prefix']
     replyDelay     :int                = myData['Reply delay']
     chanceForReply :float              = myData['Chance for reply']
@@ -132,6 +130,7 @@ async def on_message(msg:dis.Message):
     isBotChannel   :bool               = channelID in botChannels    or not botChannels
     isReplyChannel :bool               = channelID in replyChannels  or not replyChannels
     isReactChannel :bool               = channelID in reactsChannels or not reactsChannels
+    
     # r will be the reply message
     r=''
     if not args[0].startswith(prefix):
@@ -174,7 +173,6 @@ async def on_message(msg:dis.Message):
         |If(isAdmin,cmds['adminCommands'])\
         |If(isMod,cmds['modCommands'])
     if isVIP:commands|=cmds['VIPCommands'][authorID]
-
     commands={i.lower() for i in commands}
     cmd = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
@@ -191,6 +189,27 @@ async def on_message(msg:dis.Message):
         if isAdmin:r+='\nAdmin commands:\n'+Join(cmds['adminCommands']),
         if isOwner:r+='\nOwner commands:\n'+Join(cmds['ownerCommands']),
         if isVIP:  r+='\nVIP commands (Available to you):\n'+Join(cmds['VIPCommands'][authorID]),
+
+    elif cmd == 'testing':
+
+        embed = dis.Embed(
+            title = 'Pick your prounoun(s)! :D',
+            description = '\n'.join((
+                "Use the buttons below to select what pronouns you'd like us to display for you.",
+                "Pick however many you'd like, and if none of them suit you, you may message a mod/admin for a custom pronoun role :>",
+                "1️⃣ They/Them",
+                "2️⃣ She/Her",
+                "3️⃣ He/Him",
+                "4️⃣ Any",
+                "5️⃣ Ask me",
+                "6️⃣ custom (bot dms you)"
+            )), 
+            color=0xE659ff)
+        
+        embed.set_thumbnail(url=msg.guild.icon_url)
+        sentMsg=await say(embed=embed)
+        for i in '1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣':
+            sentMsg.add_reaction(i)
 
     elif cmd == 'prefix':
         if len(args)<2:
@@ -373,7 +392,7 @@ async def on_message(msg:dis.Message):
             return await msg.author.send(f'Number of messages to move was invalid. remember to do have it as a intiger')
         
         destinationChannel=await client.fetch_channel(int(args[1][2:-1]))
-        webhook = await destinationChannel.create_webhook(name=msg.author.name)
+        webhook = await destinationChannel.create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
         history = await msg.channel.history(limit=int(args[2])).flatten()
 
         for i in history[::-1]:
@@ -583,10 +602,11 @@ async def on_message(msg:dis.Message):
             else:
                 await throw("There is no song playing, so you can't pause/resume.")
             return
-
         video=fns.get_Video(' '.join(args[1:]))
+        await say(video.keys())
 
         data[guildID]['MusicPlaylist']+=[video]
+        await say('Song added to queue')
         if len(data[guildID]['MusicPlaylist'])==1:
             await msg.author.voice.channel.connect()
             fns._play_song(msg,data,client)
@@ -630,6 +650,20 @@ async def on_message(msg:dis.Message):
     else:r='That is not a valid command'
     if not hasattr(r,'__iter__') or type(r)==str:r=[r]
     await say(*r)
+
+
+@client.event
+async def on_reaction_add(reaction, author):
+    if author.bot:return
+    reaction.message
+    if reaction.emoji == '📩':1
+
+
+@client.event
+async def on_reaction_add(reaction, author):
+    if author.bot:return
+    reaction.message
+    if reaction.emoji == '📩':1
 
 
 from yaml import safe_load
