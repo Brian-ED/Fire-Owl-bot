@@ -5,8 +5,7 @@ from random import randint,random
 from shutil import rmtree, copytree
 import imports.functions as fns
 import imports.vars as Vars
-from BQN.BQN import BQNfn
-DEBUG=0
+DEBUG=1
 from time import sleep
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 client = dis.Client()
@@ -265,14 +264,10 @@ async def on_message(msg:dis.Message):
         r=f'Set to {bool(data[guildID]["React spam"])}'
 
     elif cmd == 'rps':
-        RPS = ['rock','paper','scissors']    
+        RPS = ['rock','paper','scissors']
         if len(args)==1 or args[1].lower() not in RPS:
             return await throw(f'The command only accepts '+Join(RPS),(1,))
-
-        userChoice = args[1].lower()
-        botChoice = randItem(RPS)
-        reply=fns.rps(userChoice,botChoice)
-        r=f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{reply}'
+        r=fns.rps(args[1],RPS)
 
     elif cmd == 'recommend':
         if len(args)==1:

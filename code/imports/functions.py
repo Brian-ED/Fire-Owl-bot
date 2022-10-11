@@ -22,28 +22,26 @@ def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str
     else:
         return ''
 
-def rps(userChoice,botChoice)->str:
-    r=''
-    if userChoice == botChoice:
-        r="Ah we drew the game m'lad, well played"
-
-    elif userChoice == 'rock':
-        if botChoice == 'scissors':
-            r='Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:987400356877176912>'
-        elif botChoice == 'paper':
-            r='Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!'
-
-    elif userChoice == 'scissors':
-        if botChoice=='rock':
-            r='Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:987400181140041729>'
-        elif botChoice=='paper':
-            r="Oh i lost! Y'know i got that paper from my grandma before she died... :(... Ha just kidding, totally got you there :)"
-    elif userChoice == 'paper':
-        if botChoice == 'rock':
-            r="Did... did you just wrap your paper around my rock and assume i can't still throw it?.. wdym it's in the rules?.. God damnit"
-        elif botChoice =='scissors':
-            r="Ha my mighty metal scissors can cut throgh any paper! Y'know, your paper might aswell be taken right out of the toilet roll for how much of a fight it put up!"
-    return r
+rps=BQNfn("""{
+draw←"Ah we drew the game m'lad, well played"
+sciRock←"Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:987400356877176912>"
+paperRock←"Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!"
+rockScissors←"Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:987400181140041729>"
+paperScissors←"Oh i lost! Y'know i got that paper from my grandma before she died... :(... Ha just kidding, totally got you there :)"
+rockPaper←"Did... did you just wrap your paper around my rock and assume i can't still throw it?.. wdym it's in the rules?.. God damnit"
+scissorsPaper←"Ha my mighty metal scissors can cut throgh any paper! Y'know, your paper might aswell be taken right out of the toilet roll for how much of a fight it put up!"
+map←[
+    draw‿paperRock‿paperScissors
+    rockPaper‿draw‿scissorsPaper
+    rockScissors‿paperScissors‿draw
+]
+rps←𝕨
+Lower←+⟜(32×1="A["⊸⍋)
+3 •rand.Range⊸{botChoice 𝕊 userChoice:
+    "You chose **"∾(𝕩⊑rps)∾"**. I (the bot) chose **"∾(𝕨⊑rps)∾"**.
+    "∾𝕩‿𝕨⊑map
+}⊑1⊐˜rps≡¨<Lower 𝕩
+}""")
 
 def openR(path:str):
     with open(path, "r", encoding="utf-8") as f:
@@ -51,9 +49,6 @@ def openR(path:str):
 def openW(path:str,value):
     with open(path, "w", encoding="utf-8") as f:
         f.write(str(value))
-
-D=lambda*g:lambda*a:g and D(*g[:-1])(g[-1](*a))or a[0]
-T=lambda*g:lambda*a:g and T(*g[:-3])(g[-2](g[-3](*a),g[-1](*a)))or a[0]
 
 def game(boardSize,maxMoves=None): # none means infinite
     1
