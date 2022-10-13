@@ -20,8 +20,9 @@ codePath      = botPath+'code/'
 datatxtPath   = extraPath+'data.txt'
 
 # load backup
-rmtree(extraPath)  
-sleep(0.1)
+if os.path.exists(extraPath):
+    rmtree(extraPath)
+    sleep(0.1)
 copytree(savestatePath, extraPath)
 
 cmds = {
@@ -57,7 +58,9 @@ cmds = {
         'RestoreBackup','Testing','Highlow','ListServers',
 
         'importreplies' # work in  progress
-        }
+
+        'boardgame'
+    }
 }
 
 # Music settings:
@@ -96,7 +99,7 @@ async def on_ready():
 @client.event
 async def on_message(msg:dis.Message):
     if msg.author.bot:return
-    if DEBUG and msg.guild.id!=831963301289132052:return
+    if DEBUG and msg.guild.id!=998681444253704353:return #831963301289132052
 
     async def say(*values,sep='\n',DM=False,**KWARGS):
         return await (msg.channel,msg.author)[DM].send(sep.join(map(str,values)),**KWARGS)
@@ -176,7 +179,7 @@ async def on_message(msg:dis.Message):
     cmd = fns.commandHandler(prefix,args[0],commands,ifEmpty='help')
 
     async def throw(error,whichArgs=()):
-        errormsg=[error,'```'+' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(args))+'```']
+        errormsg=[error,' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(args))]
         if cmd in (*cmds['adminCommands'],*cmds['modCommands'],*cmds['ownerCommands'],*cmds['VIPCommands']):
             await msg.delete()
             await say(*errormsg,DM=1)
@@ -207,8 +210,8 @@ async def on_message(msg:dis.Message):
         
         embed.set_thumbnail(url=msg.guild.icon_url)
         sentMsg=await say(embed=embed)
-        for i in '1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣':
-            sentMsg.add_reaction(i)
+        for i in ('1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'):
+            await sentMsg.add_reaction(i)
 
     elif cmd == 'prefix':
         if len(args)<2:
@@ -574,10 +577,6 @@ async def on_message(msg:dis.Message):
     elif cmd == 'listservers':
         r='list of servers:\n',Join(i.name for i in client.guilds)
 
-    elif cmd == 'testing':
-        # x=await msg.author.voice.channel.connect()
-        0
-
     # DONE 100%
     elif cmd == 'leavevc':
         if not(msg.guild.voice_client and msg.guild.voice_client.channel):
@@ -642,7 +641,38 @@ async def on_message(msg:dis.Message):
             ]
         else:
             r="The play queue is empty."
+        
+    elif cmd == 'boardgame':
+        embed = dis.Embed(
+            title = 'Pick your game! :D',
+            description = '\n'.join((
+                "Use the buttons below to select what game you'd like me to start for you.",
+                "1️⃣ Checkers",
+                "2️⃣ TicTacToe"
+                #"3️⃣ Connect4",
+                #"4️⃣ Chess",
+                #"5️⃣ 4player chess",
+                #"6️⃣ random",
+            )), 
+            color=0xE659ff
+        )
+        embed.set_thumbnail(url=msg.guild.icon_url)
+        sentMsg=await say(embed=embed)
+        for i in ('1️⃣'): #,'2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'
+            await sentMsg.add_reaction(i)
+        def check(reaction, user):
+            return user == msg.author and str(reaction.emoji) == '↕'
+
+        msg = await client.wait_for('reaction_add', check=check, timeout=30)
+
+        try:
+            reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+        except:
+            await channel.send('-')
+
     else:r='That is not a valid command'
+
+    if r=='':return
     if not hasattr(r,'__iter__') or type(r)==str:r=[r]
     await say(*r)
 
@@ -652,14 +682,6 @@ async def on_reaction_add(reaction, author):
     if author.bot:return
     reaction.message
     if reaction.emoji == '📩':1
-
-
-@client.event
-async def on_reaction_add(reaction, author):
-    if author.bot:return
-    reaction.message
-    if reaction.emoji == '📩':1
-
 
 from yaml import safe_load
 with open(tokenPath, encoding='utf-8') as f:

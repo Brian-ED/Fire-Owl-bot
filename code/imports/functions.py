@@ -1,6 +1,6 @@
 import youtube_dl as ytdl
 import discord as dis
-from asyncio import run_coroutine_threadsafe, TimeoutError
+from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
 from typing import Iterable, MutableSequence
 from BQN.BQN import BQNfn
 
@@ -70,55 +70,69 @@ def Max(*x):
     if len(x)==1:return x[0]
     else: return max(*x)
 
-def min2(s:MutableSequence[int])->list[int]:
+def min2(s:MutableSequence[int])->list[int,int]:
     z=Min(*s)
     s.remove(z)
     return [z,Min(*s)]
 
-async def metheus(client,msg,say,throw):
-
+async def metheus(client:dis.Client,msg:dis.Message,say,throw):
     x='>'.join(msg.content.split('<')).split('>')[1::2]
-
     p1,p2=(tuple('<'+i+'>' for i in x if (i[2]==z and isMetheusEmote(i))) for z in '12')
     if len(p1)!=6 or len(p2)!=6:
         return await throw('Wrong syntax. Please include 6 symbols for each player, which means 6 that start with P1, and 6 that start with P2')
     await say('Succesful input. Your input was:',''.join(p1),''.join(p2))
 
-    def check(m:dis.Message):
-        if m.channel == msg.channel\
-            and m.content.isnumeric()\
-            and int(m.content)in{0,1,2,3,4,5,6}\
-            and int(m.content)-(len(notSolution)-2) in {0,1,2}\
-            or m.content=='stop'\
-            or m.content=='undo':return 1
-        else:return 0
+    def check(m:dis.Reaction,author):
+        return all((
+            author==msg.author,
+            sentMsg.id==m.message.id,
+            m.emoji[0].isnumeric() or m.emoji in{'🛑','↩'}
+        ))
 
     notSolution=[0,1]
 
     while len(notSolution)-2!=6:
+        print(notSolution)
         await say(*(''.join(i[:3])+'\n'+''.join(i[3:]) for i in indexInto([p1,p2],ext(notSolution))))
-        await say('How many yellows?')
-        timeout=10*60
-        try:inputMessage=await client.wait_for('message',check=check,timeout=timeout)
-        except TimeoutError:await throw(f'Waited for too long. the time limit for this command is {timeout}')
-        if inp == 'stop':return await say('Alright i stopped')
-        inp=int(inputMessage.content)
-        if inp==6:break
-        x=inp-(len(notSolution)-2)
+        sentMsg=await say('How many yellows?')
+        async def addReactions(msg):
+            for i in ("0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","🛑","↩"):
+                if not (sentMsg is msg):break
+                await msg.add_reaction(i)
+        create_task(addReactions(sentMsg))
+        try:
+            emoji:str=(await client.wait_for(
+                'reaction_add',
+                check=check,
+                timeout=10*60
+            ))[0].emoji
+        except TimeoutError:
+            await throw(f'Waited for too long')
+        if emoji=='🛑':
+            return await say('Game stopped')
+        elif emoji=='↩':
+            notSolution=notSolution[:2]+notSolution[2:-1]
+        inp=int(emoji[0])
+        if inp==6:return await say('Done')
+        x=inp-len(notSolution)+2
+        s=lambda i:{0,1,2,3,4,5}.difference(i)
         if x==1:
-            if Max(*notSolution)+2>Max(*{0,1,2,3,4,5}.difference(notSolution)):
-                notSolution[-2]=Max(*{0,1,2,3,4,5}.difference(notSolution))
-                notSolution.pop
-                notSolution+=min2({0,1,2,3,4,5}.difference(notSolution))
+            if Max(*notSolution)+2>Max(*s(notSolution)):
+                notSolution[-2]=Max(*s(notSolution))
+                notSolution.pop()
+                notSolution+=min2(s(notSolution))
             else:
-                notSolution[-2:]=[i for i in {0,1,2,3,4,5}.difference(notSolution) if i > notSolution[-1]][:2]
+                notSolution[-2:]=[i for i in s(notSolution) if i > notSolution[-1]][:2]
         elif x==0:
+            print(notSolution)
+
             notSolution[-1]=notSolution.pop()
-            notSolution+=min2({0,1,2,3,4,5}.difference(notSolution))
+            notSolution+=min2(s(notSolution))
         elif x==2:
             notSolution.pop()
-            notSolution+=min2({0,1,2,3,4,5}.difference(notSolution))
-    await say('done')
+            notSolution+=min2(s(notSolution))
+        else:
+            await say("That's an impossible configuration")
 
 async def in_voice_channel(msg):
     """Checks that the command sender is in the same voice channel as the bot."""
