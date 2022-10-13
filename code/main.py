@@ -5,7 +5,7 @@ from random import randint,random
 from shutil import rmtree, copytree
 import imports.functions as fns
 import imports.vars as Vars
-DEBUG=1
+DEBUG=0
 from time import sleep
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 client = dis.Client()
