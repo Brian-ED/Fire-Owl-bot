@@ -82,11 +82,16 @@ async def metheus(client:dis.Client,msg:dis.Message,say,throw):
         return await throw('Wrong syntax. Please include 6 symbols for each player, which means 6 that start with P1, and 6 that start with P2')
     await say('Succesful input. Your input was:',''.join(p1),''.join(p2))
 
+    def Outside(m):
+        try:
+            return m.emoji[0]
+        except:return ""
+
     def check(m:dis.Reaction,author):
         return all((
             author==msg.author,
             sentMsg.id==m.message.id,
-            m.emoji[0].isnumeric() or m.emoji in{'🛑','↩'}
+            Outside(m).isnumeric() or m.emoji in{'🛑','↩'}
         ))
 
     notSolution=[0,1]
