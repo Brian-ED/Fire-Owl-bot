@@ -112,7 +112,7 @@ async def metheus(client:dis.Client,msg:dis.Message,say,throw):
                 timeout=10*60
             ))[0].emoji
         except TimeoutError:
-            await throw(f'Waited for too long')
+            return await throw(f'Waited for too long')
         if emoji=='🛑':
             return await say('Game stopped')
         elif emoji=='↩':
