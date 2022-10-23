@@ -134,6 +134,7 @@ async def on_message(msg:dis.Message):
     isBotChannel   :bool               = channelID in botChannels    or not botChannels
     isReplyChannel :bool               = channelID in replyChannels  or not replyChannels
     isReactChannel :bool               = channelID in reactsChannels or not reactsChannels
+
     if msg.channel.id==1033849397605318696:
         webhook = await msg.channel.create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
         await webhook.send(
