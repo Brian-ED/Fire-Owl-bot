@@ -141,6 +141,7 @@ async def on_message(msg:dis.Message):
             username=msg.author.name,
             avatar_url=msg.author.avatar_url)
         await msg.delete()
+        await webhook.delete()
 
     # r will be the reply message
     r=''
