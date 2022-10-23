@@ -381,28 +381,30 @@ async def on_message(msg:dis.Message):
     elif cmd == 'move':
         await msg.delete()
         if len(args)!=3:
-            return await msg.author.send(f'This command requires 2 arguments minimum.\n{prefix}move <#Channel> <number of messages(10 if none given)>')
-        
+            return await say(f'This command requires 2 arguments.\n{prefix}move <#Channel> <number of messages(10 if none given)>',DM=1)
+
         if not args[1][2:-1].isnumeric():
-            return await msg.author.send(f'Channel ID was invalid. remember to do #ChannelName')
+            return await say(f'Channel ID was invalid. remember to do #ChannelName',DM=1)
 
         if not args[2].isnumeric():
-            return await msg.author.send(f'Number of messages to move was invalid. remember to do have it as a intiger')
-        
+            return await say(f'Number of messages to move was invalid. remember to do have it as a intiger',DM=1)
+
         destinationChannel=await client.fetch_channel(int(args[1][2:-1]))
         webhook = await destinationChannel.create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
         history = await msg.channel.history(limit=int(args[2])).flatten()
 
         for i in history[::-1]:
             await i.delete()
-            if len(i.content)!=0:
-                msgSent=await webhook.send(
-                    i.content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments),
-                    wait=1,
-                    username=i.author.name,
-                    avatar_url=i.author.avatar_url)
-                for j in i.reactions:
-                    await msgSent.add_reaction(j)
+            
+            Sendingtxt=i.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments)
+            if not Sendingtxt:Sendingtxt+='** **'
+            msgSent=await webhook.send(
+                Sendingtxt,
+                wait=1,
+                username=i.author.name,
+                avatar_url=i.author.avatar_url)
+            for j in i.reactions:
+                await msgSent.add_reaction(j)
                     
         await webhook.delete()
 
