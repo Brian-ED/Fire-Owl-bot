@@ -136,12 +136,12 @@ async def on_message(msg:dis.Message):
     isReactChannel :bool               = channelID in reactsChannels or not reactsChannels
 
     if msg.channel.id==1033849397605318696:
-        webhook = await msg.channel.create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
+        await msg.delete()
+        webhook:dis.Webhook = await msg.channel.create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
         await webhook.send(
             genderChatCopyPasta,
             username=msg.author.name,
             avatar_url=msg.author.avatar_url)
-        await msg.delete()
         await webhook.delete()
 
     # r will be the reply message
