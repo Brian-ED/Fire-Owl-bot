@@ -5,7 +5,7 @@ from random import randint,random
 from shutil import rmtree, copytree
 import imports.functions as fns
 import imports.vars as Vars
-DEBUG=0
+DEBUG=1
 from time import sleep
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 client = dis.Client()
@@ -95,6 +95,8 @@ async def on_ready():
     f'In {len(client.guilds)} servers',
     '------', sep='\n')
 
+genderChatCopyPasta="""Alright I’m just gonna throw this out there so we can drop it. Gender chat was a terrible idea to begin with and it won’t be coming back. It took something that is meant to be acknowledged, accepted, and moved on and put it on a pedestal for discussion an argument like it was some sort of science experiment to be observed. It’s a complex subject matter which many people have complex and naturally different views on, with what it is, where it comes from, if it’s inherent, to some if it even exists. Blaming people for having a view that doesn’t conform to yours isn’t great, and neither is blaming people for the channel being a bad idea to begin with, its not much short of just belief based discrimination. It’s was never a good idea, and it wouldn’t be a good idea to reinstate. Period. Now let’s all drop it"""
+
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 @client.event
 async def on_message(msg:dis.Message):
@@ -132,7 +134,14 @@ async def on_message(msg:dis.Message):
     isBotChannel   :bool               = channelID in botChannels    or not botChannels
     isReplyChannel :bool               = channelID in replyChannels  or not replyChannels
     isReactChannel :bool               = channelID in reactsChannels or not reactsChannels
-    
+    if msg.channel.id==1033849397605318696:
+        webhook = await msg.channel.create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
+        await webhook.send(
+            genderChatCopyPasta,
+            username=msg.author.name,
+            avatar_url=msg.author.avatar_url)
+        await msg.delete()
+
     # r will be the reply message
     r=''
     if not args[0].startswith(prefix):
