@@ -135,15 +135,6 @@ async def on_message(msg:dis.Message):
     isReplyChannel :bool               = channelID in replyChannels  or not replyChannels
     isReactChannel :bool               = channelID in reactsChannels or not reactsChannels
 
-    if msg.channel.id==1033849397605318696 or msg.channel.id==1009095238012379157:
-        await msg.delete()
-        webhook:dis.Webhook = await msg.channel.create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
-        await webhook.send(
-            genderChatCopyPasta,
-            username=msg.author.name,
-            avatar_url=msg.author.avatar_url)
-        await webhook.delete()
-
     # r will be the reply message
     r=''
     if not args[0].startswith(prefix):
