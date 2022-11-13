@@ -261,7 +261,7 @@ async def on_message(msg:dis.Message):
                 indexOf=fullMsg.index(key)
                 KeyStr=fullMsg[lenOfFirstArg+1:indexOf-1]
                 ValStr=fullMsg[indexOf+len(key)+1:]
-                
+
                 data[guildID][d[key]][KeyStr]=ValStr
                 Save(data)
                 await say(f'Alas it is done')

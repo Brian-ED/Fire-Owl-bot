@@ -24,7 +24,7 @@ class Infix:
 
 def InV2(text:str, searchIn:Union[str,list]):
     searchStr=' '.join(searchIn) if type(searchIn)==list else searchIn
-    return ' '+text+' ' in searchStr or searchStr.startswith(text) or searchStr.endswith(text)
+    return ' '+text+' ' in searchStr or searchStr.startswith(text+' ') or searchStr.endswith(' '+text)
 
 @Infix
 def Curry(f:Callable,x:Any,**xx:Any)->Callable:
