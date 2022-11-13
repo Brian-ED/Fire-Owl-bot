@@ -82,7 +82,7 @@ replyDelayList=set()
 
 def Join(i):
     return ', '.join(sorted(i))
-@client.event
+
 async def on_ready():
     await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
     print('Logged in as',
@@ -108,7 +108,7 @@ async def on_ready():
                 Save(data)
         await asySleep(10)
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
-@client.event
+
 async def on_message(msg:dis.Message):
     if msg.author.bot:return
     if not(isLinux or msg.content.startswith("testversion")):return
@@ -476,6 +476,12 @@ async def on_message(msg:dis.Message):
             data[guildID]['Reacts channels']=set(map(int,args))
             Save(data)
     
+    elif cmd == 'recommend':
+        if []==args:
+            return await throw(f'Remember to recommend something:\n{prefix}recommend Make the bot better!')
+        await client.get_channel(980859412564553738).send(' '.join(args))
+        r='Thanks for the recommendation :D'
+    
     elif cmd=='highlow':
         x = int(args[0]) if args and args[0].isnumeric() else 100
         await say(f'Game started. Guess a number between 1-{x}')
@@ -677,12 +683,17 @@ async def on_message(msg:dis.Message):
     await say(*r)
 
 
-@client.event
 async def on_reaction_add(reaction, author):
     if author.bot:return
     reaction.message
     if reaction.emoji == '📩':1
 
+
+*map(client.event,(
+    on_ready,
+    on_message,
+    on_reaction_add
+)),
 from yaml import safe_load
 with open(tokenPath, encoding='utf-8') as f:
     client.run(safe_load(f)['Token'])

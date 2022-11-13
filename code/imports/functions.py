@@ -1,4 +1,3 @@
-from operator import mul
 import youtube_dl as ytdl
 import discord as dis
 from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
@@ -102,7 +101,7 @@ def openR(path:str):
         return eval(f.read())
 def openW(path:str,value):
     with open(path, "w", encoding="utf-8") as f:
-        f.write(str(value))
+        f.write(repr(value))
 
 def game(boardSize,maxMoves=None): # none means infinite
     1
