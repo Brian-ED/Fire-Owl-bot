@@ -1,14 +1,45 @@
+from operator import mul
 import youtube_dl as ytdl
 import discord as dis
 from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
-from typing import Iterable, MutableSequence
+from typing import Iterable, MutableSequence,Union
 from BQN.BQN import BQNfn
+from typing import Any, Callable
 
-Roll=BQNfn("""
-•rand.Range{∧´𝕩∾⊸∊'0'+↕10?
-    ≠◶⟨𝔽6,𝔽 1+⍟≤⊑,(⊣+⟜𝔽 1+-˜)´∧⟩10⊸×⊸+˜´∘⌽∘-⟜'0'¨𝕩
-    ;"This command only accepts integers"⋈1+𝕩/⟜↕⟜≠˜¬𝕩∧´∘∊¨<'0'+↕10
-}""")
+class Infix:
+    def __init__(self, function):
+        self.function = function
+    def __ror__(self, other):
+        return Infix(lambda x, self=self, other=other: self.function(other, x))
+    def __or__(self, other):
+        return self.function(other)
+    def __rlshift__(self, other):
+        return Infix(lambda x, self=self, other=other: self.function(other, x))
+    def __rshift__(self, other):
+        return self.function(other)
+    def __call__(self, value1, value2):
+        return self.function(value1, value2)
+    def __matmul__(self, x):
+        print("works")
+        print(x)
+
+def InV2(text:str, searchIn:Union[str,list]):
+    searchStr=' '.join(searchIn) if type(searchIn)==list else searchIn
+    return ' '+text+' ' in searchStr or searchStr.startswith(text) or searchStr.endswith(text)
+
+@Infix
+def Curry(f:Callable,x:Any,**xx:Any)->Callable:
+    def g(*y,**yy):
+        yl=list(y)
+        return f(*(i if i!=Any else yl.pop() for i in x),*yl,**yy,**xx)
+    return g
+
+
+# Roll=BQNfn("""
+# •rand.Range{∧´𝕩∾⊸∊'0'+↕10?
+#     ≠◶⟨𝔽6,𝔽 1+⍟≤⊑,(⊣+⟜𝔽 1+-˜)´∧⟩10⊸×⊸+˜´∘⌽∘-⟜'0'¨𝕩
+#     ;"This command only accepts integers"⋈1+𝕩/⟜↕⟜≠˜¬𝕩∧´∘∊¨<'0'+↕10
+# }""")
 
 def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str:
     if command == prefix:
@@ -22,26 +53,49 @@ def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str
     else:
         return ''
 
-rps=BQNfn("""{
-draw←"Ah we drew the game m'lad, well played"
-sciRock←"Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:987400356877176912>"
-paperRock←"Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!"
-rockScissors←"Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:987400181140041729>"
-paperScissors←"Oh i lost! Y'know i got that paper from my grandma before she died... :(... Ha just kidding, totally got you there :)"
-rockPaper←"Did... did you just wrap your paper around my rock and assume i can't still throw it?.. wdym it's in the rules?.. God damnit"
-scissorsPaper←"Ha my mighty metal scissors can cut throgh any paper! Y'know, your paper might aswell be taken right out of the toilet roll for how much of a fight it put up!"
-map←[
-    draw‿paperRock‿paperScissors
-    rockPaper‿draw‿scissorsPaper
-    rockScissors‿paperScissors‿draw
-]
-rps←𝕨
-Lower←+⟜(32×1="A["⊸⍋)
-3 •rand.Range⊸{botChoice 𝕊 userChoice:
-    "You chose **"∾(𝕩⊑rps)∾"**. I (the bot) chose **"∾(𝕨⊑rps)∾"**.
-    "∾𝕩‿𝕨⊑map
-}⊑1⊐˜rps≡¨<Lower 𝕩
-}""")
+#rps=BQNfn("""{
+#draw←"Ah we drew the game m'lad, well played"
+#sciRock←"Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:987400356877176912>"
+#paperRock←"Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!"
+#rockScissors←"Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:987400181140041729>"
+#paperScissors←"Oh i lost! Y'know i got that paper from my grandma before she died... :(... Ha just kidding, totally got you there :)"
+#rockPaper←"Did... did you just wrap your paper around my rock and assume i can't still throw it?.. wdym it's in the rules?.. God damnit"
+#scissorsPaper←"Ha my mighty metal scissors can cut throgh any paper! Y'know, your paper might aswell be taken right out of the toilet roll for how much of a fight it put up!"
+#map←[
+#    draw‿paperRock‿paperScissors
+#    rockPaper‿draw‿scissorsPaper
+#    rockScissors‿paperScissors‿draw
+#]
+#rps←𝕨
+#Lower←+⟜(32×1="A["⊸⍋)
+#3 •rand.Range⊸{botChoice 𝕊 userChoice:
+#    "You chose **"∾(𝕩⊑rps)∾"**. I (the bot) chose **"∾(𝕨⊑rps)∾"**.
+#    "∾𝕩‿𝕨⊑map
+#}⊑1⊐˜rps≡¨<Lower 𝕩
+#}""")
+
+def rps(userChoice,botChoice)->str:
+    r=''
+    if userChoice == botChoice:
+        r="Ah we drew the game m'lad, well played"
+
+    elif userChoice == 'rock':
+        if botChoice == 'scissors':
+            r='Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:881738404944023562>'
+        elif botChoice == 'paper':
+            r='Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!'
+
+    elif userChoice == 'scissors':
+        if botChoice=='rock':
+            r='Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:854415812534468627>'
+        elif botChoice=='paper':
+            r="Oh i lost! Y'know i got that paper from my grandma before she died... :(... Ha just kidding, totally got you there :)"
+    elif userChoice == 'paper':
+        if botChoice == 'rock':
+            r="Did... did you just wrap your paper around my rock and assume i can't still throw it?.. wdym it's in the rules?.. God damnit"
+        elif botChoice =='scissors':
+            r="Ha my mighty metal scissors can cut throgh any paper! Y'know, your paper might aswell be taken right out of the toilet roll for how much of a fight it put up!"
+    return r
 
 def openR(path:str):
     with open(path, "r", encoding="utf-8") as f:
@@ -146,11 +200,9 @@ async def in_voice_channel(msg):
     return voice and bot_voice and voice.channel and bot_voice.channel and voice.channel == bot_voice.channel
 
 FFMPEG_BEFORE_OPTS = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
-"""
-Command line options to pass to `ffmpeg` before the `-i`.
-See https://stackoverflow.com/questions/43218292/youtubedl-read-error-with-discord-py/44490434#44490434 for more information.
-Also, https://ffmpeg.org/ffmpeg-protocols.html for command line option reference.
-"""
+#Command line options to pass to `ffmpeg` before the `-i`.
+#See https://stackoverflow.com/questions/43218292/youtubedl-read-error-with-discord-py/44490434#44490434 for more information.
+#Also, https://ffmpeg.org/ffmpeg-protocols.html for command line option reference.
 
 def _play_song(msg, data, client):
     data[msg.guild.id]['MusicSkipVotes']=set() # clear skip votes
@@ -179,3 +231,21 @@ def get_Video(video_url):
     if "_type" in info and info["_type"] == "playlist":
         return get_Video(info["entries"][0]["url"])  # get info for first video
     else: return info
+
+def Get(items,*indexs):
+    if 1==len(indexs):
+        r= items[indexs[0]]
+    elif 2==len(indexs):
+        r= items[indexs[0]:indexs[1]]
+    elif 3==len(indexs):
+        r= items[indexs[0]:indexs[1]:indexs[2]]
+    else:
+        r= items
+    return r
+
+Map=Infix(map)
+
+def getTime(time:tuple[str])->Union[str,int]:
+    return sum(int(i[:-1])*(1,60,3600,86400)['smhd'.index(i[-1])] for i in time)
+# print(getTime(("3d","1h","3m","2s")))
+# 262982

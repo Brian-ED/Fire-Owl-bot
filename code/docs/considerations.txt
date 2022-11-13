@@ -1,0 +1,10 @@
+add an extension to the help command where second argument is one of the commands and write a detailed explanation of each one
+make a simple, easy to use programming thing so you're able to make custom games for your discord personally
+make a tournament command
+check new joiners for default pfp and put a message in moderator-log if they do
+redeem points by chatting and use it to troll people
+nqn filter on mod log
+poll automation
+add some sort of selector addon to commands. and just add addons to commands in general
+manual unmute from mods and dms with bot to cancel
+costumize the move command

@@ -1,0 +1,1 @@
+add spoiler command (spoiler a specified message)
