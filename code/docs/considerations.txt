@@ -8,3 +8,4 @@ poll automation
 add some sort of selector addon to commands. and just add addons to commands in general
 manual unmute from mods and dms with bot to cancel
 costumize the move command
+readding 
