@@ -1,4 +1,3 @@
-test roll command (not working)
 test reactions glitch (the script checked once for if all words were in the message but not in order)
 
 fix these:

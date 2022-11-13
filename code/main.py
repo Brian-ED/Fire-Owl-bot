@@ -161,7 +161,8 @@ async def on_message(msg:dis.Message):
             #             await msg.add_reaction(f'<:{i}:{dis.utils.get(client.emojis,name=i).id}>')
 
         global replyDelayList
-        if not any(all(isBotChannel,channelID not in replyDelayList, isReplyChannel, random()<=chanceForReply)):
+        
+        if not(channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply or isBotChannel):
             return
 
         for x in responses:
@@ -253,16 +254,20 @@ async def on_message(msg:dis.Message):
 
     elif cmd == 'newresponse':
         d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
-        for k in d:
+        lenOfFirstArg=len(msg.content.split()[0])
+        for key in d:
             fullMsg=msg.content.lower()
-            if k in fullMsg:
-                indexOf=fullMsg.index(k)
-                KeyStr=fullMsg[indexOf:indexOf+len(k)]
-                ValStr=args[indexOf+len(k):]
-                data[guildID][d[k]][KeyStr]=ValStr
+            if key in fullMsg:
+                indexOf=fullMsg.index(key)
+                KeyStr=fullMsg[lenOfFirstArg+1:indexOf-1]
+                ValStr=fullMsg[indexOf+len(key)+1:]
+                
+                data[guildID][d[key]][KeyStr]=ValStr
                 Save(data)
                 await say(f'Alas it is done')
                 return
+        
+        
         r='You need to include " replywith: " or " reactwith: " in the message. Not both btw.'
 
     elif cmd == 'listresponses':
