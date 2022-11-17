@@ -30,7 +30,7 @@ cmds = {
     'userCommands':{
         '8ball', 'Help', 'Flip', 'rps','ListResponses','Info','hkWiki','Recommend',
         'Rick','Zote','MuteMyself','List8Ball','Metheus',
-        'Play','Skip','NowPlaying','Leavevc'
+        'Play','Skip','NowPlaying','Leavevc','APL'
         # music commands to add:::
         # playlists, 
     },
@@ -111,7 +111,7 @@ async def on_ready():
 
 async def on_message(msg:dis.Message):
     if msg.author.bot:return
-    if not(isLinux or msg.content.startswith("testversion")):return
+    if not(isLinux or msg.content.startswith("test")):return
     
     async def say(*values,sep='\n',DM=False,**KWARGS):
         return await (msg.channel,msg.author)[DM].send(sep.join(map(str,values)),**KWARGS)
@@ -130,7 +130,7 @@ async def on_message(msg:dis.Message):
     modRoles       :set[int]           = myData['ModRoles']
     responses      :set[dict[str:str]] = myData['Responses']
     reacts         :set[dict[str:str]] = myData['Reacts']
-    prefix         :str                = ("testversion!",myData['Prefix'])[isLinux]
+    prefix         :str                = ("test!",myData['Prefix'])[isLinux]
     replyDelay     :int                = myData['Reply delay']
     chanceForReply :float              = myData['Chance for reply']
     allArgs=cmd,*args                  = msg.content.lower().split()
@@ -650,7 +650,20 @@ async def on_message(msg:dis.Message):
             ]
         else:
             r="The play queue is empty."
-        
+    
+    elif cmd == 'apl':
+        if []==args:
+            return await say("Nothing to evaluate")
+        await client.get_channel(1042892476526100480).send("dyalog) ⎕←"+msg.content[1+len(prefix)+len(cmd):])
+
+        def check(msg):
+            return msg.channel.id == 1042892476526100480\
+                and msg.author.id == 975728573312802847
+        try:
+            r = (await client.wait_for("message", check=check, timeout=10)).content
+        except:
+            r = "Took too long"
+
     elif cmd == 'boardgame':
         embed = dis.Embed(
             title = 'Pick your game! :D',
@@ -678,7 +691,8 @@ async def on_message(msg:dis.Message):
             reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
         except:
             await channel.send('-')
-    elif cmd == 'Eval':
+
+    elif cmd == 'eval':
         r=eval(msg.content[len(prefix)+4:])
 
     else:r='That is not a valid command'
