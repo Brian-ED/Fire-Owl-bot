@@ -652,13 +652,10 @@ async def on_message(msg:dis.Message):
             r="The play queue is empty."
     
     elif cmd == 'apl':
-        if []==args:
-            return await say("Nothing to evaluate")
-        await client.get_channel(1042892476526100480).send("dyalog) ⎕←"+msg.content[1+len(prefix)+len(cmd):])
+        if []==args: return await say("Nothing to evaluate")
+        await client.get_channel(1042892476526100480).send("⋄"+msg.content[1+len(prefix)+len(cmd):])
 
-        def check(msg):
-            return msg.channel.id == 1042892476526100480\
-                and msg.author.id == 975728573312802847
+        check=lambda m:(m.channel.id,m.author.id)==(1042892476526100480,975728573312802847)
         try:
             r = (await client.wait_for("message", check=check, timeout=10)).content
         except:
