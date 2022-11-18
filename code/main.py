@@ -375,8 +375,8 @@ async def on_message(msg:dis.Message):
     
     elif cmd == 'move':
         await msg.delete()
-        if len(args)!=2:
-            return await say(f'This command requires 2 arguments.\n{prefix}move <#Channel> <number of messages(10 if none given)>',DM=1)
+        if len(args)not in(2,3):
+            return await say(f'This command requires 2 arguments.\n{prefix}move <#Channel> <number of messages>',DM=1)
 
         if not args[0][2:-1].isnumeric():
             return await say(
@@ -384,21 +384,27 @@ async def on_message(msg:dis.Message):
                 DM=1
             )
 
-        if not args[1].isnumeric():
+        if not args[1].isnumeric() or args[2:] and not args[2].isnumeric():
             return await say(
                 'Number of messages to move was invalid. remember to do have it as a intiger',
                 DM=1
             )
-        webhook = await (await client.fetch_channel(int(args[0][2:-1]))).create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
-        history = (await msg.channel.history(limit=int(args[1])).flatten())[::-1]
+        webhook = await (await client.fetch_channel(int(args[0][2:-1]))).create_webhook(name=msg.author.display_name)
+        
+        if args[2:]:
+            history = (await msg.channel.history(limit=int(args[2])).flatten())[int(args[1])-1:]
+            for i in history[::-1]:
+                await i.delete()
+        else:
+            history = await msg.channel.history(limit=int(args[1])).flatten()
+            await msg.channel.purge(
+                limit=int(args[1])
+            )
 
-        # for i in history:
-        #     await i.delete()
-        await msg.channel.purge(limit=int(args[1]))
         await say(f"Please move to {args[0]}, Where it's way more cozy for this convo :>")
 
-        for i in history:
-            Sendingtxt=i.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments)
+        for i in history[::-1]:
+            Sendingtxt=(i.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments))[:2000]
 
             msgSent=await webhook.send(
                 Sendingtxt if Sendingtxt else '** **',
@@ -407,12 +413,7 @@ async def on_message(msg:dis.Message):
                 avatar_url=i.author.avatar_url)
             for j in i.reactions:
                 await msgSent.add_reaction(j)
-
         await webhook.delete()
-        print(dir(msg.channel))
-
-
-
 
 
     elif cmd == 'unmute':

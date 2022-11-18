@@ -5,3 +5,4 @@ deine bot kann nicht forstandi der vergangene
 add hints for how to use the bot in the help command
 add some sort of selector addon to commands. and just add addons to commands in general
 make sure links are not overwritten when message is too long
+support ranges in move command
