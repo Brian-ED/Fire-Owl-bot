@@ -392,6 +392,11 @@ async def on_message(msg:dis.Message):
         webhook = await (await client.fetch_channel(int(args[0][2:-1]))).create_webhook(name=msg.author.nick if msg.author.nick else msg.author.name)
         history = (await msg.channel.history(limit=int(args[1])).flatten())[::-1]
 
+        # for i in history:
+        #     await i.delete()
+        await msg.channel.purge(limit=int(args[1]))
+        await say(f"Please move to {args[0]}, Where it's way more cozy for this convo :>")
+
         for i in history:
             Sendingtxt=i.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments)
 
@@ -404,12 +409,11 @@ async def on_message(msg:dis.Message):
                 await msgSent.add_reaction(j)
 
         await webhook.delete()
-
-        for i in history:
-            await i.delete()
+        print(dir(msg.channel))
 
 
-        r=f"Please move to {args[0]}, Where it's way more cozy for this convo :>"
+
+
 
     elif cmd == 'unmute':
         if not args:
