@@ -11,3 +11,6 @@ costumize the move command
 readding 
 a speedrunning game that requires a little more skill then simply typing !ping
 extend the move command to work between discord guilds
+
+
+Add multiArg functionality where if you miss an arg the bot asks for it instead of erroring

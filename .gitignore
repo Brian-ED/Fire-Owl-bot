@@ -3,4 +3,4 @@ code/extra/
 code/.py
 code/.bqn
 code/inProgress/
-.vscode
+code/_temporaryFiles/*

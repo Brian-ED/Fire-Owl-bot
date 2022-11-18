@@ -111,7 +111,7 @@ async def FireOwlMathGame(client:dis.Client,msg:dis.Message,say,throw):
             try:
                 emoji:str=(await client.wait_for(
                     'reaction_add',
-                    check=check,
+                    check=check, #ignore
                     timeout=10*60
                 ))[0].emoji
                 negate=1

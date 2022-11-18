@@ -7,6 +7,7 @@ import imports.functions as fns
 from imports.functions import Curry,InV2
 import imports.vars as Vars
 from time import sleep, time
+from imports import TicTacToe
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 muteRoleName='MUTED(by Fire-Bot)'
 client = dis.Client()
@@ -30,7 +31,8 @@ cmds = {
     'userCommands':{
         '8ball', 'Help', 'Flip', 'rps','ListResponses','Info','hkWiki','Recommend',
         'Rick','Zote','MuteMyself','List8Ball','Metheus',
-        'Play','Skip','NowPlaying','Leavevc','APL'
+        'Play','Skip','NowPlaying','Leavevc','APL',
+        'TicTacToe'
         # music commands to add:::
         # playlists, 
     },
@@ -665,6 +667,11 @@ async def on_message(msg:dis.Message):
             )).content
         except:
             r = "Took too long"
+    
+    elif 'tictactoe':
+        await say('Game started! (Credits to EdelfQ for the game code)')
+        await TicTacToe.TurtleGame(client,say)
+
     elif cmd == 'boardgame':
         embed = dis.Embed(
             title = 'Pick your game! :D',
