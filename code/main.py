@@ -114,7 +114,10 @@ async def on_message(msg:dis.Message):
     if not(isLinux or msg.content.startswith("test")):return
     
     async def say(*values,sep='\n',DM=False,**KWARGS):
-        return await (msg.channel,msg.author)[DM].send(sep.join(map(str,values)),**KWARGS)
+        textToBeSent=sep.join(map(str,values))
+        if textToBeSent.endswith('```') and len(textToBeSent)>2000:
+            textToBeSent=textToBeSent[:1997]+'```'
+        return await (msg.channel,msg.author)[DM].send(textToBeSent,**KWARGS)
 
     if not msg.guild: return say("I don't work in DMs sadly.",DM=1)
 
@@ -654,13 +657,14 @@ async def on_message(msg:dis.Message):
     elif cmd == 'apl':
         if []==args: return await say("Nothing to evaluate")
         await client.get_channel(1042892476526100480).send("⋄"+msg.content[1+len(prefix)+len(cmd):])
-
-        check=lambda m:(m.channel.id,m.author.id)==(1042892476526100480,975728573312802847)
         try:
-            r = (await client.wait_for("message", check=check, timeout=10)).content
+            r = (await client.wait_for(
+                "message",
+                check=(lambda m:(m.channel.id,m.author.id)==(1042892476526100480,975728573312802847)),
+                timeout=10
+            )).content
         except:
             r = "Took too long"
-
     elif cmd == 'boardgame':
         embed = dis.Embed(
             title = 'Pick your game! :D',

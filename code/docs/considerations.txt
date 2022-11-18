@@ -9,3 +9,5 @@ add some sort of selector addon to commands. and just add addons to commands in 
 manual unmute from mods and dms with bot to cancel
 costumize the move command
 readding 
+a speedrunning game that requires a little more skill then simply typing !ping
+extend the move command to work between discord guilds
