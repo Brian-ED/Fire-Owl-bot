@@ -112,13 +112,18 @@ async def on_ready():
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 
 async def on_message(msg:dis.Message):
-    if msg.author.bot:return
-    if not(isLinux or msg.content.startswith("test")):return
-    
+    if msg.author.bot:
+        return
+    if not(isLinux or msg.content.startswith("test")):
+        return
+    if len(msg.content.split())==0:
+        return
     async def say(*values,sep='\n',DM=False,**KWARGS):
         textToBeSent=sep.join(map(str,values))
         if textToBeSent.endswith('```') and len(textToBeSent)>2000:
             textToBeSent=textToBeSent[:1997]+'```'
+        elif len(textToBeSent)>2000:
+            textToBeSent=textToBeSent[:2000]
         return await (msg.channel,msg.author)[DM].send(textToBeSent,**KWARGS)
 
     if not msg.guild: return say("I don't work in DMs sadly.",DM=1)
@@ -185,7 +190,7 @@ async def on_message(msg:dis.Message):
                     break
         return
 
-    if not isBotChannel and not isMod:
+    if (0,0)==(isBotChannel,isMod):
         return
 
     def If(cond:bool,i:set)->set:
@@ -695,10 +700,12 @@ async def on_message(msg:dis.Message):
         sentMsg=await say(embed=embed)
         for i in ('1️⃣'): #,'2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'
             await sentMsg.add_reaction(i)
-        def check(reaction, user):
-            return user == msg.author and str(reaction.emoji) == '↕'
 
-        msg = await client.wait_for('reaction_add', check=check, timeout=30)
+        msg = await client.wait_for(
+            'reaction_add',
+            check=(lambda r,u:(u,str(r.emoji))==(msg.author,'↕')),
+            timeout=30
+        )
 
         try:
             reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
