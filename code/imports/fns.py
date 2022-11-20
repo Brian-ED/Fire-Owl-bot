@@ -1,3 +1,4 @@
+import inspect
 import youtube_dl as ytdl
 import discord as dis
 from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
@@ -242,9 +243,19 @@ def Get(items,*indexs):
         r= items
     return r
 
-Map=Infix(map)
-
 def getTime(time:tuple[str])->Union[str,int]:
     return sum(int(i[:-1])*(1,60,3600,86400)['smhd'.index(i[-1])] for i in time)
 # print(getTime(("3d","1h","3m","2s")))
 # 262982
+
+C=lambda x:lambda*_,**a:x
+
+def ArgCount(func:Callable)->int:
+    return func.__code__.co_argcount-len(func.__defaults__ if func.__defaults__ else())
+
+def HasInfArgs(func:Callable)->bool:
+    x=' '+str(inspect.signature(func))[1:]
+    return bool(x.count(' *') - x.count(' **'))
+
+async def Call(f:Callable,*args,**KWARGS):
+    return await f(*args,**KWARGS) if inspect.iscoroutinefunction(f) else f(*args,**KWARGS)

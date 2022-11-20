@@ -3,14 +3,25 @@ import os
 import discord as dis
 from random import randint,random,choice
 from shutil import rmtree, copytree
-import imports.functions as fns
-from imports.functions import Curry,InV2
-import imports.vars as Vars
+# redifine the default vars function to be uppercase.
+# no idea why it's colored green by syntax highlighting. It's a function
+Vars=vars
+from imports import vars, fns
+from imports.cmdFns import cmdFns
 from time import sleep, time
 from imports import TicTacToe
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 muteRoleName='MUTED(by Fire-Bot)'
 client = dis.Client()
+
+    #RPS = ['rock','paper','scissors']
+    #if not args or args[0] not in RPS:
+    #    return await throw(f'The command only accepts '+Join(RPS),(1,))
+
+    #userChoice = args[0].lower()
+    #botChoice = choice(RPS)
+    #reply=fns.rps(userChoice,botChoice)
+    #r=f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{reply}'
 
 isLinux=__file__[0]!='c'
 mainPath      = '../../'
@@ -27,15 +38,17 @@ if os.path.exists(extraPath):
     sleep(0.1)
 copytree(savestatePath, extraPath)
 
+cmdFnsL={i.lower():cmdFns[i] for i in cmdFns}
+
 cmds = {
     'userCommands':{
         '8ball', 'Help', 'Flip', 'rps','ListResponses','Info','hkWiki','Recommend',
         'Rick','Zote','MuteMyself','List8Ball','Metheus',
         'Play','Skip','NowPlaying','Leavevc','APL',
-        'TicTacToe'
+        'TicTacToe' 
         # music commands to add:::
         # playlists, 
-    },
+    }|{*cmdFns.keys()},
 
     'modCommands':{
         'Move','ListModRoles', 'Unmute'
@@ -74,9 +87,9 @@ def Save(d):
     fns.openW(datatxtPath,d)
 
 for guild in data:
-    for setting in Vars.defaultGuildSettings:
+    for setting in vars.defaultGuildSettings:
         if setting not in data[guild]:
-            data[guild][setting]=Vars.defaultGuildSettings[setting]
+            data[guild][setting]=vars.defaultGuildSettings[setting]
 Save(data)
 
 replyDelayList=set()
@@ -131,7 +144,7 @@ async def on_message(msg:dis.Message):
     guildID:int = msg.guild.id
     global data
     if guildID not in data:
-        data[guildID] = Vars.defaultGuildSettings
+        data[guildID] = vars.defaultGuildSettings
         Save(data)
     myData=data[guildID]
     botChannels    :set[int]           = myData['Bot channels']
@@ -162,7 +175,7 @@ async def on_message(msg:dis.Message):
 
         if isReactChannel or isBotChannel:
             for react in reacts:
-                if InV2(react,allArgs):
+                if fns.InV2(react,allArgs):
                     await msg.add_reaction(reacts[react])
             # if data[guildID]['React spam'] and isBotChannel:
             #     emotes=[i.name for i in client.emojis]
@@ -176,7 +189,7 @@ async def on_message(msg:dis.Message):
             return
 
         for x in responses:
-            if InV2(x,allArgs):
+            if fns.InV2(x,allArgs):
                 if 1000<len(responses[x]):
                     embedVar = dis.Embed(color=0x336EFF)
                     for i in range(0,len(responses[x]),1000):
@@ -211,6 +224,8 @@ async def on_message(msg:dis.Message):
             await say(*errormsg,DM=1)
         else:
             await say(*errormsg) 
+
+        
     if cmd == 'help': # make the help command paragraph titles be bold or italics
         # ger storyboard (hvat filmurin verur um)
         r =             '**User commands**:\n'+ Join(cmds['userCommands']),
@@ -218,6 +233,54 @@ async def on_message(msg:dis.Message):
         if isAdmin:r+='\n**Admin commands:**\n'+Join(cmds['adminCommands']),
         if isOwner:r+='\n**Owner commands:**\n'+Join(cmds['ownerCommands']),
         if isVIP:  r+='\n**VIP commands (Available to you):**\n'+Join(cmds['VIPCommands'][authorID]),
+
+    elif cmd in cmdFnsL:
+        KWARGS={
+            'msg':msg,
+            'cmd':cmd,
+            'data':data,
+            'myData':myData,
+            'botChannels':botChannels,
+            'reactsChannels':reactsChannels,
+            'replyChannels':replyChannels,
+            'modRoles':modRoles,
+            'responses':responses,
+            'reacts':reacts,
+            'prefix':prefix,
+            'replyDelay':replyDelay,
+            'chanceForReply':chanceForReply,
+            'allArgs':allArgs,
+            'guildID':guildID,
+            'channel':channel,
+            'channelID':channelID,
+            'author':author,
+            'authorID':authorID,
+            'isOwner':isOwner,
+            'isAdmin':isAdmin,
+            'isVIP':isVIP,
+            'isMod':isMod,
+            'isBotChannel':isBotChannel,
+            'isReplyChannel':isReplyChannel,
+            'isReactChannel':isReactChannel,
+            'Save':Save,
+            'say':say,
+            'throw':throw
+        }
+        argCount=fns.ArgCount(cmdFnsL[cmd])
+        hasInfArgs=fns.HasInfArgs(cmdFnsL[cmd])
+        if argCount>len(args):
+            r=f'You input too few arguments for the command "{cmd}"'
+        elif not hasInfArgs and argCount<len(args):
+            r=f'Too many arguments for the command "{cmd}"'
+        elif isLinux:
+            try:
+                r=await fns.Call(cmdFnsL[cmd],*args,**KWARGS)    
+            except Exception as e:
+                r='Error',e,f'```{e.__class__}```'
+        else:
+            r=await fns.Call(cmdFnsL[cmd],*args,**KWARGS)  
+            # I split by isLinux so i can get clear errors on my windows machine
+            # but get errors from discord through my linux machine
 
     elif cmd == 'testing':
         embed = dis.Embed(
@@ -238,29 +301,6 @@ async def on_message(msg:dis.Message):
         sentMsg=await say(embed=embed)
         for i in ('1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'):
             await sentMsg.add_reaction(i)
-
-    elif cmd == 'prefix':
-        if args:
-            data[guildID]['Prefix']=args[0]
-            Save(data)
-            r=f'Prefix changed to: "{args[0]}"'
-        else:
-            r=f'Current prefix: "{prefix}".'
-
-    elif cmd == 'rick':
-        ytUrl='https://youtu.be/'
-        await say(ytUrl+'dQw4w9WgXcQ',DM=1)
-        await asySleep(15)
-        await say(
-            'Ok i am so sorry... please forgive me. here are some cats :D',
-            ytUrl+'VZrDxD0Za9I',DM=1)
-        await asySleep(200)
-        await say('cope',DM=1)
-        await asySleep(5)
-        await say(f'this can help :)\n{ytUrl}Lc6db8qfZEw',DM=1)
-
-    elif cmd == '8ball':
-        r=choice((*data[guildID]['8ball'],))
 
     elif cmd == 'newresponse':
         d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
@@ -349,7 +389,7 @@ async def on_message(msg:dis.Message):
         r='You backuped the files: '+Join(os.listdir(extraPath))
     
     elif cmd == 'zote':
-        r=choice(Vars.zoteQuotes)
+        r=choice(vars.zoteQuotes)
 
     elif cmd == 'emergencyquit':
         await say("I'm sorry for what i did :(\nBye lovely folks!")
@@ -458,11 +498,8 @@ async def on_message(msg:dis.Message):
 
         await say(f"Done. Muted {msg.author.name} for {' '.join(args)} ({muteDuration} seconds)")
         await msg.author.add_roles(roleobject)
-        for i in data:
-            print(data[i]['Self Muted'])
+
         data[guildID]['Self Muted']=data[guildID]['Self Muted']+(authorID, muteDuration, time()),
-        for i in data:
-            print(data[i]['Self Muted'])
         Save(data)
 
     elif cmd == 'channelids':
@@ -678,7 +715,7 @@ async def on_message(msg:dis.Message):
         except:
             r = "Took too long"
     
-    elif 'tictactoe':
+    elif cmd=='tictactoe':
         await say('Game started! (Credits to EdelfQ for the game code)')
         await TicTacToe.TurtleGame(client,say)
 
