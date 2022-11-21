@@ -240,3 +240,6 @@ async def Call(f:Callable,*args,**KWARGS):
     return await f(*args,**KWARGS) if inspect.iscoroutinefunction(f) else f(*args,**KWARGS)
 
 SToF=lambda p:lambda*x:reduce(eval(f"lambda a,b:a {p} b"),x)if len(x)!=1 else x[0]
+
+def If(cond:bool,i:set)->set:
+    return (set(),i)[cond]

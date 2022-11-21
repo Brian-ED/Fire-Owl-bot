@@ -199,14 +199,11 @@ async def on_message(msg:dis.Message):
 
     if (0,0)==(isBotChannel,isMod):
         return
-
-    def If(cond:bool,i:set)->set:
-        return (set(),i)[cond]
     
     commands=cmds['userCommands']\
-        |If(isOwner,cmds['ownerCommands'])\
-        |If(isAdmin,cmds['adminCommands'])\
-        |If(isMod,cmds['modCommands'])
+        |fns.If(isOwner,cmds['ownerCommands'])\
+        |fns.If(isAdmin,cmds['adminCommands'])\
+        |fns.If(isMod,cmds['modCommands'])
     commands={i.lower() for i in commands}
     cmd = fns.commandHandler(prefix,cmd,commands,ifEmpty='help')
     
