@@ -295,11 +295,6 @@ async def on_message(msg:dis.Message):
         for i in ('1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'):
             await sentMsg.add_reaction(i) 
 
-    elif cmd == 'backup':
-        rmtree(savestatePath)
-        copytree(extraPath, savestatePath)
-        r='You backuped the files: '+Join(os.listdir(extraPath))
-    
     elif cmd == 'zote':
         r=choice(vars.zoteQuotes)
 

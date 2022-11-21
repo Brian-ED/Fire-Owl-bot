@@ -76,6 +76,12 @@ async def Update(say=C,isLinux=0,savestatePath='',codePath='',extraPath='',botPa
         await asySleep(0.5)
         quit()
 
+def Backup(savestatePath='',extraPath='',**_):
+    rmtree(savestatePath)
+    copytree(extraPath, savestatePath)
+    return'You backuped the files: '+Join(os.listdir(extraPath))
+    
+
 def Flip(*a,**_):
     return choice(('Heads','Tails'))
 
@@ -154,6 +160,9 @@ cmdFns={
 
     },
     'ownerCommands':{
+        'Backup':Backup,
+        'Update':Update,
+        'RestoreBackup':RestoreBackup,
 
     }
 }
