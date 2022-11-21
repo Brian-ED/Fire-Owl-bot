@@ -1,9 +1,9 @@
+from functools import reduce
 import inspect
 import youtube_dl as ytdl
 import discord as dis
 from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
 from typing import Iterable, MutableSequence,Union
-from BQN.BQN import BQNfn
 from typing import Any, Callable
 
 class Infix:
@@ -27,7 +27,6 @@ def InV2(text:str, searchIn:Union[str,list]):
     searchStr=' '.join(searchIn) if type(searchIn)==list else searchIn
     return ' '+text+' ' in searchStr or text==searchStr or searchStr.startswith(text+' ') or searchStr.endswith(' '+text)
 
-@Infix
 def Curry(f:Callable,x:Any,**xx:Any)->Callable:
     def g(*y,**yy):
         yl=list(y)
@@ -40,6 +39,9 @@ def Curry(f:Callable,x:Any,**xx:Any)->Callable:
 #     ≠◶⟨𝔽6,𝔽 1+⍟≤⊑,(⊣+⟜𝔽 1+-˜)´∧⟩10⊸×⊸+˜´∘⌽∘-⟜'0'¨𝕩
 #     ;"This command only accepts integers"⋈1+𝕩/⟜↕⟜≠˜¬𝕩∧´∘∊¨<'0'+↕10
 # }""")
+
+def Join(i)->str:
+    return ', '.join(sorted(i))
 
 def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str:
     if command == prefix:
@@ -73,29 +75,6 @@ def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str
 #    "∾𝕩‿𝕨⊑map
 #}⊑1⊐˜rps≡¨<Lower 𝕩
 #}""")
-
-def rps(userChoice,botChoice)->str:
-    r=''
-    if userChoice == botChoice:
-        r="Ah we drew the game m'lad, well played"
-
-    elif userChoice == 'rock':
-        if botChoice == 'scissors':
-            r='Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:881738404944023562>'
-        elif botChoice == 'paper':
-            r='Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!'
-
-    elif userChoice == 'scissors':
-        if botChoice=='rock':
-            r='Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:854415812534468627>'
-        elif botChoice=='paper':
-            r="Oh i lost! Y'know i got that paper from my grandma before she died... :(... Ha just kidding, totally got you there :)"
-    elif userChoice == 'paper':
-        if botChoice == 'rock':
-            r="Did... did you just wrap your paper around my rock and assume i can't still throw it?.. wdym it's in the rules?.. God damnit"
-        elif botChoice =='scissors':
-            r="Ha my mighty metal scissors can cut throgh any paper! Y'know, your paper might aswell be taken right out of the toilet roll for how much of a fight it put up!"
-    return r
 
 def openR(path:str):
     with open(path, "r", encoding="utf-8") as f:
@@ -259,3 +238,5 @@ def HasInfArgs(func:Callable)->bool:
 
 async def Call(f:Callable,*args,**KWARGS):
     return await f(*args,**KWARGS) if inspect.iscoroutinefunction(f) else f(*args,**KWARGS)
+
+SToF=lambda p:lambda*x:reduce(eval(f"lambda a,b:a {p} b"),x)if len(x)!=1 else x[0]

@@ -8,6 +8,7 @@ from shutil import rmtree, copytree
 Vars=vars
 from imports import vars, fns
 from imports.cmdFns import cmdFns
+from imports.fns import Join
 from time import sleep, time
 from imports import TicTacToe
 os.chdir(__file__[:-len(os.path.basename(__file__))])
@@ -38,17 +39,16 @@ if os.path.exists(extraPath):
     sleep(0.1)
 copytree(savestatePath, extraPath)
 
-cmdFnsL={i.lower():cmdFns[i] for i in cmdFns}
 
 cmds = {
     'userCommands':{
-        '8ball', 'Help', 'Flip', 'rps','ListResponses','Info','hkWiki','Recommend',
+        'Help', 'Flip', 'rps','ListResponses','Info','hkWiki','Recommend',
         'Rick','Zote','MuteMyself','List8Ball','Metheus',
         'Play','Skip','NowPlaying','Leavevc','APL',
         'TicTacToe' 
         # music commands to add:::
         # playlists, 
-    }|{*cmdFns.keys()},
+    },
 
     'modCommands':{
         'Move','ListModRoles', 'Unmute'
@@ -63,20 +63,18 @@ cmds = {
         # daily polls
     },
 
-
-    'VIPCommands':{
-        486619954745966594:{'EmergencyQuit'} # Fire Owl
-    },
-
     'ownerCommands':{
         'Update','EmergencyQuit','MakeFile','ListFiles','Backup',
         'RestoreBackup','Testing','Highlow','ListServers','Eval'
 
-        'importreplies' # work in  progress
-
-        'boardgame'
+        'importreplies','boardgame' # work in  progress
     }
 }
+JoinDict=lambda x,y:{i:x[i]|y[j]for i,j in zip(x,y)}
+cmds=JoinDict(cmds,{i:cmdFns[i].keys() for i in cmdFns})
+
+cmdFnsL={j:{i.lower():cmdFns[j][i] for i in cmdFns[j]} for j in cmdFns}
+allCmdFnsL=fns.SToF('|')(*[cmdFnsL[i]for i in cmdFnsL])
 
 # Music settings:
 max_volume=250 # Max audio volume. Set to -1 for unlimited.
@@ -94,9 +92,6 @@ Save(data)
 
 replyDelayList=set()
 # spamPing=set()
-
-def Join(i):
-    return ', '.join(sorted(i))
 
 async def on_ready():
     await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
@@ -163,7 +158,6 @@ async def on_message(msg:dis.Message):
     authorID       :int                = author.id
     isOwner        :bool               = authorID == 671689100331319316
     isAdmin        :bool               = msg.author.top_role.permissions.administrator or isOwner
-    isVIP          :bool               = authorID in cmds['VIPCommands']
     isMod          :bool               = isAdmin or any(i.id in modRoles for i in msg.author.roles)
     isBotChannel   :bool               = channelID in botChannels    or not botChannels
     isReplyChannel :bool               = channelID in replyChannels  or not replyChannels
@@ -213,72 +207,71 @@ async def on_message(msg:dis.Message):
         |If(isOwner,cmds['ownerCommands'])\
         |If(isAdmin,cmds['adminCommands'])\
         |If(isMod,cmds['modCommands'])
-    if isVIP:commands|=cmds['VIPCommands'][authorID]
     commands={i.lower() for i in commands}
     cmd = fns.commandHandler(prefix,cmd,commands,ifEmpty='help')
     
     async def throw(error,whichArgs=()):
         errormsg=[error,' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(allArgs))]
-        if any((cmd in cmds[i]for i in('adminCommands','modCommands','ownerCommands','VIPCommands'))):
+        if any((cmd in cmds[i]for i in('adminCommands','modCommands','ownerCommands'))):
             await msg.delete()
             await say(*errormsg,DM=1)
         else:
             await say(*errormsg) 
 
-        
-    if cmd == 'help': # make the help command paragraph titles be bold or italics
-        # ger storyboard (hvat filmurin verur um)
-        r =             '**User commands**:\n'+ Join(cmds['userCommands']),
-        if isMod:  r+='\n**Mod commands:**\n'+  Join(cmds['modCommands']),
-        if isAdmin:r+='\n**Admin commands:**\n'+Join(cmds['adminCommands']),
-        if isOwner:r+='\n**Owner commands:**\n'+Join(cmds['ownerCommands']),
-        if isVIP:  r+='\n**VIP commands (Available to you):**\n'+Join(cmds['VIPCommands'][authorID]),
-
-    elif cmd in cmdFnsL:
+    if cmd in allCmdFnsL:
+        argCount=fns.ArgCount(allCmdFnsL[cmd])
+        hasInfArgs=fns.HasInfArgs(allCmdFnsL[cmd])
         KWARGS={
             'msg':msg,
             'cmd':cmd,
+            'say':say,
+            'cmds':cmds,
             'data':data,
+            'Save':Save,
+            'isMod':isMod,
+            'throw':throw,
             'myData':myData,
-            'botChannels':botChannels,
-            'reactsChannels':reactsChannels,
-            'replyChannels':replyChannels,
-            'modRoles':modRoles,
-            'responses':responses,
             'reacts':reacts,
             'prefix':prefix,
-            'replyDelay':replyDelay,
-            'chanceForReply':chanceForReply,
+            'author':author,
             'allArgs':allArgs,
             'guildID':guildID,
             'channel':channel,
-            'channelID':channelID,
-            'author':author,
-            'authorID':authorID,
             'isOwner':isOwner,
             'isAdmin':isAdmin,
-            'isVIP':isVIP,
-            'isMod':isMod,
+            'modRoles':modRoles,
+            'argCount':argCount,
+            'authorID':authorID,
+            'channelID':channelID,
+            'responses':responses,
+            'hasInfArgs':hasInfArgs,
+            'replyDelay':replyDelay,
+            'botChannels':botChannels,
             'isBotChannel':isBotChannel,
+            'replyChannels':replyChannels,
+            'reactsChannels':reactsChannels,
+            'chanceForReply':chanceForReply,
             'isReplyChannel':isReplyChannel,
             'isReactChannel':isReactChannel,
-            'Save':Save,
-            'say':say,
-            'throw':throw
+            'extraPath':extraPath,
+            'savestatePath':savestatePath,
+            'isLinux':isLinux,
+            'codePath':codePath,
+            'botPath':botPath,
         }
-        argCount=fns.ArgCount(cmdFnsL[cmd])
-        hasInfArgs=fns.HasInfArgs(cmdFnsL[cmd])
         if argCount>len(args):
-            r=f'You input too few arguments for the command "{cmd}"'
+            r=(f'You input too few arguments for the command "{cmd}".',
+               f'The command needs minimum {argCount} arguments, not {len(args)}')
         elif not hasInfArgs and argCount<len(args):
-            r=f'Too many arguments for the command "{cmd}"'
+            r=(f'Too many arguments for the command "{cmd}".',
+               f'The command needs {argCount} arguments, not {len(args)}')
         elif isLinux:
             try:
-                r=await fns.Call(cmdFnsL[cmd],*args,**KWARGS)    
+                r=await fns.Call(allCmdFnsL[cmd],*args,**KWARGS)    
             except Exception as e:
                 r='Error',e,f'```{e.__class__}```'
         else:
-            r=await fns.Call(cmdFnsL[cmd],*args,**KWARGS)  
+            r=await fns.Call(allCmdFnsL[cmd],*args,**KWARGS)  
             # I split by isLinux so i can get clear errors on my windows machine
             # but get errors from discord through my linux machine
 
@@ -300,89 +293,8 @@ async def on_message(msg:dis.Message):
         embed.set_thumbnail(url=msg.guild.icon_url)
         sentMsg=await say(embed=embed)
         for i in ('1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'):
-            await sentMsg.add_reaction(i)
+            await sentMsg.add_reaction(i) 
 
-    elif cmd == 'newresponse':
-        d = {'replywith:': 'Responses', 'reactwith:': 'Reacts'}
-        lenOfFirstArg=len(msg.content.split()[0])
-        for key in d:
-            fullMsg=msg.content.lower()
-            if key in fullMsg:
-                indexOf=fullMsg.index(key)
-                KeyStr=fullMsg[lenOfFirstArg+1:indexOf-1]
-                ValStr=fullMsg[indexOf+len(key)+1:]
-
-                data[guildID][d[key]][KeyStr]=ValStr
-                Save(data)
-                await say(f'Alas it is done')
-                return
-        
-        
-        r='You need to include " replywith: " or " reactwith: " in the message. Not both btw.'
-
-    elif cmd == 'listresponses':
-        r=('**Responses:**\n'+Join(responses.keys()),
-        '\n**Reacts:**\n'+Join(reacts.keys()))
-
-    elif cmd == 'flip':
-        r=('Heads','Tails')[randint(0,1)]
-
-    elif cmd == 'rps':
-        RPS = ['rock','paper','scissors']    
-        if not args or args[0] not in RPS:
-            return await throw(f'The command only accepts '+Join(RPS),(1,))
-
-        userChoice = args[0].lower()
-        botChoice = choice(RPS)
-        reply=fns.rps(userChoice,botChoice)
-        r=f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{reply}'
-
-    elif cmd == 'info':
-        r=('```',
-        'This command is mostly for debugging btw',
-        f"You're admin: {isAdmin}",
-        f"You're bot owner: {isOwner}",
-        f'Replies cooldown: {replyDelay}',
-        f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}',
-        '```')
-
-    elif cmd == 'delresponse':
-        ValStr=' '.join(args)
-        if ValStr in responses:
-            del data[guildID]['Responses'][ValStr]
-            Save(data)
-            r='deleted'
-        else:
-            r="Reply doesn't exist"
-    
-    elif cmd == 'delreact':
-        if ' '.join(args) in reacts:
-            del data[guildID]['Reacts'][' '.join(args)]
-            Save(data)
-            r='deleted'
-        else:
-            r="reply doesn't exist"
-
-    elif cmd == 'update' and isLinux:
-        await say("updating...")
-
-        rmtree(savestatePath)
-        copytree(extraPath, savestatePath)
-        await asySleep(0.5)
-        os.system('cd '+botPath)
-        os.system('git reset --hard')
-        os.system('git clean -fd')
-        os.system('git pull')
-        os.system('cd '+codePath)
-        os.system('python3 main.py')
-        await asySleep(0.5)
-        quit()
-
-    elif cmd == 'restorebackup':
-        rmtree(extraPath)
-        copytree(savestatePath, extraPath)
-        r='You restored the files: '+Join(os.listdir(savestatePath))
-    
     elif cmd == 'backup':
         rmtree(savestatePath)
         copytree(extraPath, savestatePath)
