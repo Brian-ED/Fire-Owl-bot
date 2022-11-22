@@ -273,46 +273,9 @@ async def on_message(msg:dis.Message):
             # I split by isLinux so i can get clear errors on my windows machine
             # but get errors from discord through my linux machine
 
-    elif cmd == 'testing':
-        embed = dis.Embed(
-            title = 'Pick your prounoun(s)! :D',
-            description = '\n'.join((
-                "Use the buttons below to select what pronouns you'd like us to display for you.",
-                "Pick however many you'd like, and if none of them suit you, you may message a mod/admin for a custom pronoun role :>",
-                "1️⃣ They/Them",
-                "2️⃣ She/Her",
-                "3️⃣ He/Him",
-                "4️⃣ Any",
-                "5️⃣ Ask me",
-                "6️⃣ custom (bot dms you)"
-            )), 
-            color=0xE659ff)
-
-        embed.set_thumbnail(url=msg.guild.icon_url)
-        sentMsg=await say(embed=embed)
-        for i in ('1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'):
-            await sentMsg.add_reaction(i) 
-    
-        msg = await client.wait_for(
-            'reaction_add',
-            check=(lambda r,u:(u,str(r.emoji))==(msg.author,'↕')),
-            timeout=30
-        )
-
-        try:
-            reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
-        except:
-            await channel.send('-')
-
-    elif cmd == 'eval':
-        r=eval(msg.content[len(prefix)+4:])
-
-    else:r='That is not a valid command'
-
     if r=='':return
     if not hasattr(r,'__iter__') or type(r)==str:r=[r]
     await say(*r)
-
 
 async def on_reaction_add(reaction, author):
     if author.bot:return
