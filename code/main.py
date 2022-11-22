@@ -158,9 +158,9 @@ async def on_message(msg:dis.Message):
         return
 
     allowedCmdsL=cmdsL['userCommands']\
-                |cmdsL['ownerCommands']if isOwner else{}\
-                |cmdsL['adminCommands']if isAdmin else{}\
-                |cmdsL['modCommands']if isMod else{}
+                |(cmdsL['modCommands']if isMod else{})\
+                |(cmdsL['adminCommands']if isAdmin else{})\
+                |(cmdsL['ownerCommands']if isOwner else{})
     cmd = fns.commandHandler(
         prefix,
         cmd,

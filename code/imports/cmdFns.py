@@ -149,7 +149,7 @@ async def EmergencyQuit(say=C,**_):
     asySleep(0.5)
     quit()
 
-async def MoveCmd(channel,numOfMsgs,*args,msg=C,say=C,client=C,prefix='',**_):
+async def MoveCmd(channel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
     await msg.delete()
     if len(args)>1:
         return await say(
