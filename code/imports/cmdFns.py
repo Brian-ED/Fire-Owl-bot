@@ -97,9 +97,7 @@ def RockPaperScissors(userChoice,**_):
     RPS = 'rock','paper','scissors'    
     if userChoice not in RPS:
         return'The command only accepts '+Join(RPS)
-
     botChoice = choice(RPS)
-
     r=''
     if userChoice == botChoice:
         r="Ah we drew the game m'lad, well played"
@@ -506,65 +504,65 @@ async def Testing(*args,say=C,client=C,**_):
         return'-'
 
 
-cmdFns={
+cmds={
     'userCommands':{
-        'LeaveVC':LeaveVC,
-        'Ping':Ping,
-        'Pong':Pong,
         '8ball':Ball8,
-        'ShowPrefix':ShowPrefix,
-        'Rick':RickRoll,
-        'Help':HelpCmd,
-        'ListResponses':ListResponses,
+        'APL':APLCmd,
         'Flip':Flip,
-        'RPS':RockPaperScissors,
-        'Info':InfoCmd,
-        'Zote':Zote,
-        'Metheus':Metheus,
-        'MuteMyself':MuteMyself,
-        'Recommend':Recommend,
+        'Help':HelpCmd,
         'HighLowGame':HighLow,
+        'Info':InfoCmd,
+        'LeaveVC':LeaveVC,
         'List8ball':List8ball,
         'ListModRoles':ListModRoles,
-        'Play':Play,
-        'Skip':SkipSong,
+        'ListResponses':ListResponses,
+        'Metheus':Metheus,
+        'MuteMyself':MuteMyself,
         'NowPlaying':NowPlaying,
-        'APL':APLCmd,
+        'Ping':Ping,
+        'Play':Play,
+        'Pong':Pong,
+        'Recommend':Recommend,
+        'Rick':RickRoll,
+        'RockPaperScissors':RockPaperScissors,
+        'ShowPrefix':ShowPrefix,
+        'Skip':SkipSong,
         'TicTacToe':TicTacToeCmd,
+        'Zote':Zote,
     },
     'modCommands':{
-        'ChannelIDs':ChannelIDs,
-        'Unmute':UnmuteCmd,
         'Add8ball':Add8ball,
-        'Remove8ball':Curry(DelDataSlot,'8ball'),
+        'ChannelIDs':ChannelIDs,
         'ForceSkip':ForceSkipSong,
         'Move':MoveCmd,
+        'Remove8ball':Curry(DelDataSlot,'8ball'),
+        'Unmute':UnmuteCmd,
     },
     'adminCommands':{
-        'SetBotChannels':SetBotChannels,
         'AddBotChannel':AddBotChannels,
-        'DelBotChannels':DelBotChannels,
-        'SetReplyChannels':SetReplyChannels,
-        'SetReactChannels':SetReactChannels,
-        'DelResponse':Curry(DelDataSlot,'Responses'),
-        'DelReact':Curry(DelDataSlot,'Reacts'),
-        'NewResponse':NewResponse,
-        'ReplyDelay':ReplyDelay,
+        'AddModRoles':ModRoles,
         'ChangePrefix':ChangePrefix,
-        'Prefix':Prefix,
+        'DelBotChannels':DelBotChannels,
+        'DelReact':Curry(DelDataSlot,'Reacts'),
+        'DelResponse':Curry(DelDataSlot,'Responses'),
         'Import':Import,
         'ModRoles':ModRoles,
-        'AddModRoles':ModRoles,
+        'NewResponse':NewResponse,
+        'Prefix':Prefix,
         'RemoveModRoles':RemoveModRoles,
+        'ReplyDelay':ReplyDelay,
+        'SetBotChannels':SetBotChannels,
+        'SetReactChannels':SetReactChannels,
+        'SetReplyChannels':SetReplyChannels,
 
     },
     'ownerCommands':{
-        'ListServers':ListServers,
         'Backup':Backup,
-        'Update':Update,
-        'RestoreBackup':RestoreBackup,
-        'EmergencyQuit':EmergencyQuit,
         'BoardGame':BoardGame,
+        'EmergencyQuit':EmergencyQuit,
+        'ListServers':ListServers,
+        'RestoreBackup':RestoreBackup,
         'Testing':Testing,
+        'Update':Update,
     }
 }

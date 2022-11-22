@@ -3,24 +3,13 @@ import os
 import discord as dis
 from random import random
 from shutil import rmtree, copytree
-# redifine the default vars function to be uppercase.
-# no idea why it's colored green by syntax highlighting. It's a function
-Vars=vars
+Vars=vars# redifines the default vars function to be uppercase
 from imports import vars, fns
-from imports.cmdFns import cmdFns
+from imports.cmdFns import cmds
 from time import sleep, time
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 
 client = dis.Client()
-
-    #RPS = ['rock','paper','scissors']
-    #if not args or args[0] not in RPS:
-    #    return await throw(f'The command only accepts '+Join(RPS),(1,))
-
-    #userChoice = args[0].lower()
-    #botChoice = choice(RPS)
-    #reply=fns.rps(userChoice,botChoice)
-    #r=f'You chose **{userChoice}**. I (the bot) chose **{botChoice}**.\n{reply}'
 
 isLinux=__file__[0]!='c'
 mainPath      = '../../'
@@ -38,41 +27,8 @@ if os.path.exists(extraPath):
 copytree(savestatePath, extraPath)
 
 
-cmds = {
-    'userCommands':{
-        'Help', 'Flip', 'rps','ListResponses','Info','hkWiki','Recommend',
-        'Rick','Zote','MuteMyself','List8Ball','Metheus',
-        'Play','Skip','NowPlaying','Leavevc','APL',
-        'TicTacToe' 
-        # music commands to add:::
-        # playlists, 
-    },
 
-    'modCommands':{
-        'Move','ListModRoles', 'Unmute'
-    },
-
-    'adminCommands':{
-        'NewResponse','DelResponse','DelReact','SetReplyChannels',
-        'SetReactChannels','SetBotChannels','ChannelIDs','Prefix','addModRole',
-        'ReplyDelay','ReplyChance','Add8ball','remove8ball',
-        'removemodrole'
-
-        # daily polls
-    },
-
-    'ownerCommands':{
-        'Update','EmergencyQuit','MakeFile','ListFiles','Backup',
-        'RestoreBackup','Testing','Highlow','ListServers','Eval'
-
-        'importreplies','boardgame' # work in  progress
-    }
-}
-JoinDict=lambda x,y:{i:x[i]|y[j]for i,j in zip(x,y)}
-cmds=JoinDict(cmds,{i:cmdFns[i].keys() for i in cmdFns})
-
-cmdFnsL={j:{i.lower():cmdFns[j][i] for i in cmdFns[j]} for j in cmdFns}
-allCmdFnsL=fns.SToF('|')(*[cmdFnsL[i]for i in cmdFnsL])
+cmdsL={j:{i.lower():cmds[j][i] for i in cmds[j]} for j in cmds}
 
 # Music settings:
 max_volume=250 # Max audio volume. Set to -1 for unlimited.
@@ -153,8 +109,7 @@ async def on_message(msg:dis.Message):
     allArgs=cmd,*args                  = msg.content.lower().split()
     channel        :dis.ChannelType    = msg.channel
     channelID      :int                = channel.id
-    author         :dis.User           = msg.author
-    authorID       :int                = author.id
+    authorID       :int                = msg.author.id
     isOwner        :bool               = authorID == 671689100331319316
     isAdmin        :bool               = msg.author.top_role.permissions.administrator or isOwner
     isMod          :bool               = isAdmin or any(i.id in modRoles for i in msg.author.roles)
@@ -214,21 +169,20 @@ async def on_message(msg:dis.Message):
     #     else:
     #         await say(*errormsg) 
 
-    if cmd in allCmdFnsL:
-        argCount=fns.ArgCount(allCmdFnsL[cmd])
-        hasInfArgs=fns.HasInfArgs(allCmdFnsL[cmd])
+    if cmd in cmdsL:
+        argCount=fns.ArgCount(cmdsL[cmd])
+        hasInfArgs=fns.HasInfArgs(cmdsL[cmd])
         KWARGS={
             'msg':msg,
             'cmd':cmd,
             'say':say,
-            'cmds':cmds,
             'data':data,
             'Save':Save,
+            'cmds':cmds,
             'isMod':isMod,
             'myData':myData,
             'reacts':reacts,
             'prefix':prefix,
-            'author':author,
             'client':client,
             'allArgs':allArgs,
             'guildID':guildID,
@@ -263,11 +217,11 @@ async def on_message(msg:dis.Message):
                f'The command needs {argCount} arguments, not {len(args)}')
         elif isLinux:
             try:
-                r=await fns.Call(allCmdFnsL[cmd],*args,**KWARGS)    
+                r=await fns.Call(cmdsL[cmd],*args,**KWARGS)    
             except Exception as e:
                 r='Error',e,f'```{e.__class__}```'
         else:
-            r=await fns.Call(allCmdFnsL[cmd],*args,**KWARGS)  
+            r=await fns.Call(cmdsL[cmd],*args,**KWARGS)  
             # I split by isLinux so i can get clear errors on my windows machine
             # but get errors from discord through my linux machine
 
