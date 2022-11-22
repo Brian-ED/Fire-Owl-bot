@@ -133,7 +133,10 @@ async def on_message(msg:dis.Message):
 
         global replyDelayList
         
-        if not(channelID not in replyDelayList and isReplyChannel and random()<=chanceForReply or isBotChannel):
+        if not (isBotChannel or
+            channelID not in replyDelayList
+            and isReplyChannel
+            and random()<=chanceForReply):
             return
 
         for x in responses:
@@ -154,12 +157,16 @@ async def on_message(msg:dis.Message):
     if (0,0)==(isBotChannel,isMod):
         return
 
-    commands=cmds['userCommands']\
-        |fns.If(isOwner,cmds['ownerCommands'])\
-        |fns.If(isAdmin,cmds['adminCommands'])\
-        |fns.If(isMod,cmds['modCommands'])
-    commands={i.lower() for i in commands}
-    cmd = fns.commandHandler(prefix,cmd,commands,ifEmpty='help')
+    allowedCmdsL=cmdsL['userCommands']\
+                |cmdsL['ownerCommands']if isOwner else{}\
+                |cmdsL['adminCommands']if isAdmin else{}\
+                |cmdsL['modCommands']if isMod else{}
+    cmd = fns.commandHandler(
+        prefix,
+        cmd,
+        set(allowedCmdsL.keys()),
+        ifEmpty='help'
+    )
 
     # async def throw(error,whichArgs=()):
     #     errormsg=[error,' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(allArgs))]
@@ -169,9 +176,9 @@ async def on_message(msg:dis.Message):
     #     else:
     #         await say(*errormsg) 
 
-    if cmd in cmdsL:
-        argCount=fns.ArgCount(cmdsL[cmd])
-        hasInfArgs=fns.HasInfArgs(cmdsL[cmd])
+    if cmd in allowedCmdsL:
+        argCount=fns.ArgCount(allowedCmdsL[cmd])
+        hasInfArgs=fns.HasInfArgs(allowedCmdsL[cmd])
         KWARGS={
             'msg':msg,
             'cmd':cmd,
@@ -217,11 +224,11 @@ async def on_message(msg:dis.Message):
                f'The command needs {argCount} arguments, not {len(args)}')
         elif isLinux:
             try:
-                r=await fns.Call(cmdsL[cmd],*args,**KWARGS)    
+                r=await fns.Call(allowedCmdsL[cmd],*args,**KWARGS)    
             except Exception as e:
                 r='Error',e,f'```{e.__class__}```'
         else:
-            r=await fns.Call(cmdsL[cmd],*args,**KWARGS)  
+            r=await fns.Call(allowedCmdsL[cmd],*args,**KWARGS)  
             # I split by isLinux so i can get clear errors on my windows machine
             # but get errors from discord through my linux machine
 
