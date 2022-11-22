@@ -1,18 +1,17 @@
 from asyncio import sleep as asySleep
 import os
 import discord as dis
-from random import randint,random,choice
+from random import random
 from shutil import rmtree, copytree
 # redifine the default vars function to be uppercase.
 # no idea why it's colored green by syntax highlighting. It's a function
 Vars=vars
 from imports import vars, fns
 from imports.cmdFns import cmdFns
-from imports.fns import Join
 from time import sleep, time
 from imports import TicTacToe
 os.chdir(__file__[:-len(os.path.basename(__file__))])
-muteRoleName='MUTED(by Fire-Bot)'
+
 client = dis.Client()
 
     #RPS = ['rock','paper','scissors']
@@ -91,7 +90,8 @@ for guild in data:
 Save(data)
 
 replyDelayList=set()
-# spamPing=set()
+
+muteRoleName='MUTED(by Fire-Bot)'
 
 async def on_ready():
     await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
@@ -199,14 +199,14 @@ async def on_message(msg:dis.Message):
 
     if (0,0)==(isBotChannel,isMod):
         return
-    
+
     commands=cmds['userCommands']\
         |fns.If(isOwner,cmds['ownerCommands'])\
         |fns.If(isAdmin,cmds['adminCommands'])\
         |fns.If(isMod,cmds['modCommands'])
     commands={i.lower() for i in commands}
     cmd = fns.commandHandler(prefix,cmd,commands,ifEmpty='help')
-    
+
     async def throw(error,whichArgs=()):
         errormsg=[error,' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(allArgs))]
         if any((cmd in cmds[i]for i in('adminCommands','modCommands','ownerCommands'))):
@@ -231,30 +231,31 @@ async def on_message(msg:dis.Message):
             'reacts':reacts,
             'prefix':prefix,
             'author':author,
+            'client':client,
             'allArgs':allArgs,
             'guildID':guildID,
             'channel':channel,
             'isOwner':isOwner,
             'isAdmin':isAdmin,
+            'isLinux':isLinux,
+            'botPath':botPath,
             'modRoles':modRoles,
             'argCount':argCount,
             'authorID':authorID,
+            'codePath':codePath,
             'channelID':channelID,
             'responses':responses,
+            'extraPath':extraPath,
             'hasInfArgs':hasInfArgs,
             'replyDelay':replyDelay,
             'botChannels':botChannels,
             'isBotChannel':isBotChannel,
             'replyChannels':replyChannels,
+            'savestatePath':savestatePath,
             'reactsChannels':reactsChannels,
             'chanceForReply':chanceForReply,
             'isReplyChannel':isReplyChannel,
             'isReactChannel':isReactChannel,
-            'extraPath':extraPath,
-            'savestatePath':savestatePath,
-            'isLinux':isLinux,
-            'codePath':codePath,
-            'botPath':botPath,
         }
         if argCount>len(args):
             r=(f'You input too few arguments for the command "{cmd}".',
@@ -286,342 +287,12 @@ async def on_message(msg:dis.Message):
                 "6️⃣ custom (bot dms you)"
             )), 
             color=0xE659ff)
-        
+
         embed.set_thumbnail(url=msg.guild.icon_url)
         sentMsg=await say(embed=embed)
         for i in ('1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'):
             await sentMsg.add_reaction(i) 
-
-    elif cmd == 'zote':
-        r=choice(vars.zoteQuotes)
-
-    elif cmd == 'emergencyquit':
-        await say("I'm sorry for what i did :(\nBye lovely folks!")
-        asySleep(0.5)
-        quit()
-
-    elif cmd == 'metheus':
-        await say('Keep in mind this is a command for a spesific game called the Metheus Puzzle (<https://dontstarve-archive.fandom.com/wiki/Metheus_Puzzles>)')
-        await fns.metheus(client,msg,say,throw)
     
-    elif cmd == 'replydelay':
-        if not args: r='Remember to add a delay time in seconds'
-        elif not args[0].isnumeric(): r='Time has to be an intiger number'
-        else:
-            r=f'done, set reply delay to {args[0]}'
-            data[guildID]['Reply delay'] = int(args[0])
-            Save(data)
-
-    elif cmd == 'makefile':
-        if len(args)<2:
-            r=f'Not correct syntax\n{prefix}makefile <fileName> <contents>'
-        else:
-            fns.openW(extraPath+args[0],args[1])
-            r=f'You wrote file {args[0]} with the contents {args[1]}'
-    
-    elif cmd == 'listfiles':
-        r=Join(os.listdir(extraPath))
-    
-    elif cmd == 'move':
-        await msg.delete()
-        if len(args)not in(2,3):
-            return await say(f'This command requires 2 arguments.\n{prefix}move <#Channel> <number of messages>',DM=1)
-
-        if not args[0][2:-1].isnumeric():
-            return await say(
-                'Channel ID was invalid. remember to do #ChannelName',
-                DM=1
-            )
-
-        if not args[1].isnumeric() or args[2:] and not args[2].isnumeric():
-            return await say(
-                'Number of messages to move was invalid. remember to do have it as a intiger',
-                DM=1
-            )
-        webhook = await (await client.fetch_channel(int(args[0][2:-1]))).create_webhook(name=msg.author.display_name)
-        
-        if args[2:]:
-            history = (await msg.channel.history(limit=int(args[2])).flatten())[int(args[1])-1:]
-            for i in history[::-1]:
-                await i.delete()
-        else:
-            history = await msg.channel.history(limit=int(args[1])).flatten()
-            await msg.channel.purge(
-                limit=int(args[1])
-            )
-
-        await say(f"Please move to {args[0]}, Where it's way more cozy for this convo :>")
-
-        for i in history[::-1]:
-            Sendingtxt=(i.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments))[:2000]
-
-            msgSent=await webhook.send(
-                Sendingtxt if Sendingtxt else '** **',
-                wait=1,
-                username=i.author.name,
-                avatar_url=i.author.avatar_url)
-            for j in i.reactions:
-                await msgSent.add_reaction(j)
-        await webhook.delete()
-
-
-    elif cmd == 'unmute':
-        if not args:
-            return await say("Please specify the name of the member in the command")
-        mutedPerson=await msg.guild.fetch_member(args[0])
-        mutedRole = dis.utils.get(msg.guild.roles,name=muteRoleName)
-        if mutedRole != None:
-            await mutedPerson.remove_roles(mutedRole)
-            await msg.channel.send(f"✅ {mutedPerson.name} was unmuted")
-
-    elif cmd == 'mutemyself':
-        # changed
-        IsValidTime = lambda i:i[-1] in "smhd" and i[:-1].isnumeric()
-        if not (args and all(map(IsValidTime,args))):
-            return await say(
-                'Wrong syntax. Please rephrase the command like so:',
-                f'{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>',
-                "They can be in any order you'd like :D, example:",
-                f'{prefix}MuteMyself 3d 4h 5m 2s'
-            )
-
-        muteDuration=fns.getTime(args)
-        if muteDuration<=0:
-            return await say('The time values you provided totalled 0')
-
-        roleobject = dis.utils.get(msg.guild.roles,name=muteRoleName)
-
-        if roleobject is None:
-            roleobject = await msg.guild.create_role(
-                name=muteRoleName, 
-                colour=dis.colour.Color.dark_gray(),
-                permissions=dis.Permissions(permissions=0)
-            )
-            for channel in msg.guild.channels:
-                await channel.set_permissions(roleobject, speak=False, send_messages=False, read_message_history=True, read_messages=False)
-
-        await say(f"Done. Muted {msg.author.name} for {' '.join(args)} ({muteDuration} seconds)")
-        await msg.author.add_roles(roleobject)
-
-        data[guildID]['Self Muted']=data[guildID]['Self Muted']+(authorID, muteDuration, time()),
-        Save(data)
-
-    elif cmd == 'channelids':
-        channelsList=[(str(1+i.position),i.name,str(i.id)) for i in msg.guild.text_channels]
-        lengthEach = [*map(len,map(' '.join,channelsList))]
-        formatedCmdsList='\n'.join(' '.join(x[:-1])+y*' '+' '+x[-1] for x,y in zip(channelsList,(max(lengthEach)-i for i in lengthEach)))
-        r=f'```pos, name, {" "*(max([29]+lengthEach)-29)}ID:\n{formatedCmdsList}```'
-        if len(r)>2000: r=r[:1990]+'```'
-
-    elif cmd=='setbotchannels':
-        if any([not i.isnumeric() for i in args]):
-            r='Not valid channel IDs'
-        else:
-            data[guildID]['Bot channels']=set(map(int,args))
-            Save(data)
-            r ='done'
-
-    elif cmd=='setreplychannels':
-        if sum((not i.isnumeric() for i in args)):
-            r='Not valid channel IDs'
-        else:
-            data[guildID]['Replies channels']=set(map(int,args))
-            Save(data)
-            r ='done'
-
-    elif cmd=='setreactchannels':
-        if sum((not i.isnumeric() for i in args)):
-            r='Not valid channel IDs'
-        else:
-            r='done'
-            data[guildID]['Reacts channels']=set(map(int,args))
-            Save(data)
-    
-    elif cmd == 'recommend':
-        if []==args:
-            return await throw(f'Remember to recommend something:\n{prefix}recommend Make the bot better!')
-        await client.get_channel(980859412564553738).send(' '.join(args))
-        r='Thanks for the recommendation :D'
-    
-    elif cmd=='highlow':
-        x = int(args[0]) if args and args[0].isnumeric() else 100
-        await say(f'Game started. Guess a number between 1-{x}')
-        correct=randint(1,x)
-
-        def check(msg):
-            return\
-            msg.channel.id == channelID and\
-            msg.author.id == authorID and\
-            msg.content.isnumeric()
-
-        guess=-1
-        while guess!=correct:
-            try:
-                guess = int(await client.wait_for("message", check=check, timeout=10*60).content)
-            except:
-                return await say(f'I got impatient waiting for {msg.author.name}')
-            if guess<correct:
-                await say('Higher!')
-            elif guess>correct:
-                await say('Lower!')
-        r='You won!'
-
-    elif cmd=='add8ball':
-        if args:
-            data[guildID]['8ball']|={' '.join(args)}
-            Save(data)
-            r='Added'
-        else:
-            r='8ball list: '+Join(data[guildID]['8ball'])
-
-    # make an import react/response x from other discords command
-    #TODO make Import command complete
-    elif cmd=='import':
-        options='Responses','Reacts','8ball'
-        if len(args)!=2 or (not args[0].isnumeric()):
-            r='You probably wrote improper syntax. Correct syntax is:',
-            f"fo!import <which discord:id> <{'/'.join(options)}>"
-
-        elif int(args[0]) not in data:
-            r="I don't recognize the discord you tried to import from"
-        
-        elif args[1] not in options:
-            r="I don't recognize the thing you tried to import. (argument 2).",
-            f"Available options are: {Join(options)}"
-        else:
-            data[guildID][args[1]]|=data[int(args[0])][args[1]]
-            Save(data)
-            r=f"Imported {args[1]} from {dis.utils.get(client.guilds,id=int(args[0])).name}"
-
-    # elif cmd=='spamme':
-    #     global spamPing
-    #     if authorID in spamPing:
-    #         spamPing.remove(authorID)
-    #         r='Ok i stopped spamming :D'
-    #     else:
-    #         await say('I will now spam you :D')
-    #         spamPing.add(authorID)
-    #         while authorID in spamPing:
-    #             asySleep(5)
-    #             await msg.author.send('This is spam ping')
-
-    elif cmd=='list8ball':
-        r='8ball list: '+Join(data[guildID]['8ball'])
-
-    elif cmd == 'remove8ball':
-        if args:
-            if ' '.join(args) in data[guildID]['8ball']:
-                data[guildID]['8ball'].remove(' '.join(args))
-                r='Removed'
-                Save(data)
-            else:
-                r='There was no reply found'
-        else: 
-            r='8ball list: '+Join(data[guildID]['8ball'])
-
-    elif cmd == 'addmodrole': # args[0][3:-1] is how to get role ID from role: '<@&975765928333701130>'
-        if not args:
-            r=f'Role IDs:\n{data[guildID]["ModRoles"]}'
-        elif args[0].isnumeric():
-            data[guildID]['ModRoles']|={int(args[0])}
-            Save(data)
-            r='done'
-        else:
-            r=f'Second argument must be an intiger.\n{prefix}AddModRole <roleID>'
-
-    elif cmd == 'removemodrole':
-        if args and args[0].isnumeric():
-            data[guildID]['ModRoles'].remove(int(args[0]))
-            Save(data)
-            r='done'
-        else:
-            r=f'This command requires one extra argument.\n{prefix}RemoveModRole <RoleID>'
-    
-    elif cmd == 'listmodroles':
-        r='Mod roles:\n',Join(myData['ModRoles'])
-        
-    elif cmd == 'listservers':
-        r='list of servers:\n',Join(i.name for i in client.guilds)
-
-    elif cmd == 'leavevc':
-        if msg.guild.voice_client and msg.guild.voice_client.channel:
-            await msg.guild.voice_client.disconnect()
-            data[guildID]['MusicPlaylist'] = []
-        else:
-            r="Not in a voice channel."
-    
-    elif cmd == 'play':
-        if not msg.author.voice:
-            return await throw("You're not in a voice channel.")
-        if not args:
-            if data[guildID]['MusicPlaylist']:
-                (lambda x:x.resume() if x.is_paused() else x.pause())(
-                    msg.guild.voice_client
-                )
-            else:
-                await throw("There is no song playing, so you can't pause/resume.")
-            return
-        video=fns.get_Video(' '.join(args))
-        await say(video.keys())
-
-        data[guildID]['MusicPlaylist']+=[video]
-        await say('Song added to queue')
-        if not data[guildID]['MusicPlaylist']:
-            await msg.author.voice.channel.connect()
-            fns._play_song(msg,data,client)
-    
-    elif cmd == 'skip':
-        if not data[guildID]['MusicPlaylist']:
-            return await throw("There's nothing to skip")
-        data[guildID]['MusicSkipVotes'].add(authorID)
-        users_in_channel = len([i for i in msg.author.voice.channel.members if not i.bot])
-        if users_in_channel:
-            voteRatio=len(data[guildID]['MusicSkipVotes'])/users_in_channel
-        else:voteRatio=1
-        neededVoteRatio=data[guildID]['MusicNeededVoteRatio']
-        if voteRatio >= neededVoteRatio:
-            r="Enough votes, skipping..."
-            data[guildID]['MusicPlaylist'].pop(0)
-            channel.guild.voice_client.stop()
-            if len(data[guildID]['MusicPlaylist']):
-                await msg.author.voice.channel.connect()
-                fns._play_song(msg,data,client)
-        else:
-            r=f'Not enough votes. Only {int(100*voteRatio)}% want to skip, when {int(100*neededVoteRatio)}% are needed'
-    elif cmd in {'fs','forceskip'}:
-        if not data[guildID]['MusicPlaylist']:
-            return await throw("There's nothing to skip")
-        r="Skipping..."
-        data[guildID]['MusicPlaylist'].pop(0)
-        channel.guild.voice_client.stop()
-        if len(data[guildID]['MusicPlaylist']):
-            await msg.author.voice.channel.connect()
-            fns._play_song(msg,data,client)
-
-    elif cmd == 'nowplaying':
-        if len(data[guildID]['MusicPlaylist']) > 0:
-            r = [f"{len(data[guildID]['MusicPlaylist'])} songs in queue:"]+[
-                f"  {index+1}. **{song.title}** (requested by **{song.requested_by.name}**)"
-                for index, song in enumerate(data[guildID]['MusicPlaylist'])
-            ]
-        else:
-            r="The play queue is empty."
-    
-    elif cmd == 'apl':
-        if []==args: return await say("Nothing to evaluate")
-        await client.get_channel(1042892476526100480).send("⋄"+msg.content[1+len(prefix)+len(cmd):])
-        try:
-            r = (await client.wait_for(
-                "message",
-                check=(lambda m:(m.channel.id,m.author.id)==(1042892476526100480,975728573312802847)),
-                timeout=10
-            )).content
-        except:
-            r = "Took too long"
-    
-    elif cmd=='tictactoe':
-        await say('Game started! (Credits to EdelfQ for the game code)')
-        await TicTacToe.TurtleGame(client,say)
 
     elif cmd == 'boardgame':
         embed = dis.Embed(

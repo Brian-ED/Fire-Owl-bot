@@ -6,3 +6,7 @@ add hints for how to use the bot in the help command
 add some sort of selector addon to commands. and just add addons to commands in general
 make sure links are not overwritten when message is too long
 support ranges in move command
+
+check if you can inspect types of the args for a function for better error automatic messages.
+  example would be the reply delay command, which has an int check error that can be handled automatically.
+  maybe even change the type automatically to int if the function requires it to be one.

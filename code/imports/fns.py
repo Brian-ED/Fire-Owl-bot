@@ -183,7 +183,7 @@ FFMPEG_BEFORE_OPTS = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
 #See https://stackoverflow.com/questions/43218292/youtubedl-read-error-with-discord-py/44490434#44490434 for more information.
 #Also, https://ffmpeg.org/ffmpeg-protocols.html for command line option reference.
 
-def _play_song(msg, data, client):
+def play_song(msg, data, client):
     data[msg.guild.id]['MusicSkipVotes']=set() # clear skip votes
     source = dis.PCMVolumeTransformer(
         dis.FFmpegPCMAudio(
@@ -194,7 +194,7 @@ def _play_song(msg, data, client):
     def after_playing(unused): #unused variable here is for preventing error
         data[msg.guild.id]['MusicPlaylist'].pop(0)
         if data[msg.guild.id]['MusicPlaylist']:
-            _play_song(msg,data,client)
+            play_song(msg,data,client)
         else:
             run_coroutine_threadsafe(msg.guild.voice_client.disconnect(),client.loop)
     msg.guild.voice_client.play(source, after=after_playing)
