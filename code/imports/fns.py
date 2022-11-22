@@ -108,11 +108,11 @@ def min2(s:MutableSequence[int])->list[int,int]:
     s.remove(z)
     return [z,Min(*s)]
 
-async def metheus(client:dis.Client,msg:dis.Message,say,throw):
+async def metheus(client:dis.Client,msg:dis.Message,say):
     x='>'.join(msg.content.split('<')).split('>')[1::2]
     p1,p2=(tuple('<'+i+'>' for i in x if (i[2]==z and isMetheusEmote(i))) for z in '12')
     if len(p1)!=6 or len(p2)!=6:
-        return await throw('Wrong syntax. Please include 6 symbols for each player, which means 6 that start with P1, and 6 that start with P2')
+        return'Wrong syntax. Please include 6 symbols for each player, which means 6 that start with P1, and 6 that start with P2'
     await say('Succesful input. Your input was:',''.join(p1),''.join(p2))
 
     def Outside(m):
@@ -145,13 +145,13 @@ async def metheus(client:dis.Client,msg:dis.Message,say,throw):
                 timeout=10*60
             ))[0].emoji
         except TimeoutError:
-            return await throw(f'Waited for too long')
+            return'Waited for too long'
         if emoji=='🛑':
-            return await say('Game stopped')
+            return'Game stopped'
         elif emoji=='↩':
             notSolution=notSolution[:2]+notSolution[2:-1]
         inp=int(emoji[0])
-        if inp==6:return await say('Done')
+        if inp==6:return'Done'
         x=inp-len(notSolution)+2
         s=lambda i:{0,1,2,3,4,5}.difference(i)
         if x==1:

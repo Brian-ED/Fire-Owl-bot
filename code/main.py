@@ -207,13 +207,13 @@ async def on_message(msg:dis.Message):
     commands={i.lower() for i in commands}
     cmd = fns.commandHandler(prefix,cmd,commands,ifEmpty='help')
 
-    async def throw(error,whichArgs=()):
-        errormsg=[error,' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(allArgs))]
-        if any((cmd in cmds[i]for i in('adminCommands','modCommands','ownerCommands'))):
-            await msg.delete()
-            await say(*errormsg,DM=1)
-        else:
-            await say(*errormsg) 
+    # async def throw(error,whichArgs=()):
+    #     errormsg=[error,' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(allArgs))]
+    #     if any((cmd in cmds[i]for i in('adminCommands','modCommands','ownerCommands'))):
+    #         await msg.delete()
+    #         await say(*errormsg,DM=1)
+    #     else:
+    #         await say(*errormsg) 
 
     if cmd in allCmdFnsL:
         argCount=fns.ArgCount(allCmdFnsL[cmd])
@@ -226,7 +226,6 @@ async def on_message(msg:dis.Message):
             'data':data,
             'Save':Save,
             'isMod':isMod,
-            'throw':throw,
             'myData':myData,
             'reacts':reacts,
             'prefix':prefix,

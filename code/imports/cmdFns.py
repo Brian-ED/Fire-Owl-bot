@@ -142,9 +142,9 @@ def DelDataSlot(slot:str,*args,data={},guildID=0,Save=C,**_):
 def Zote(*a,**_):
     return choice(zoteQuotes)
 
-async def Metheus(*a,say=C,throw=C,msg=C,client=C,**_):
+async def Metheus(*a,say=C,msg=C,client=C,**_):
     await say('Keep in mind this is a command for a spesific game called the Metheus Puzzle (<https://dontstarve-archive.fandom.com/wiki/Metheus_Puzzles>)')
-    await metheus(client,msg,say,throw)
+    return await metheus(client,msg,say)
 
 async def EmergencyQuit(say=C,**_):
     await say("I'm sorry for what i did :(\nBye lovely folks!")
