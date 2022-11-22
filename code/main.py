@@ -9,7 +9,6 @@ Vars=vars
 from imports import vars, fns
 from imports.cmdFns import cmdFns
 from time import sleep, time
-from imports import TicTacToe
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 
 client = dis.Client()

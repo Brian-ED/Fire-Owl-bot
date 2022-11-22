@@ -5,7 +5,7 @@ from time import time
 from imports.fns import *
 from imports.vars import *
 from asyncio import sleep as asySleep
-import TicTacToe
+from imports import TicTacToe
 
 Ping=C("hiii")
 Pong=C("hello")
