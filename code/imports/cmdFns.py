@@ -451,6 +451,27 @@ async def TicTacToeCmd(say=C,client=C,**_):
     await say('Game started! (Credits to EdelfQ for the game code)')
     await TicTacToe.TurtleGame(client,say)
 
+async def BoardGame(msg=C,say=C,**_):
+        embed = dis.Embed(
+            title = 'Pick your game! :D',
+            description = '\n'.join((
+                "Use the buttons below to select what game you'd like me to start for you.",
+                "1️⃣ Checkers",
+                "2️⃣ TicTacToe"
+                #"3️⃣ Connect4",
+                #"4️⃣ Chess",
+                #"5️⃣ 4player chess",
+                #"6️⃣ random",
+            )), 
+            color=0xE659ff
+        )
+        embed.set_thumbnail(url=msg.guild.icon_url)
+        sentMsg=await say(embed=embed)
+        for i in ('1️⃣'): #,'2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'
+            await sentMsg.add_reaction(i)
+
+
+
 
 cmdFns={
     'userCommands':{
@@ -484,6 +505,7 @@ cmdFns={
         'Add8ball':Add8ball,
         'Remove8ball':Curry(DelDataSlot,'8ball'),
         'ForceSkip':ForceSkipSong,
+        'Move':MoveCmd,
     },
     'adminCommands':{
         'SetBotChannels':SetBotChannels,
@@ -509,6 +531,6 @@ cmdFns={
         'Update':Update,
         'RestoreBackup':RestoreBackup,
         'EmergencyQuit':EmergencyQuit,
-        'Move':MoveCmd,
+        'BoardGame':BoardGame,
     }
 }

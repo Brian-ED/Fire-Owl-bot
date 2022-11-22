@@ -293,26 +293,6 @@ async def on_message(msg:dis.Message):
         for i in ('1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'):
             await sentMsg.add_reaction(i) 
     
-
-    elif cmd == 'boardgame':
-        embed = dis.Embed(
-            title = 'Pick your game! :D',
-            description = '\n'.join((
-                "Use the buttons below to select what game you'd like me to start for you.",
-                "1️⃣ Checkers",
-                "2️⃣ TicTacToe"
-                #"3️⃣ Connect4",
-                #"4️⃣ Chess",
-                #"5️⃣ 4player chess",
-                #"6️⃣ random",
-            )), 
-            color=0xE659ff
-        )
-        embed.set_thumbnail(url=msg.guild.icon_url)
-        sentMsg=await say(embed=embed)
-        for i in ('1️⃣'): #,'2️⃣','3️⃣','4️⃣','5️⃣','6️⃣'
-            await sentMsg.add_reaction(i)
-
         msg = await client.wait_for(
             'reaction_add',
             check=(lambda r,u:(u,str(r.emoji))==(msg.author,'↕')),
