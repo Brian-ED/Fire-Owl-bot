@@ -37,7 +37,6 @@ async def RickRoll(say=C,**_):
     await say(f'this can help :)\n{ytUrl}Lc6db8qfZEw',DM=1)
 
 def HelpCmd(cmds={},isMod=0,isAdmin=0,isOwner=0,**_):
-    print(cmds)
     r =             '**User commands**:\n' +Join(cmds['userCommands']),
     if isMod:  r+='\n**Mod commands:**\n'  +Join(cmds['modCommands']),
     if isAdmin:r+='\n**Admin commands:**\n'+Join(cmds['adminCommands']),
@@ -149,7 +148,7 @@ async def EmergencyQuit(say=C,**_):
     asySleep(0.5)
     quit()
 
-async def MoveCmd(channel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
+async def MoveCmd(inpChannel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
     await msg.delete()
     if len(args)>1:
         return await say(
@@ -162,7 +161,7 @@ async def MoveCmd(channel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix=''
             DM=1
         )
 
-    if not channel[2:-1].isnumeric():
+    if not inpChannel[2:-1].isnumeric():
         return await say(
             'Channel ID was invalid. remember to do #ChannelName',
             DM=1
@@ -173,7 +172,7 @@ async def MoveCmd(channel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix=''
             'Number of messages to move was invalid. remember to do have it as a intiger',
             DM=1
         )
-    webhook = await (await client.fetch_channel(int(channel[2:-1]))).create_webhook(name=msg.author.display_name)
+    webhook = await (await client.fetch_channel(int(inpChannel[2:-1]))).create_webhook(name=msg.author.display_name)
 
     if args:
         history = (await msg.channel.history(limit=int(args[0])).flatten())[int(numOfMsgs)-1:]
@@ -182,7 +181,7 @@ async def MoveCmd(channel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix=''
     else:
         history = await msg.channel.purge(limit=int(numOfMsgs))
 
-    await say(f"Please move to {channel}, Where it's way more cozy for this convo :>")
+    await say(f"Please move to {inpChannel}, Where it's way more cozy for this convo :>")
 
     for i in history[::-1]:
         Sendingtxt=(i.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments))[:2000]
