@@ -233,7 +233,8 @@ async def on_message(msg:dis.Message):
             # but get errors from discord through my linux machine
 
     if not r:return
-    if not hasattr(r,'__iter__') or type(r)==str:r=[r]
+    if not hasattr(r,'__iter__') or type(r)==str:
+        r=r,
     await say(*r)
 
 async def on_reaction_add(reaction, author):

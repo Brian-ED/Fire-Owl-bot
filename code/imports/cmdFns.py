@@ -503,6 +503,12 @@ async def Testing(*args,say=C,client=C,**_):
     except:
         return'-'
 
+def ResetDataSlot(slot,data={},guildID=0,**_):
+    if slot in data[guildID]:
+        data[guildID][slot]=type(data[guildID][slot])()
+        return 'Done'
+    else:
+        return "Data slot doesn't exist"
 
 cmds={
     'userCommands':{
@@ -564,5 +570,6 @@ cmds={
         'RestoreBackup':RestoreBackup,
         'Testing':Testing,
         'Update':Update,
+        'ResetDataSlot':ResetDataSlot,
     }
 }
