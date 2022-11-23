@@ -232,7 +232,7 @@ async def on_message(msg:dis.Message):
             # I split by isLinux so i can get clear errors on my windows machine
             # but get errors from discord through my linux machine
 
-    if r=='':return
+    if not r:return
     if not hasattr(r,'__iter__') or type(r)==str:r=[r]
     await say(*r)
 
