@@ -507,7 +507,7 @@ def ResetDataSlot(*slotName,data={},guildID=0,**_):
     slot=' '.join(slotName)
     for i in data[guildID]:
         if slot==i.lower():
-            data[guildID][slot]=type(data[guildID][slot])()
+            data[guildID][i]=type(data[guildID][i])()
             return 'Done'
     return "Data slot doesn't exist"
 
