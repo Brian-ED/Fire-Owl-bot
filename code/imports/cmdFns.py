@@ -148,6 +148,9 @@ async def EmergencyQuit(say=C,**_):
     asySleep(0.5)
     quit()
 
+def Error(**_):
+    return Any+Any
+
 async def MoveCmd(inpChannel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
     await msg.delete()
     if len(args)>1:
@@ -543,6 +546,7 @@ cmds={
         'Skip':SkipSong,
         'TicTacToe':TicTacToeCmd,
         'Zote':Zote,
+        'Error':Error,
     },
     'modCommands':{
         'Add8ball':Add8ball,
