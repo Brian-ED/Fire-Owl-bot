@@ -128,8 +128,8 @@ def InfoCmd(isMod=0,isAdmin=0,isOwner=0,replyDelay=0,isReplyChannel=0,isBotChann
     f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}',
     '```')
 
-def DelDataSlot(slot:str,*args,data={},guildID=0,Save=C,**_):
-    ValStr=' '.join(args)
+def DelDataSlot(slot:str,*arguments,data={},guildID=0,Save=C,**_):
+    ValStr=' '.join(arguments)
     if ValStr in data[guildID][slot]:
         del data[guildID][slot][ValStr]
         Save(data)
@@ -503,12 +503,20 @@ async def Testing(*args,say=C,client=C,**_):
     except:
         return'-'
 
-def ResetDataSlot(slot,data={},guildID=0,**_):
-    if slot in data[guildID]:
-        data[guildID][slot]=type(data[guildID][slot])()
-        return 'Done'
-    else:
-        return "Data slot doesn't exist"
+def ResetDataSlot(*slotName,data={},guildID=0,**_):
+    slot=' '.join(slotName)
+    for i in data[guildID]:
+        if slot==i.lower():
+            data[guildID][slot]=type(data[guildID][slot])()
+            return 'Done'
+    return "Data slot doesn't exist"
+
+def ListDataSlot(*slotName,data={},guildID=0,**_):
+    slot=' '.join(slotName)
+    for i in data[guildID]:
+        if slot==i.lower():
+            return str(data[guildID][i])
+    return "Data slot doesn't exist"
 
 cmds={
     'userCommands':{
@@ -571,5 +579,6 @@ cmds={
         'Testing':Testing,
         'Update':Update,
         'ResetDataSlot':ResetDataSlot,
+        'ListDataSlot':ListDataSlot,
     }
 }

@@ -27,7 +27,7 @@ def InV2(text:str, searchIn:Union[str,list]):
     searchStr=' '.join(searchIn) if type(searchIn)==list else searchIn
     return ' '+text+' ' in searchStr or text==searchStr or searchStr.startswith(text+' ') or searchStr.endswith(' '+text)
 
-def Curry(f:Callable,x:Any,**xx:Any)->Callable:
+def Curry(f:Callable,*x,**xx:Any)->Callable:
     def g(*y,**yy):
         yl=list(y)
         return f(*(i if i!=Any else yl.pop() for i in x),*yl,**yy,**xx)
