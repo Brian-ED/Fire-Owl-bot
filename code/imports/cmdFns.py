@@ -575,6 +575,7 @@ cmds={
         'Move':MoveCmd,
         'Remove8ball':Curry(DelDataSlot,'8ball'),
         'Unmute':UnmuteCmd,
+        'SpoilerMessage':SpoilerMsg,
     },
     'adminCommands':{
         'AddBotChannel':AddBotChannels,
@@ -604,7 +605,6 @@ cmds={
         'Update':Update,
         'ResetDataSlot':ResetDataSlot,
         'ListDataSlot':ListDataSlot,
-        'SpoilerMessage':SpoilerMsg,
     }
 }
 
