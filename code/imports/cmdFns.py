@@ -183,9 +183,7 @@ async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,c
     await say(f"Please move to <#{inpChannel}>, Where it's way more cozy for this convo :>")
 
     for i in history[::-1]:
-        Sendingtxt=(i.clean_content+'\n'+' '.join(f'||"[{z.filename}]({z.url})"||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})"  for z in i.attachments))[:2000]
-        Sendingtxt=(i.clean_content+'\n'+' '.join(ReSpoiler(f"[{z.filename}]({z.url})")for z in i.attachments))[:2000]
-
+        Sendingtxt=(i.clean_content+'\n'+' '.join(f'||[{z.filename}]({z.url})||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})"  for z in i.attachments))[:2000]
         msgSent=await webhook.send(
             Sendingtxt if Sendingtxt else '** **',
             wait=1,
