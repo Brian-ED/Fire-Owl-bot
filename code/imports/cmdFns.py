@@ -2,10 +2,16 @@ import os
 from random import choice, randint
 from shutil import copytree, rmtree
 from time import time
-from imports.fns import *
-from imports.vars import *
+if __name__!="__main__":
+    from imports.fns import *
+    from imports.vars import *
+    from imports import TicTacToe
+else:
+    import TicTacToe
+    from vars import *
+    from fns import *
 from asyncio import sleep as asySleep
-from imports import TicTacToe
+import discord as dis
 
 Ping=C("hiii")
 Pong=C("hello")
@@ -77,6 +83,7 @@ async def Update(say=C,isLinux=0,savestatePath='',codePath='',extraPath='',botPa
         os.system('python3 main.py')
         await asySleep(0.5)
         quit()
+    return'Not available for the test version'
 
 def Backup(savestatePath='',extraPath='',**_):
     rmtree(savestatePath)
@@ -128,7 +135,7 @@ def InfoCmd(isMod=0,isAdmin=0,isOwner=0,replyDelay=0,isReplyChannel=0,isBotChann
     f'{isBotChannel=}, {isReplyChannel=}, {isReactChannel=}',
     '```')
 
-def DelDataSlot(slot:str,*arguments,data={},guildID=0,Save=C,**_):
+def DelDataSlot(slot,*arguments,data={},guildID=0,Save=C,**_):
     ValStr=' '.join(arguments)
     if ValStr in data[guildID][slot]:
         del data[guildID][slot][ValStr]
@@ -139,7 +146,7 @@ def DelDataSlot(slot:str,*arguments,data={},guildID=0,Save=C,**_):
 def Zote(*a,**_):
     return choice(zoteQuotes)
 
-async def Metheus(*a,say=C,msg=C,client=C,**_):
+async def Metheus(*_a,say=C,msg=C,client=C,**_):
     await say('Keep in mind this is a command for a spesific game called the Metheus Puzzle (<https://dontstarve-archive.fandom.com/wiki/Metheus_Puzzles>)')
     return await metheus(client,msg,say)
 
@@ -151,43 +158,33 @@ async def EmergencyQuit(say=C,**_):
 def Error(**_):
     return Any+Any
 
-async def MoveCmd(inpChannel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
+async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
     await msg.delete()
     if len(args)>1:
         return await say(
             'This command requires 2 or 3 arguments.',
-            f'{prefix}move <#Channel> <number of messages> <optional, range of messages>'
-            'Example of moving 31 messages to the channel #bot-spam:'
-            f'{prefix}move #bot-spam 31'
-            'or moving the messages between and including 10th and 20th messages to the channel #bot-spam:'
-            f'{prefix}move #bot-spam 10 20',
+            prefix+'move <#Channel> <number of messages> <optional, range of messages>',
+            'Example of moving 31 messages to the channel #bot-spam:',
+            prefix+'move #bot-spam 31',
+            'or moving the messages between and including 10th and 20th messages to the channel #bot-spam:',
+            prefix+'move #bot-spam 10 20',
             DM=1
         )
 
-    if not inpChannel[2:-1].isnumeric():
-        return await say(
-            'Channel ID was invalid. remember to do #ChannelName',
-            DM=1
-        )
-
-    if not numOfMsgs.isnumeric() or args and not args[0].isnumeric():
-        return await say(
-            'Number of messages to move was invalid. remember to do have it as a intiger',
-            DM=1
-        )
-    webhook = await (await client.fetch_channel(int(inpChannel[2:-1]))).create_webhook(name=msg.author.display_name)
+    webhook = await (await client.fetch_channel(inpChannel)).create_webhook(name=msg.author.display_name)
 
     if args:
-        history = (await msg.channel.history(limit=int(args[0])).flatten())[int(numOfMsgs)-1:]
+        history = (await msg.channel.history(limit=args[0]).flatten())[numOfMsgs-1:]
         for i in history[::-1]:
             await i.delete()
     else:
-        history = await msg.channel.purge(limit=int(numOfMsgs))
+        history = await msg.channel.purge(limit=numOfMsgs)
 
-    await say(f"Please move to {inpChannel}, Where it's way more cozy for this convo :>")
+    await say(f"Please move to <#{inpChannel}>, Where it's way more cozy for this convo :>")
 
     for i in history[::-1]:
-        Sendingtxt=(i.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})" for z in i.attachments))[:2000]
+        Sendingtxt=(i.clean_content+'\n'+' '.join(f'||"[{z.filename}]({z.url})"||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})"  for z in i.attachments))[:2000]
+        Sendingtxt=(i.clean_content+'\n'+' '.join(ReSpoiler(f"[{z.filename}]({z.url})")for z in i.attachments))[:2000]
 
         msgSent=await webhook.send(
             Sendingtxt if Sendingtxt else '** **',
@@ -204,13 +201,13 @@ async def MoveCmd(inpChannel,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix
 def ReplyDelay(delay:int,data={},guildID=0,Save=C,**_):
         if not delay.isnumeric():
             return'Time has to be an intiger number'
-        data[guildID]['Reply delay']=int(delay)
+        data[guildID]['Reply delay']=delay
         Save(data)
-        return'done, set reply delay to '+delay
+        return'done, set reply delay to '+repr(delay)
 
 
 muteRoleName='MUTED(by Fire-Bot)'
-async def MuteMyself(*args,prefix='',data={},guildID=0,msg=C,authorID=0,Save=C,**_):
+async def MuteMyself(*args:TimeType,prefix='',data={},guildID=0,msg=C,authorID=0,Save=C,**_):
     IsValidTime = lambda i:i[-1] in "smhd" and i[:-1].isnumeric()
     if not (args and all(map(IsValidTime,args))):
         return (
@@ -220,8 +217,7 @@ async def MuteMyself(*args,prefix='',data={},guildID=0,msg=C,authorID=0,Save=C,*
             f'{prefix}MuteMyself 3d 4h 5m 2s'
         )
 
-    
-    muteDuration=getTime(args)
+    muteDuration=sum(args)
     if muteDuration<=0:
         return'The time values you provided totalled 0'
 
@@ -328,19 +324,19 @@ async def HighLow(upTo:int,channelID=0,authorID=0,client=C,say=C,**_):
 
     # make an import react/response x from other discords command
     #TODO make Import command complete
-def Import(discordID:int,*dataSlots,data={},guildID=0,prefix='',Save=C,client=C,**_):
+def Import(discordID:ChannelIDType,*dataSlots,data={},guildID=0,prefix='',Save=C,client=C,**_):
     dataSlot=' '.join(dataSlots)
     options='Responses','Reacts','8ball'
-    if 1-discordID.isnumeric() or dataSlot not in options:
+    if dataSlot not in options:
         return('You probably wrote improper syntax. Correct syntax is:',
-            f"{prefix}import <which discord:id> <{'/'.join(options)}>")
+            f"{prefix}import <which discord> <{'/'.join(options)}>")
 
-    if int(discordID)not in data:
+    if discordID not in data:
         return"I don't recognize the discord you tried to import from"
         
-    data[guildID][dataSlot]|=data[int(discordID)][dataSlot]
+    data[guildID][dataSlot]|=data[discordID][dataSlot]
     Save(data)
-    return f"Imported {dataSlot} from {dis.utils.get(client.guilds,id=int(discordID)).name}"
+    return f"Imported {dataSlot} from {dis.utils.get(client.guilds,id=discordID).name}"
 
 def ModRoles(*args,data={},guildID=0,Save=C,prefix='',**_):
     # args[0][3:-1] is how to get role ID from role: '<@&975765928333701130>'
@@ -506,6 +502,30 @@ async def Testing(*args,say=C,client=C,**_):
     except:
         return'-'
 
+async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
+    await msg.delete()
+    repliedToMsg = await msg.channel.fetch_message(msg.reference.message_id)
+
+    if repliedToMsg==None:
+        await say('This command needs you to reply to a message',DM=1)
+        return
+    
+
+    webhook = await msg.channel.create_webhook(name=repliedToMsg.author.display_name)
+    await repliedToMsg.delete()
+    
+    Sendingtxt='||'+(repliedToMsg.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})"for z in repliedToMsg.attachments))[:1996]+'||'
+
+    msgSent=await webhook.send(
+        Sendingtxt,
+        wait=1,
+        username=repliedToMsg.author.name,
+        avatar_url=repliedToMsg.author.avatar_url
+    )
+    for j in repliedToMsg.reactions:
+        await msgSent.add_reaction(j)
+    await webhook.delete()
+
 def ResetDataSlot(*slotName,data={},guildID=0,**_):
     slot=' '.join(slotName)
     for i in data[guildID]:
@@ -584,5 +604,15 @@ cmds={
         'Update':Update,
         'ResetDataSlot':ResetDataSlot,
         'ListDataSlot':ListDataSlot,
+        'SpoilerMessage':SpoilerMsg,
     }
 }
+
+# Testing section:
+if __name__=="__main__":
+
+    # Make sure there are no invalid KWARGS for the commands
+    kwargKeys='msg','cmd','say','data','Save','cmds','isMod','myData','reacts','prefix','client','allArgs','guildID','channel','isOwner','isAdmin','isLinux','botPath','modRoles','argCount','authorID','codePath','channelID','responses','extraPath','hasInfArgs','replyDelay','botChannels','isBotChannel','replyChannels','savestatePath','reactsChannels','chanceForReply','isReplyChannel','isReactChannel','isReactChannel','isReactChannel','isReactChannel'
+    for i in cmds:
+        for j in cmds[i]:
+            ValidKWARGForFunc(cmds[i][j],{i:0 for i in kwargKeys})

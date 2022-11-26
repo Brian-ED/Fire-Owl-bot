@@ -158,9 +158,9 @@ async def on_message(msg:dis.Message):
         return
 
     allowedCmdsL=cmdsL['userCommands']\
-                |(cmdsL['modCommands']if isMod else{})\
-                |(cmdsL['adminCommands']if isAdmin else{})\
-                |(cmdsL['ownerCommands']if isOwner else{})
+               |(cmdsL['modCommands']if isMod else{})\
+               |(cmdsL['adminCommands']if isAdmin else{})\
+               |(cmdsL['ownerCommands']if isOwner else{})
     cmd = fns.commandHandler(
         prefix,
         cmd,
@@ -179,6 +179,7 @@ async def on_message(msg:dis.Message):
     if cmd in allowedCmdsL:
         argCount=fns.ArgCount(allowedCmdsL[cmd])
         hasInfArgs=fns.HasInfArgs(allowedCmdsL[cmd])
+        hasInfKWArgs=fns.HasInfKWArgs(allowedCmdsL[cmd])
         KWARGS={
             'msg':msg,
             'cmd':cmd,
@@ -209,30 +210,40 @@ async def on_message(msg:dis.Message):
             'replyDelay':replyDelay,
             'botChannels':botChannels,
             'isBotChannel':isBotChannel,
+            'hasInfKWArgs':hasInfKWArgs,
             'replyChannels':replyChannels,
             'savestatePath':savestatePath,
             'reactsChannels':reactsChannels,
             'chanceForReply':chanceForReply,
             'isReplyChannel':isReplyChannel,
             'isReactChannel':isReactChannel,
+            'isReactChannel':isReactChannel,
+            'isReactChannel':isReactChannel,
+            'isReactChannel':isReactChannel,
         }
-        if argCount>len(args):
-            r=(f'You input too few arguments for the command "{cmd}".',
-               f'The command needs minimum {argCount} arguments, not {len(args)}')
-        elif not hasInfArgs and argCount<len(args):
-            r=(f'Too many arguments for the command "{cmd}".',
-               f'The command needs {argCount} arguments, not {len(args)}')
+
+        errored,reTypedArgs=fns.FitIntoFunc(allowedCmdsL[cmd],*args,**KWARGS)
+        if errored:
+            r=reTypedArgs
         elif isLinux:
             try:
-                r=await fns.Call(allowedCmdsL[cmd],*args,**KWARGS)    
+                if hasInfKWArgs:
+                    r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**KWARGS)
+                else:
+                    r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs)
+
             except Exception as e:
                 r='Error',e,f'```{e.__class__}```'
         else:
-            r=await fns.Call(allowedCmdsL[cmd],*args,**KWARGS)  
+            if hasInfKWArgs:
+                r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**KWARGS)
+            else:
+                r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs)
             # I split by isLinux so i can get clear errors on my windows machine
             # but get errors from discord through my linux machine
 
-    if not r:return
+    if not r:
+        return
     if not hasattr(r,'__iter__') or type(r)==str:
         r=r,
     await say(*r)

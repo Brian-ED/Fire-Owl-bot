@@ -6,6 +6,9 @@ from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
 from typing import Iterable, MutableSequence,Union
 from typing import Any, Callable
 
+ChannelIDType= type('int', (object,), vars(int).copy())
+TimeType     = type('float', (object,), vars(float).copy())
+
 class Infix:
     def __init__(self, function):
         self.function = function
@@ -222,21 +225,118 @@ def Get(items,*indexs):
         r= items
     return r
 
-def getTime(time:tuple[str])->Union[str,int]:
-    return sum(int(i[:-1])*(1,60,3600,86400)['smhd'.index(i[-1])] for i in time)
-# print(getTime(("3d","1h","3m","2s")))
-# 262982
 
 C=lambda x:lambda*_,**a:x
 
 def ArgCount(func:Callable)->int:
     return func.__code__.co_argcount-len(func.__defaults__ if func.__defaults__ else())
 
-def HasInfArgs(func:Callable)->bool:
-    x=' '+str(inspect.signature(func))[1:]
+def HasInfArgs(Func:Callable)->bool:
+    x=' '+str(inspect.signature(Func))[1:]
     return bool(x.count(' *') - x.count(' **'))
 
-async def Call(f:Callable,*args,**KWARGS):
-    return await f(*args,**KWARGS) if inspect.iscoroutinefunction(f) else f(*args,**KWARGS)
+def HasInfKWArgs(Func):
+    return'**'in str(inspect.signature(Func))
+
+def intoAsync(F:Callable):
+    if inspect.iscoroutinefunction(F):
+        return F
+    async def G(*args,**KWARGS):
+        return F(*args,**KWARGS)
+    return G
 
 SToF=lambda p:lambda*x:reduce(eval(f"lambda a,b:a {p} b"),x)if len(x)!=1 else x[0]
+
+# Function argument types abuse:
+def ValidKWARGForFunc(Function,kwargs):
+    anotations=*inspect.signature(Function).parameters.values(),
+    kwargNames=*(i.name for i in anotations if i.default!=inspect._empty),
+    tooManyArgs=set(kwargNames)-kwargs.keys()
+    if tooManyArgs:
+        raise Exception('Non existant kwarg: '+Join(tooManyArgs))
+
+def getTypesOfFunc(F:Callable)->tuple:
+    anotations=*inspect.signature(F).parameters.values(),
+    kwargNames=*(i.name for i in anotations if i.default!=inspect._empty),
+    isInfArged=0
+    typesTuple=()
+    for i in anotations:
+        if i.default!=inspect._empty:
+            break
+        if i.annotation!=inspect._empty:
+            typesTuple+=i.annotation,
+            if i.kind==inspect._ParameterKind.VAR_POSITIONAL:
+                isInfArged=1
+                break
+        else:
+            typesTuple+=0,
+    return typesTuple,isInfArged,kwargNames
+
+def ApplyType(value:str,typeClass:type):
+    if typeClass==int:
+        if value.isdecimal():
+            return int(value)
+        return
+    if typeClass==float:
+        if value.replace('.','',1).isdecimal():
+            return float(value)
+        return
+    if typeClass==bool:
+        if value.lower()in('true','1','yes','agree'):
+            return True
+        elif value.lower()in('false','0','no','disagree'):
+            return False
+        return
+    if typeClass==ChannelIDType:
+        x=value.removeprefix('<#').removesuffix('>')
+        if x.isdecimal():
+            return int(x)
+        return
+    if typeClass==TimeType:
+        if value[-1] in 'smhd' and value[:-1].replace('.','',1).isdecimal():
+            return float(value[:-1])*(1,60,3600,86400)['smhd'.index(value[-1])]
+    # Support types:
+    #  author, tuples?
+    return value
+
+def FitIntoFunc(Function:Callable,*args,**kwargs):
+    argCount=ArgCount(Function)
+    isInfArged=HasInfArgs(Function)
+    typeMap,_,kwargNames=getTypesOfFunc(Function)
+
+    tooManyArgs=set(kwargNames)-kwargs.keys()
+    if tooManyArgs:
+        return 1,'Non existant kwarg: '+Join(tooManyArgs)
+
+    reTypedArgs=*map(ApplyType,args[:len(typeMap)-1],typeMap[:-1]),
+
+    if isInfArged:
+        reTypedArgs+=(*map(Curry(ApplyType,Any,typeMap[-1]),args[len(typeMap)-1:]),)
+
+    if None in reTypedArgs:
+        return 1,('Incompatable type:',
+            args[reTypedArgs.index(None)])
+    
+
+    
+    if argCount>len(args):
+        return 1,(
+            'You input too few arguments for the command.',
+            f'The command needs minimum {argCount} arguments, not {len(args)}'
+        )
+
+    if not isInfArged and argCount<len(args):
+        return 1,(
+            'Too many arguments for the command.',
+            f'The command needs {argCount} arguments, not {len(args)}'
+        )
+    return 0,reTypedArgs            
+    # return '\n'.join(map(str,(
+    #     reTypedArgs,
+    #     typeMap,
+    #     bool(isInfArged),
+    #     inspect.getargs(Function.__code__),
+    #     get_args(Function),
+    #     ArgCount(Function),
+    #     HasInfArgs(Function)
+    # )))
