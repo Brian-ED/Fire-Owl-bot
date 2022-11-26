@@ -193,8 +193,6 @@ async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,c
         for j in i.reactions:
             await msgSent.add_reaction(j)
     await webhook.delete()
-    return''
-
 
 def ReplyDelay(delay:int,data={},guildID=0,Save=C,**_):
         if not delay.isnumeric():
