@@ -296,10 +296,12 @@ def FitIntoFunc(Function:Callable,*args,**kwargs):
     if tooManyArgs:
         return 1,'Non existant kwarg: '+Join(tooManyArgs)
 
-    reTypedArgs=*map(ApplyType,args[:len(typeMap)-1],typeMap[:-1]),
 
     if isInfArged:
+        reTypedArgs=*map(ApplyType,args[:len(typeMap)-1],typeMap[:-1]),
         reTypedArgs+=(*map(Curry(ApplyType,Any,typeMap[-1]),args[len(typeMap)-1:]),)
+    else:
+        reTypedArgs=*map(ApplyType,args,typeMap),
 
     if None in reTypedArgs:
         return 1,('Incompatable type:',
