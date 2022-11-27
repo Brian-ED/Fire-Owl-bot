@@ -1,5 +1,6 @@
 import os
 from random import choice, randint
+import re
 from shutil import copytree, rmtree
 from time import time
 if __name__!="__main__":
@@ -170,8 +171,13 @@ async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,c
             prefix+'move #bot-spam 10 20',
             DM=1
         )
+    try:
+        webhook = await (await client.fetch_channel(inpChannel)).create_webhook(name=msg.author.display_name)
+    except dis.errors.HTTPException:
+        for i in await msg.guild.webhooks():
+            await (await client.fetch_webhook(i)).delete()
+        webhook = await (await client.fetch_channel(inpChannel)).create_webhook(name=msg.author.display_name)
 
-    webhook = await (await client.fetch_channel(inpChannel)).create_webhook(name=msg.author.display_name)
 
     if args:
         history = (await msg.channel.history(limit=args[0]).flatten())[numOfMsgs-1:]
@@ -184,14 +190,30 @@ async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,c
 
     for i in history[::-1]:
         Sendingtxt=(i.clean_content+'\n'+' '.join(f'||[{z.filename}]({z.url})||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})"  for z in i.attachments))[:2000]
-        msgSent=await webhook.send(
-            Sendingtxt if Sendingtxt else '** **',
-            wait=1,
-            username=i.author.name,
-            avatar_url=i.author.avatar_url
-        )
-        for j in i.reactions:
-            await msgSent.add_reaction(j)
+        async def SenderFunction(x=0):
+            if x>0:print('try:',x)
+            if x>4:return'took too many tries to send a message'
+            try:
+                await webhook.send(
+                    Sendingtxt if Sendingtxt else '** **',
+                    wait=1,
+                    username=i.author.name,
+                    avatar_url=i.author.avatar_url
+                )
+            except dis.errors.HTTPException as err:
+                await asySleep((lambda t:int(t[0])/1000 if t else 0)(re.findall("'Retry-After': '([0123456789]*)'",str(err.response))))
+                return await SenderFunction(x+1)
+            except dis.errors.NotFound:return''
+            except dis.errors.NoMoreItems:
+                return"I'm unable to read that far in history, Stopping here."
+
+        msgSent=await SenderFunction()
+        if type(msgSent)==str and msgSent!='':
+            await webhook.delete()
+            return msgSent
+        if msgSent!='':
+            for j in i.reactions:
+                await msgSent.add_reaction(j)
     await webhook.delete()
 
 def ReplyDelay(delay:int,data={},guildID=0,Save=C,**_):
@@ -310,7 +332,7 @@ async def HighLow(upTo:int,channelID=0,authorID=0,client=C,say=C,**_):
                 "message", 
                 check=lambda m:(m.channel.id,m.author.id,m.content.isnumeric()) ==(channelID,authorID,1),
                 timeout=10*60).content)
-        except:
+        except TimeoutError:
             return f'I got impatient waiting so i ended the game'
         if guess<correct:
             await say('Higher!')

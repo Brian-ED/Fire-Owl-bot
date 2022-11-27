@@ -46,18 +46,6 @@ def Curry(f:Callable,*x,**xx:Any)->Callable:
 def Join(i)->str:
     return ', '.join(sorted(i))
 
-def commandHandler(prefix:str,command:str,commands:set[str],ifEmpty='help')->str:
-    if command == prefix:
-        return ifEmpty
-    posValues=[]
-    for i in commands:
-        if i.startswith(command[len(prefix):].lower()):
-            posValues.append(i)
-    if len(posValues)==1:
-        return posValues[0]
-    else:
-        return ''
-
 #rps=BQNfn("""{
 #draw←"Ah we drew the game m'lad, well played"
 #sciRock←"Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:987400356877176912>"

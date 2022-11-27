@@ -3,7 +3,6 @@ import os
 import discord as dis
 from random import random
 from shutil import rmtree, copytree
-Vars=vars# redifines the default vars function to be uppercase
 from imports import vars, fns
 from imports.cmdFns import cmds
 from time import sleep, time
@@ -108,16 +107,15 @@ async def on_message(msg:dis.Message):
     chanceForReply :float              = myData['Chance for reply']
     allArgs=cmd,*args                  = msg.content.lower().split()
     channel        :dis.ChannelType    = msg.channel
-    channelID      :int                = channel.id
     authorID       :int                = msg.author.id
     isOwner        :bool               = authorID == 671689100331319316
     isAdmin        :bool               = msg.author.top_role.permissions.administrator or isOwner
     isMod          :bool               = isAdmin or any(i.id in modRoles for i in msg.author.roles)
-    isBotChannel   :bool               = channelID in botChannels    or not botChannels
-    isReplyChannel :bool               = channelID in replyChannels  or not replyChannels
-    isReactChannel :bool               = channelID in reactsChannels or not reactsChannels
+    isBotChannel   :bool               = channel.id in botChannels    or not botChannels
+    isReplyChannel :bool               = channel.id in replyChannels  or not replyChannels
+    isReactChannel :bool               = channel.id in reactsChannels or not reactsChannels
 
-    # r will be the reply message  
+    # r will be the reply message
     r=''
     if not cmd.startswith(prefix):
 
@@ -134,7 +132,7 @@ async def on_message(msg:dis.Message):
         global replyDelayList
         
         if not (isBotChannel or
-            channelID not in replyDelayList
+            channel.id not in replyDelayList
             and isReplyChannel
             and random()<=chanceForReply):
             return
@@ -148,9 +146,9 @@ async def on_message(msg:dis.Message):
                     await msg.channel.send(embed=embedVar)
                 else: await say(responses[x])
                 if not isBotChannel:
-                    replyDelayList.add(channelID)
+                    replyDelayList.add(channel.id)
                     await asySleep(replyDelay)
-                    replyDelayList.remove(channelID)
+                    replyDelayList.remove(channel.id)
                     break
         return
 
@@ -161,20 +159,16 @@ async def on_message(msg:dis.Message):
                |(cmdsL['modCommands']if isMod else{})\
                |(cmdsL['adminCommands']if isAdmin else{})\
                |(cmdsL['ownerCommands']if isOwner else{})
-    cmd = fns.commandHandler(
-        prefix,
-        cmd,
-        set(allowedCmdsL.keys()),
-        ifEmpty='help'
-    )
-
-    # async def throw(error,whichArgs=()):
-    #     errormsg=[error,' '.join('__'+j+'__' if i in whichArgs else j for i,j in enumerate(allArgs))]
-    #     if any((cmd in cmds[i]for i in('adminCommands','modCommands','ownerCommands'))):
-    #         await msg.delete()
-    #         await say(*errormsg,DM=1)
-    #     else:
-    #         await say(*errormsg) 
+    
+    if cmd == prefix:
+        cmd='help'
+    else:
+        posValues=*filter(lambda i:i.startswith(cmd[len(prefix):].lower()),allowedCmdsL.keys()),
+        if len(posValues)==1:
+            cmd=posValues[0]
+        else:
+            cmd=''
+            r=0 if posValues else posValues
 
     if cmd in allowedCmdsL:
         argCount=fns.ArgCount(allowedCmdsL[cmd])
@@ -203,9 +197,9 @@ async def on_message(msg:dis.Message):
             'argCount':argCount,
             'authorID':authorID,
             'codePath':codePath,
-            'channelID':channelID,
             'responses':responses,
             'extraPath':extraPath,
+            'channelID':channel.id,
             'hasInfArgs':hasInfArgs,
             'replyDelay':replyDelay,
             'botChannels':botChannels,
@@ -221,7 +215,6 @@ async def on_message(msg:dis.Message):
             'isReactChannel':isReactChannel,
             'isReactChannel':isReactChannel,
         }
-
         errored,reTypedArgs=fns.FitIntoFunc(allowedCmdsL[cmd],*args,**KWARGS)
         if errored:
             r=reTypedArgs
