@@ -312,7 +312,7 @@ async def ApplyType(value:str,typeClass:type,client:dis.Client):
     else:
         return value
 
-async def FitIntoFunc(Function:Callable,client:dis.Client,*args,**kwargs):
+async def FitIntoFunc(Function:Callable,client:dis.Client,args,kwargs):
     argCount=ArgCount(Function)
     isInfArged=HasInfArgs(Function)
     typeMap,_,kwargNames=getTypesOfFunc(Function)
@@ -325,7 +325,7 @@ async def FitIntoFunc(Function:Callable,client:dis.Client,*args,**kwargs):
         reTypedArgs=*(await ApplyType(i,j,client) for i,j in zip(args[:len(typeMap)-1],typeMap[:-1])),
         reTypedArgs+=(*[await ApplyType(i,typeMap[-1],client)for i in args[len(typeMap)-1:]],)
     else:
-        reTypedArgs=*map(ApplyType,args,typeMap,client),
+        reTypedArgs=*map(ApplyType,args,typeMap,[client]*len(typeMap)),
 
     if None in reTypedArgs:
         return 1,('Incompatable type:',

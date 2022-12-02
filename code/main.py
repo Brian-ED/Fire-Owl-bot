@@ -226,7 +226,7 @@ async def on_message(
             'isReactChannel':isReactChannel,
             'isReactChannel':isReactChannel,
         }
-        errored,reTypedArgs=await fns.FitIntoFunc(allowedCmdsL[cmd],client,*args,**KWARGS)
+        errored,reTypedArgs=await fns.FitIntoFunc(allowedCmdsL[cmd],client,args,KWARGS)
         if errored:
             r=reTypedArgs
         elif isLinux:
