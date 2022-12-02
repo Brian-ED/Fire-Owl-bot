@@ -81,6 +81,7 @@ async def on_ready():
                     Save(data)
             await asySleep(10)
     except:
+        print("on_ready() stopped")
         await client.get_channel(980859412564553738).send('The on_ready() startup function crashed. Routines stopped.')
         
 async def on_message(
