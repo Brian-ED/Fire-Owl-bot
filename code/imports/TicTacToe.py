@@ -1,7 +1,12 @@
+# credits to EdelfQ for the lovely TicTacToe code :D
+# I will largely ignore this code for optimization because 
+# i didn't make it and it works fine so far.
+
 import discord as dis
 from asyncio import create_task
 from PIL import Image
 import turtle
+
 
 async def inputV2(client,say,inputText,emotes):
     sentMsg=await say(inputText,file=dis.File('_temporaryFiles/tictactoe.png'))

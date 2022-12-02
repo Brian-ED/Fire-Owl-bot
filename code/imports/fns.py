@@ -6,8 +6,13 @@ from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
 from typing import Iterable, MutableSequence,Union
 from typing import Any, Callable
 
+# These useless classes are for IDE autocompletion+coloring
+class ChannelIDType(int):1
+class TimeType(float):1
+class UserIDType(int):1
 ChannelIDType= type('int', (object,), vars(int).copy())
 TimeType     = type('float', (object,), vars(float).copy())
+UserIDType   = type('int', (object,), vars(int).copy())
 
 class Infix:
     def __init__(self, function):
@@ -260,34 +265,54 @@ def getTypesOfFunc(F:Callable)->tuple:
             typesTuple+=0,
     return typesTuple,isInfArged,kwargNames
 
-def ApplyType(value:str,typeClass:type):
-    if typeClass==int:
+async def ApplyType(value:str,typeClass:type,client:dis.Client):
+    def ToFloat(x:str):
+        if x.lower().replace('.','',1).replace('E','',1).isdecimal():
+            return float(x)
+
+    if int==typeClass:
         if value.isdecimal():
             return int(value)
-        return
-    if typeClass==float:
-        if value.replace('.','',1).isdecimal():
-            return float(value)
-        return
-    if typeClass==bool:
+    
+    elif float==typeClass:
+        return ToFloat(value)
+    
+    elif bool==typeClass:
         if value.lower()in('true','1','yes','agree'):
             return True
         elif value.lower()in('false','0','no','disagree'):
             return False
-        return
-    if typeClass==ChannelIDType:
+
+    elif ChannelIDType==typeClass:
         x=value.removeprefix('<#').removesuffix('>')
         if x.isdecimal():
             return int(x)
-        return
-    if typeClass==TimeType:
-        if value[-1] in 'smhd' and value[:-1].replace('.','',1).isdecimal():
-            return float(value[:-1])*(1,60,3600,86400)['smhd'.index(value[-1])]
-    # Support types:
-    #  author, tuples?
-    return value
 
-def FitIntoFunc(Function:Callable,*args,**kwargs):
+    elif dis.TextChannel==typeClass:
+        x=value.removeprefix('<#').removesuffix('>')
+        if x.isdecimal():
+            return await client.fetch_channel(x)
+
+    elif dis.User==typeClass:
+        x=value.removeprefix('<@').removeprefix('!').removesuffix('>')
+        if x.isdecimal():
+            return await client.fetch_user(x)
+
+    elif UserIDType==typeClass:
+        x=value.removeprefix('<@').removeprefix('!').removesuffix('>')
+        if x.isdecimal():
+            return await int(x)
+
+    if TimeType==typeClass:
+        if value[-1]in'smhd'and value[:-1].replace('.','',1).isdecimal():
+            return float(value[:-1])*(1,60,3600,86400)['smhd'.index(value[-1])]
+
+    if tuple==typeClass:
+        return value.replace(',','_').split('_')
+    else:
+        return value
+
+async def FitIntoFunc(Function:Callable,client:dis.Client,*args,**kwargs):
     argCount=ArgCount(Function)
     isInfArged=HasInfArgs(Function)
     typeMap,_,kwargNames=getTypesOfFunc(Function)
@@ -296,12 +321,11 @@ def FitIntoFunc(Function:Callable,*args,**kwargs):
     if tooManyArgs:
         return 1,'Non existant kwarg: '+Join(tooManyArgs)
 
-
     if isInfArged:
-        reTypedArgs=*map(ApplyType,args[:len(typeMap)-1],typeMap[:-1]),
-        reTypedArgs+=(*map(Curry(ApplyType,Any,typeMap[-1]),args[len(typeMap)-1:]),)
+        reTypedArgs=*(await ApplyType(i,j,client) for i,j in zip(args[:len(typeMap)-1],typeMap[:-1])),
+        reTypedArgs+=(*[await ApplyType(i,typeMap[-1],client)for i in args[len(typeMap)-1:]],)
     else:
-        reTypedArgs=*map(ApplyType,args,typeMap),
+        reTypedArgs=*map(ApplyType,args,typeMap,client),
 
     if None in reTypedArgs:
         return 1,('Incompatable type:',

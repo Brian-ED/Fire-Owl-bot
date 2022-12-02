@@ -14,9 +14,6 @@ else:
 from asyncio import sleep as asySleep
 import discord as dis
 
-Ping=C("hiii")
-Pong=C("hello")
-
 def Ball8(*_,myData={},**a):
     return choice([*myData['8ball']])
 
@@ -574,9 +571,9 @@ cmds={
         'Metheus':Metheus,
         'MuteMyself':MuteMyself,
         'NowPlaying':NowPlaying,
-        'Ping':Ping,
+        'Ping':C("hiii"),
         'Play':Play,
-        'Pong':Pong,
+        'Pong':C("hello"),
         'Recommend':Recommend,
         'Rick':RickRoll,
         'RockPaperScissors':RockPaperScissors,

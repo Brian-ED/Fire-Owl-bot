@@ -1,3 +1,4 @@
+# syntax for writing emotes is <:shroompause:976245280041205780> btw
 from asyncio import sleep as asySleep
 import os
 import discord as dis
@@ -8,8 +9,9 @@ from imports.cmdFns import cmds
 from time import sleep, time
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 
-client = dis.Client()
+# region variable definitions
 
+# region paths
 isLinux=__file__[0]!='c'
 mainPath      = '../../'
 tokenPath     = mainPath+'Safe/Fire-Owl-bot.yaml'
@@ -18,6 +20,7 @@ extraPath     = mainPath+'Fire-Owl-bot/code/extra/'
 botPath       = mainPath+'Fire-Owl-bot/'
 codePath      = botPath+'code/'
 datatxtPath   = extraPath+'data.txt'
+# endregion
 
 # load backup
 if os.path.exists(extraPath):
@@ -26,54 +29,62 @@ if os.path.exists(extraPath):
 copytree(savestatePath, extraPath)
 
 
+client = dis.Client()
 
 cmdsL={j:{i.lower():cmds[j][i] for i in cmds[j]} for j in cmds}
 
-# Music settings:
+# Music settings
 max_volume=250 # Max audio volume. Set to -1 for unlimited.
+
+
+# Data setup
+def Save(d):fns.openW(datatxtPath,d)
 
 data:dict[int,dict[str]] = fns.openR(datatxtPath)
 
-def Save(d):
-    fns.openW(datatxtPath,d)
-
+    # Fill in new settings that could have been added
 for guild in data:
     for setting in vars.defaultGuildSettings:
         if setting not in data[guild]:
             data[guild][setting]=vars.defaultGuildSettings[setting]
 Save(data)
 
+# General globals
 replyDelayList=set()
-
 muteRoleName='MUTED(by Fire-Bot)'
 
-async def on_ready():
-    await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
-    print('Logged in as',
-    client.user.name,
-    client.user.id,
-    f'In {len(client.guilds)} servers',
-    '------', sep='\n')
-    while 1:
-        for guildID in data:
-            x=[]
-            for MutedUserID,muteDuration,timeWhenStarted in data[guildID]['Self Muted']: # msg, muteDuration, time()
-                x+=[0]
-                if muteDuration<time()-timeWhenStarted:
-                    x[-1]=1
-                    MutedUserGuild=await client.fetch_guild(guildID)
-                    mutedRole = dis.utils.get(MutedUserGuild.roles,name=muteRoleName)
-                    if mutedRole != None:
-                        MutedUser:dis.Member = await MutedUserGuild.fetch_member(MutedUserID)
-                        await MutedUser.remove_roles(mutedRole)
-                        await MutedUser.send(f"✅ You are unmuted from "+MutedUserGuild.name)
-            if any(x):
-                data[guildID]['Self Muted']=*(j for i,j in zip(x,data[guildID]['Self Muted']) if not i),
-                Save(data)
-        await asySleep(10)
-# syntax for writing emotes is <:shroompause:976245280041205780> btw
+# endregion
 
-async def on_message(msg:dis.Message):
+async def on_ready():
+    try:
+        await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
+        print('Logged in as',
+        client.user.name,
+        client.user.id,
+        f'In {len(client.guilds)} servers',
+        '------', sep='\n')
+        while 1:
+            for guildID in data:
+                x=[]
+                for MutedUserID,muteDuration,timeWhenStarted in data[guildID]['Self Muted']: # msg, muteDuration, time()
+                    x+=[0]
+                    if muteDuration<time()-timeWhenStarted:
+                        x[-1]=1
+                        MutedUserGuild=await client.fetch_guild(guildID)
+                        mutedRole = dis.utils.get(MutedUserGuild.roles,name=muteRoleName)
+                        if mutedRole != None:
+                            MutedUser:dis.Member = await MutedUserGuild.fetch_member(MutedUserID)
+                            await MutedUser.remove_roles(mutedRole)
+                            await MutedUser.send(f"✅ You are unmuted from "+MutedUserGuild.name)
+                if any(x):
+                    data[guildID]['Self Muted']=*(j for i,j in zip(x,data[guildID]['Self Muted']) if not i),
+                    Save(data)
+            await asySleep(10)
+    except:
+        await client.get_channel(980859412564553738).send('The on_ready() startup function crashed. Routines stopped.')
+        
+async def on_message(
+    msg:dis.Message):
     if msg.author.bot:
         return
     if not(isLinux or msg.content.startswith("test")):
@@ -215,7 +226,7 @@ async def on_message(msg:dis.Message):
             'isReactChannel':isReactChannel,
             'isReactChannel':isReactChannel,
         }
-        errored,reTypedArgs=fns.FitIntoFunc(allowedCmdsL[cmd],*args,**KWARGS)
+        errored,reTypedArgs=await fns.FitIntoFunc(allowedCmdsL[cmd],client,*args,**KWARGS)
         if errored:
             r=reTypedArgs
         elif isLinux:
@@ -241,10 +252,8 @@ async def on_message(msg:dis.Message):
         r=r,
     await say(*r)
 
-async def on_reaction_add(reaction, author):
-    if author.bot:return
-    reaction.message
-    if reaction.emoji == '📩':1
+async def on_reaction_add(
+    reaction, author):0
 
 
 *map(client.event,(

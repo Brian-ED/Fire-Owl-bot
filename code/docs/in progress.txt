@@ -6,3 +6,5 @@ make sure links are not overwritten when message is too long
 Fix the unspoilering of move command
 
 add a theoretical **_ to every command (filtering KWARGS or a decorator?) 
+
+sort functions into namespaces. esspecially in fns and cmdfns
