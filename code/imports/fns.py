@@ -322,7 +322,7 @@ async def FitIntoFunc(Function:Callable,client:dis.Client,args,kwargs):
         return 1,'Non existant kwarg: '+Join(tooManyArgs)
 
     if isInfArged:
-        reTypedArgs=*(await ApplyType(i,j,client) for i,j in zip(args[:len(typeMap)-1],typeMap[:-1])),
+        reTypedArgs=*[await ApplyType(i,j,client) for i,j in zip(args[:len(typeMap)-1],typeMap[:-1])],
         reTypedArgs+=(*[await ApplyType(i,typeMap[-1],client)for i in args[len(typeMap)-1:]],)
     else:
         reTypedArgs=*map(ApplyType,args,typeMap,[client]*len(typeMap)),
