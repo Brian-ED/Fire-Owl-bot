@@ -77,7 +77,7 @@ async def on_ready():
                             await MutedUser.remove_roles(mutedRole)
                             await MutedUser.send(f"✅ You are unmuted from "+MutedUserGuild.name)
                 if any(x):
-                    data[guildID]['Self Muted']=*(j for i,j in zip(x,data[guildID]['Self Muted']) if not i),
+                    data[guildID]['Self Muted']=[j for i,j in zip(x,data[guildID]['Self Muted']) if not i]
                     Save(data)
             await asySleep(10)
     except:
