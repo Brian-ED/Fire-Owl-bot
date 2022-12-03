@@ -139,6 +139,7 @@ def DelDataSlot(slot,*arguments,data={},guildID=0,Save=C,**_):
         del data[guildID][slot][ValStr]
         Save(data)
         return'deleted'
+    Save(data)
     return"Reply doesn't exist"
 
 def Zote(*a,**_):
