@@ -547,8 +547,8 @@ def ResetDataSlot(*slotName,data={},Save=C,guildID=0,**_):
     for i in data[guildID]:
         if slot==i.lower():
             data[guildID][i]=type(data[guildID][i])()
+            Save(data)
             return 'Done'
-    Save(data)
     return "Data slot doesn't exist"
 
 def ListDataSlot(*slotName,data={},guildID=0,**_):
