@@ -542,12 +542,13 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
         await msgSent.add_reaction(j)
     await webhook.delete()
 
-def ResetDataSlot(*slotName,data={},guildID=0,**_):
+def ResetDataSlot(*slotName,data={},Save=C,guildID=0,**_):
     slot=' '.join(slotName)
     for i in data[guildID]:
         if slot==i.lower():
             data[guildID][i]=type(data[guildID][i])()
             return 'Done'
+    Save(data)
     return "Data slot doesn't exist"
 
 def ListDataSlot(*slotName,data={},guildID=0,**_):
