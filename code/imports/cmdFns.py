@@ -188,10 +188,8 @@ async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,c
     for i in history[::-1]:
         Sendingtxt=(i.clean_content+'\n'+' '.join(f'||[{z.filename}]({z.url})||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})"  for z in i.attachments))[:2000]
         async def SenderFunction(x=0):
-            if x>0:print('try:',x)
-            if x>4:return'took too many tries to send a message'
             try:
-                await webhook.send(
+                return await webhook.send(
                     Sendingtxt if Sendingtxt else '** **',
                     wait=1,
                     username=i.author.name,
@@ -537,8 +535,9 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
         username=repliedToMsg.author.name,
         avatar_url=repliedToMsg.author.avatar_url
     )
-    for j in repliedToMsg.reactions:
-        await msgSent.add_reaction(j)
+    if msgSent:
+        for j in repliedToMsg.reactions:
+            await msgSent.add_reaction(j)
     await webhook.delete()
 
 def ResetDataSlot(*slotName,data={},Save=C,guildID=0,**_):
