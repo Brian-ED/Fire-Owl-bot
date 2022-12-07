@@ -173,8 +173,7 @@ async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,c
     except dis.errors.HTTPException:
         for i in await msg.guild.webhooks():
             await (await client.fetch_webhook(i)).delete()
-        webhook = await (await client.fetch_channel(inpChannel)).create_webhook(name=msg.author.display_name)
-
+        webhook:dis.Webhook = await (await client.fetch_channel(inpChannel)).create_webhook(name=msg.author.display_name)
 
     if args:
         history = (await msg.channel.history(limit=args[0]).flatten())[numOfMsgs-1:]
@@ -188,6 +187,7 @@ async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,c
     for i in history[::-1]:
         Sendingtxt=(i.clean_content+'\n'+' '.join(f'||[{z.filename}]({z.url})||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})"  for z in i.attachments))[:2000]
         async def SenderFunction(x=0):
+            if x>10:return"Well something very wrong happened inside the code :("
             try:
                 return await webhook.send(
                     Sendingtxt if Sendingtxt else '** **',
@@ -198,17 +198,16 @@ async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,c
             except dis.errors.HTTPException as err:
                 await asySleep((lambda t:int(t[0])/1000 if t else 0)(re.findall("'Retry-After': '([0123456789]*)'",str(err.response))))
                 return await SenderFunction(x+1)
-            except dis.errors.NotFound:return''
             except dis.errors.NoMoreItems:
                 return"I'm unable to read that far in history, Stopping here."
 
         msgSent=await SenderFunction()
-        if type(msgSent)==str and msgSent!='':
+        if type(msgSent)==str:
             await webhook.delete()
             return msgSent
-        if msgSent!='':
-            for j in i.reactions:
-                await msgSent.add_reaction(j)
+        
+        for j in i.reactions:
+            await msgSent.add_reaction(j)
     await webhook.delete()
 
 def ReplyDelay(delay:int,data={},guildID=0,Save=C,**_):
