@@ -7,12 +7,11 @@ from typing import Iterable, MutableSequence,Union
 from typing import Any, Callable
 
 # These useless classes are for IDE autocompletion+coloring
-class ChannelIDType(int):1
+class ChannelID(int):1
 class TimeType(float):1
-class UserIDType(int):1
-ChannelIDType= type('int', (object,), vars(int).copy())
-TimeType     = type('float', (object,), vars(float).copy())
-UserIDType   = type('int', (object,), vars(int).copy())
+class UserID(int):1
+ChannelID, UserID = 2*[type('int', (object,), vars(int).copy())]
+TimeType = type('float', (object,), vars(float).copy())
 
 class Infix:
     def __init__(self, function):
@@ -283,7 +282,7 @@ async def ApplyType(value:str,typeClass:type,client:dis.Client):
         elif value.lower()in('false','0','no','disagree'):
             return False
 
-    elif ChannelIDType==typeClass:
+    elif ChannelID==typeClass:
         x=value.removeprefix('<#').removesuffix('>')
         if x.isdecimal():
             return int(x)
@@ -298,7 +297,7 @@ async def ApplyType(value:str,typeClass:type,client:dis.Client):
         if x.isdecimal():
             return await client.fetch_user(x)
 
-    elif UserIDType==typeClass:
+    elif UserID==typeClass:
         x=value.removeprefix('<@').removeprefix('!').removesuffix('>')
         if x.isdecimal():
             return await int(x)
@@ -345,12 +344,3 @@ async def FitIntoFunc(Function:Callable,client:dis.Client,args,kwargs):
             f'The command needs {argCount} arguments, not {len(args)}'
         )
     return 0,reTypedArgs            
-    # return '\n'.join(map(str,(
-    #     reTypedArgs,
-    #     typeMap,
-    #     bool(isInfArged),
-    #     inspect.getargs(Function.__code__),
-    #     get_args(Function),
-    #     ArgCount(Function),
-    #     HasInfArgs(Function)
-    # )))

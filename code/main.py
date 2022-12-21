@@ -1,14 +1,15 @@
 # syntax for writing emotes is <:shroompause:976245280041205780> btw
 from asyncio import sleep as asySleep
+from asyncio import create_task
 import os
 import discord as dis
 from random import random
 from shutil import rmtree, copytree
-from imports import vars, fns
+from imports import vars, fns, maddyTimer
 from imports.cmdFns import cmds
 from time import sleep, time
+import main
 os.chdir(__file__[:-len(os.path.basename(__file__))])
-
 # region variable definitions
 
 # region paths
@@ -55,6 +56,7 @@ muteRoleName='MUTED(by Fire-Bot)'
 
 # endregion
 
+
 async def on_ready():
     try:
         await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
@@ -83,7 +85,7 @@ async def on_ready():
     except:
         print("on_ready() stopped")
         await client.get_channel(980859412564553738).send('The on_ready() startup function crashed. Routines stopped.')
-        
+
 async def on_message(
     msg:dis.Message):
     if msg.author.bot:
