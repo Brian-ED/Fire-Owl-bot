@@ -254,8 +254,8 @@ async def on_message(
         r=r,
     await say(*r)
 
-async def on_reaction_add(reaction, author):0
-
+async def on_reaction_add(reaction, author):
+    ...
 
 *map(client.event,(
     on_ready,
