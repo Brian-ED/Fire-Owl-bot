@@ -8,12 +8,10 @@ async def maddyTimerMain(client):
     print("Auto sender started")
     maddy=await client.fetch_user(633637569975943169)
     while 1:
-        
-        times=(7,45),(*map(randrange,(18,0),(22,59)),)
-        dt = datetime.now(maddyTimezone)
-        
-        while (dt.hour,dt.minute)not in times:
-            dt = datetime.now(maddyTimezone)
+        times=(7,45),tuple(map(randrange,(18,0),(22,59)))
+        print(times)
+
+        while(lambda t:(t.hour,t.minute))(datetime.now(maddyTimezone))not in times:
             await asySleep(40)
         
         print("Notif sent")
