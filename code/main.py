@@ -101,8 +101,8 @@ async def on_message(
         elif len(textToBeSent)>2000:
             textToBeSent=textToBeSent[:2000]
         return await (msg.channel,msg.author)[DM].send(textToBeSent,**KWARGS)
-
-    if not msg.guild: return say("I don't work in DMs sadly.",DM=1)
+    
+    if not msg.guild(): return say("I don't work in DMs sadly.",DM=1)
 
     guildID:int = msg.guild.id
     global data
