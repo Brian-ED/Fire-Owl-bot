@@ -156,7 +156,7 @@ async def EmergencyQuit(say=C,**_):
 def Error(**_):
     return Any+Any
 
-async def MoveCmd(inpChannel:ChannelIDType,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
+async def MoveCmd(inpChannel:ChannelID,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
     await msg.delete()
     if len(args)>1:
         return await say(
@@ -313,7 +313,7 @@ def SetReactChannels(args,data={},guildID=0,Save=C,**_):
     Save(data)
     return'done'
 
-async def HighLow(upTo:int,channelID=0,authorID=0,client=C,say=C,**_):
+async def HighLow(upTo:int,channel=0,authorID=0,client=C,say=C,**_):
     if not upTo.isnumeric():
         return'Arg needs to be intiger'
     await say(f'Game started. Guess a number between 1-{int(upTo)}')
@@ -324,7 +324,7 @@ async def HighLow(upTo:int,channelID=0,authorID=0,client=C,say=C,**_):
         try:
             guess = int(await client.wait_for(
                 "message", 
-                check=lambda m:(m.channel.id,m.author.id,m.content.isnumeric()) ==(channelID,authorID,1),
+                check=lambda m:(m.channel.id,m.author.id,m.content.isnumeric()) ==(channel.id,authorID,1),
                 timeout=10*60).content)
         except TimeoutError:
             return f'I got impatient waiting so i ended the game'
@@ -336,7 +336,7 @@ async def HighLow(upTo:int,channelID=0,authorID=0,client=C,say=C,**_):
 
     # make an import react/response x from other discords command
     #TODO make Import command complete
-def Import(discordID:ChannelIDType,*dataSlots,data={},guildID=0,prefix='',Save=C,client=C,**_):
+def Import(discordID:ChannelID,*dataSlots,data={},guildID=0,prefix='',Save=C,client=C,**_):
     dataSlot=' '.join(dataSlots)
     options='Responses','Reacts','8ball'
     if dataSlot not in options:
