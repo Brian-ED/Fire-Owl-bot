@@ -220,15 +220,6 @@ def ReplyDelay(delay:int,data={},guildID=0,Save=C,**_):
 
 muteRoleName='MUTED(by Fire-Bot)'
 async def MuteMyself(*args:TimeType,prefix='',data={},guildID=0,msg=C,authorID=0,Save=C,**_):
-    IsValidTime = lambda i:i[-1] in "smhd" and i[:-1].isnumeric()
-    if not (args and all(map(IsValidTime,args))):
-        return (
-            'Wrong syntax. Please rephrase the command like so:',
-            f'{prefix}muteMyself <num+s> <num+m> <num+h> <num+d>',
-            "They can be in any order you'd like :D, example:",
-            f'{prefix}MuteMyself 3d 4h 5m 2s'
-        )
-
     muteDuration=sum(args)
     if muteDuration<=0:
         return'The time values you provided totalled 0'

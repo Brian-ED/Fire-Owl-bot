@@ -8,7 +8,7 @@ from shutil import rmtree, copytree
 from imports import vars, fns, maddyTimer
 from imports.cmdFns import cmds
 from time import sleep, time
-import main
+
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 # region variable definitions
 
@@ -254,8 +254,7 @@ async def on_message(
         r=r,
     await say(*r)
 
-async def on_reaction_add(
-    reaction, author):0
+async def on_reaction_add(reaction, author):0
 
 
 *map(client.event,(
