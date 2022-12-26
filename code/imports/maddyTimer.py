@@ -6,7 +6,7 @@ import pytz
 async def maddyTimerMain(client):
     maddyTimezone=pytz.timezone("EET")
     print("Auto sender started")
-    maddy=await client.fetch_user(633637569975943169)
+    maddy=await client.fetch_user(1035221091565707334)
     while 1:
         times=(7,45),tuple(map(randrange,(18,0),(22,59)))
         print(times)
