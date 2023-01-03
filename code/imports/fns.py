@@ -3,14 +3,13 @@ import inspect
 import youtube_dl as ytdl
 import discord as dis
 from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
-from typing import Iterable, MutableSequence,Union
-from typing import Any, Callable
+from typing import Iterable, MutableSequence, Union, Any, Callable
 
 # These useless classes are for IDE autocompletion+coloring
 class ChannelID(int):1
 class TimeType(float):1
 class UserID(int):1
-ChannelID, UserID = 2*[type('int', (object,), vars(int).copy())]
+ChannelID, UserID = type('int', (object,), vars(int).copy()), type('int', (object,), vars(int).copy())
 TimeType = type('float', (object,), vars(float).copy())
 
 class Infix:
@@ -300,14 +299,15 @@ async def ApplyType(value:str,typeClass:type,client:dis.Client):
     elif UserID==typeClass:
         x=value.removeprefix('<@').removeprefix('!').removesuffix('>')
         if x.isdecimal():
-            return await int(x)
-
-    if TimeType==typeClass:
+            return int(x)
+        
+    elif TimeType==typeClass:
         if value[-1]in'smhd'and value[:-1].replace('.','',1).isdecimal():
             return float(value[:-1])*(1,60,3600,86400)['smhd'.index(value[-1])]
 
-    if tuple==typeClass:
+    elif tuple==typeClass:
         return value.replace(',','_').split('_')
+    
     else:
         return value
 
@@ -324,7 +324,7 @@ async def FitIntoFunc(Function:Callable,client:dis.Client,args,kwargs):
         reTypedArgs=*[await ApplyType(i,j,client) for i,j in zip(args[:len(typeMap)-1],typeMap[:-1])],
         reTypedArgs+=(*[await ApplyType(i,typeMap[-1],client)for i in args[len(typeMap)-1:]],)
     else:
-        reTypedArgs=*map(ApplyType,args,typeMap,[client]*len(typeMap)),
+        reTypedArgs=*[await ApplyType(i,j,client)for i,j in zip(args,typeMap)],
 
     if None in reTypedArgs:
         return 1,('Incompatable type:',

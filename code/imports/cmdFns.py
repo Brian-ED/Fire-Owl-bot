@@ -546,8 +546,17 @@ def ListDataSlot(*slotName,data={},guildID=0,**_):
             return str(data[guildID][i])
     return "Data slot doesn't exist"
 
+# async def AskAI(*_,msg:dis.Message=C,**a):
+#     msg.content:str=msg.content
+#     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:])
+
+def pipInstall(package,**_):
+    os.system(f'pip install {package} --disable-pip-version-check')
+    return"done"
+
 cmds={
     'userCommands':{
+#        'AskAI':AskAI,
         '8ball':Ball8,
         'APL':APLCmd,
         'Flip':Flip,
@@ -601,6 +610,7 @@ cmds={
 
     },
     'ownerCommands':{
+        'pipInstall':pipInstall,
         'Backup':Backup,
         'BoardGame':BoardGame,
         'EmergencyQuit':EmergencyQuit,

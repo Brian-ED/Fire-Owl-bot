@@ -57,7 +57,8 @@ muteRoleName='MUTED(by Fire-Bot)'
 # endregion
 
 async def on_ready():
-    create_task(maddyTimer.maddyTimerMain(client))
+    if isLinux:
+        create_task(maddyTimer.maddyTimerMain(client))
     try:
         await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
         print('Logged in as',
@@ -86,11 +87,10 @@ async def on_ready():
         print("on_ready() stopped")
         (await client.fetch_channel(980859412564553738)).send('The on_ready() startup function crashed. Routines stopped.')
 
-async def on_message(
-    msg:dis.Message):
+async def on_message(msg:dis.Message):
     if msg.author.bot:
         return
-    if not(isLinux or msg.content.startswith("test")):
+    if not(isLinux or msg.content.lower().startswith("test")):
         return
     if len(msg.content.split())==0:
         return
