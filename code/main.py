@@ -29,7 +29,6 @@ if os.path.exists(extraPath):
     sleep(0.1)
 copytree(savestatePath, extraPath)
 
-
 client = dis.Client()
 
 cmdsL={j:{i.lower():cmds[j][i] for i in cmds[j]} for j in cmds}
@@ -43,7 +42,7 @@ def Save(d):fns.openW(datatxtPath,d)
 
 data:dict[int,dict[str]] = fns.openR(datatxtPath)
 
-    # Fill in new settings that could have been added
+# Fill in new settings that could have been added
 for guild in data:
     for setting in vars.defaultGuildSettings:
         if setting not in data[guild]:
@@ -59,14 +58,15 @@ muteRoleName='MUTED(by Fire-Bot)'
 async def on_ready():
     if isLinux:
         create_task(maddyTimer.maddyTimerMain(client))
-    try:
-        await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
-        print('Logged in as',
+    await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
+    print('Logged in as',
         client.user.name,
         client.user.id,
         f'In {len(client.guilds)} servers',
         '------', sep='\n')
+    try:
         while 1:
+            # Code for unmuting muted people when their time is up
             for guildID in data:
                 x=[]
                 for MutedUserID,muteDuration,timeWhenStarted in data[guildID]['Self Muted']: # msg, muteDuration, time()

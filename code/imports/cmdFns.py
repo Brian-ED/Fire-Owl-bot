@@ -6,9 +6,9 @@ from time import time
 if __name__!="__main__":
     from imports.fns import *
     from imports.vars import *
-    from imports import TicTacToe
+    from imports import TicTacToe, AI
 else:
-    import TicTacToe
+    import TicTacToe, AI
     from vars import *
     from fns import *
 from asyncio import sleep as asySleep
@@ -546,9 +546,9 @@ def ListDataSlot(*slotName,data={},guildID=0,**_):
             return str(data[guildID][i])
     return "Data slot doesn't exist"
 
-# async def AskAI(*_,msg:dis.Message=C,**a):
-#     msg.content:str=msg.content
-#     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:])
+async def AskAI(*_,msg:dis.Message=C,**a):
+    msg.content:str=msg.content
+    await AI.send_message(msg, msg.content[msg.content.index(" ")+1:])
 
 def pipInstall(package,**_):
     os.system(f'pip install {package} --disable-pip-version-check')
@@ -556,7 +556,7 @@ def pipInstall(package,**_):
 
 cmds={
     'userCommands':{
-#        'AskAI':AskAI,
+        'AskAI':AskAI,
         '8ball':Ball8,
         'APL':APLCmd,
         'Flip':Flip,
