@@ -547,8 +547,8 @@ async def AskAI(*_,msg:dis.Message=C,**a):
     msg.content:str=msg.content
     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:])
 
-def pipInstall(package,**_):
-    os.system(f'pip install {package} --disable-pip-version-check')
+def pipInstall(*package,**_):
+    os.system(f'pip install {" ".join(package)} --disable-pip-version-check')
     return"done"
 
 cmds={
