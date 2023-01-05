@@ -29,7 +29,7 @@ if os.path.exists(extraPath):
     sleep(0.1)
 copytree(savestatePath, extraPath)
 
-client = dis.Client()
+client = dis.Client(intents = dis.Intents.all())
 
 cmdsL={j:{i.lower():cmds[j][i] for i in cmds[j]} for j in cmds}
 

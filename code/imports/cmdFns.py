@@ -193,13 +193,11 @@ async def MoveCmd(inpChannel:ChannelID,numOfMsgs:int,*args:int,msg=C,say=C,clien
                     Sendingtxt if Sendingtxt else '** **',
                     wait=1,
                     username=i.author.name,
-                    avatar_url=i.author.avatar_url
+                    avatar_url=i.author.avatar.url
                 )
             except dis.errors.HTTPException as err:
                 await asySleep((lambda t:int(t[0])/1000 if t else 0)(re.findall("'Retry-After': '([0123456789]*)'",str(err.response))))
                 return await SenderFunction(x+1)
-            except dis.errors.NoMoreItems:
-                return"I'm unable to read that far in history, Stopping here."
 
         msgSent=await SenderFunction()
         if type(msgSent)==str:
@@ -518,12 +516,11 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
     await repliedToMsg.delete()
     
     Sendingtxt='||'+(repliedToMsg.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})"for z in repliedToMsg.attachments))[:1996]+'||'
-
     msgSent=await webhook.send(
         Sendingtxt,
         wait=1,
         username=repliedToMsg.author.name,
-        avatar_url=repliedToMsg.author.avatar_url
+        avatar_url=repliedToMsg.author.avatar.url
     )
     if msgSent:
         for j in repliedToMsg.reactions:
