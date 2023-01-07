@@ -8,6 +8,7 @@ OFF=False
 async def send_message(msg,content):
     if OFF:
         await msg.channel.send("this command was turned off temporarily by Brian")
+        return
     aiResponse = openai.Completion.create(
         model="text-davinci-003",
         prompt=content,
