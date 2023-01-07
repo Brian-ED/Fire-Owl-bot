@@ -4,8 +4,10 @@ import discord as dis
 NN=dis.AllowedMentions(everyone=False, users=False, roles=False)
 with open('../../Safe/Fire-Owl-bot.yaml', encoding='utf-8') as f:
     openai.api_key = safe_load(f)['AIToken']
-
+OFF=False
 async def send_message(msg,content):
+    if OFF:
+        await msg.channel.send("this command was turned off temporarily by Brian")
     aiResponse = openai.Completion.create(
         model="text-davinci-003",
         prompt=content,

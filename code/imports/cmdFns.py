@@ -551,6 +551,9 @@ def pipInstall(*package,**_):
     os.system(f'pip install {" ".join(package)} --disable-pip-version-check')
     return"done"
 
+def ToggleAI(*a,**_):
+    AI.OFF = not AI.OFF
+    return f"Done. send it to {AI.OFF}"
 cmds={
     'userCommands':{
         'AskAI':AskAI,
@@ -617,6 +620,7 @@ cmds={
         'Update':Update,
         'ResetDataSlot':ResetDataSlot,
         'ListDataSlot':ListDataSlot,
+        'ToggleAI':ToggleAI,
     }
 }
 
