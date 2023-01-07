@@ -165,6 +165,7 @@ async def on_message(msg:dis.Message):
                     await asySleep(replyDelay)
                     replyDelayList.remove(channel.id)
                     break
+                break
         return
 
     if (0,0)==(isBotChannel,isMod):
