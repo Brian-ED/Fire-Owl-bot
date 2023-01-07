@@ -6,7 +6,7 @@ with open('../../Safe/Fire-Owl-bot.yaml', encoding='utf-8') as f:
     openai.api_key = safe_load(f)['AIToken']
 OFF=False
 async def send_message(msg,content):
-    if OFF:
+    if OFF and msg.guild.id==497131548282191892:
         await msg.channel.send("this command was turned off temporarily by Brian")
         return
     aiResponse = openai.Completion.create(
