@@ -15,10 +15,10 @@ async def send_message(msg,content):
     try:
         response = f"> **{msg.author.display_name}**\n\n{content}{aiResponse}"
         if len(response) <= 1900:
-            return await msg.channel.send(response.replace('<@','<'))
+            return await msg.channel.send(response,allowed_mentions=False)
         if "```" in response:
             parts = response.split("```")
-            await msg.channel.send(parts[0].replace('<@','<'))
+            await msg.channel.send(parts[0],allowed_mentions=False)
             code_block = parts[1].split("\n")
             formatted_code_block = ""
             for line in code_block:
@@ -28,15 +28,15 @@ async def send_message(msg,content):
                 formatted_code_block += line + "\n"
 
             for chunk in [formatted_code_block[i:i+1900] for i in range(0, len(formatted_code_block), 1900)]:
-                await msg.channel.send(f"```{chunk}```".replace('<@','<'))
+                await msg.channel.send(f"```{chunk}```",allowed_mentions=False)
 
             if len(parts) >= 3:
-                await msg.channel.send(parts[2].replace('<@','<'))
+                await msg.channel.send(parts[2],allowed_mentions=False)
             return
             
         response_chunks = [response[i:i+1900] for i in range(0, len(response), 1900)]
         for chunk in response_chunks:
-            await msg.channel.send(chunk.replace('<@','<'))
+            await msg.channel.send(chunk,allowed_mentions=False)
     except Exception as e:
         await msg.channel.send("> **Error: Something went wrong, please try again later!**")
         print(f"Error while sending message: {e}")
