@@ -193,11 +193,14 @@ async def MoveCmd(inpChannel:ChannelID,numOfMsgs:int,*args:int,msg=C,say=C,clien
                     Sendingtxt if Sendingtxt else '** **',
                     wait=1,
                     username=i.author.name,
-                    avatar_url=i.author.avatar.url
+                    avatar_url=i.author.avatar_url
                 )
             except dis.errors.HTTPException as err:
+                print(str(err.response))
                 await asySleep((lambda t:int(t[0])/1000 if t else 0)(re.findall("'Retry-After': '([0123456789]*)'",str(err.response))))
                 return await SenderFunction(x+1)
+            except dis.errors.NoMoreItems:
+                return"I'm unable to read that far in history, Stopping here."
 
         msgSent=await SenderFunction()
         if type(msgSent)==str:
