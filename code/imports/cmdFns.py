@@ -244,7 +244,7 @@ async def MuteMyself(*args:TimeType,prefix='',data={},guildID=0,msg=C,authorID=0
     await msg.author.add_roles(roleobject)
     data[guildID]['Self Muted']+=(authorID, muteDuration, time()),
     Save(data)
-    return f"Done. Muted {msg.author.name} for {' '.join(args)} ({muteDuration} seconds)"
+    return f"Done. Muted {msg.author.name} for {' '.join(map(str,args))} ({muteDuration} seconds)"
 
 async def UnmuteCmd(name,msg={},**_):
     mutedPerson=await msg.guild.fetch_member(name)
