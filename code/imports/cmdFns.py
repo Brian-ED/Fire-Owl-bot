@@ -158,16 +158,15 @@ def Error(**_):
 
 async def MoveCmd(inpChannel:ChannelID,numOfMsgs:int,*args:int,msg=C,say=C,client=C,prefix='',**_):
     await msg.delete()
-    if len(args)>1:
-        return await say(
-            'This command requires 2 or 3 arguments.',
-            prefix+'move <#Channel> <number of messages> <optional, range of messages>',
-            'Example of moving 31 messages to the channel #bot-spam:',
-            prefix+'move #bot-spam 31',
-            'or moving the messages between and including 10th and 20th messages to the channel #bot-spam:',
-            prefix+'move #bot-spam 10 20',
-            DM=1
-        )
+    if len(args)>1:return await say(
+        'This command requires 2 or 3 arguments.',
+        prefix+'move <#Channel> <number of messages> <optional, range of messages>',
+        'Example of moving 31 messages to the channel #bot-spam:',
+        prefix+'move #bot-spam 31',
+        'or moving the messages between and including 10th and 20th messages to the channel #bot-spam:',
+        prefix+'move #bot-spam 10 20',
+        DM=1
+    )
     try:
         webhook = await (await client.fetch_channel(inpChannel)).create_webhook(name=msg.author.display_name)
     except dis.errors.HTTPException:
@@ -208,7 +207,10 @@ async def MoveCmd(inpChannel:ChannelID,numOfMsgs:int,*args:int,msg=C,say=C,clien
             return msgSent
         
         for j in i.reactions:
-            await msgSent.add_reaction(j)
+            try:
+                await msgSent.add_reaction(j)
+            except:
+                ""
     await webhook.delete()
 
 def ReplyDelay(delay:int,data={},guildID=0,Save=C,**_):
