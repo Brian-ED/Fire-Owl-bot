@@ -54,8 +54,8 @@ replyDelayList=set()
 muteRoleName='MUTED(by Fire-Bot)'
 
 # endregion
-
 async def on_ready():
+    print(ascii('\n'.join(i.name for i in client.guilds)).replace("\\n","\n"))
     if isLinux:
         create_task(maddyTimer.maddyTimerMain(client))
     await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
@@ -128,7 +128,7 @@ async def on_message(msg:dis.Message):
     isBotChannel   :bool               = channel.id in botChannels    or not botChannels
     isReplyChannel :bool               = channel.id in replyChannels  or not replyChannels
     isReactChannel :bool               = channel.id in reactsChannels or not reactsChannels
-
+    
     # r will be the reply message
     r=''
     if not cmd.startswith(prefix):
@@ -175,7 +175,6 @@ async def on_message(msg:dis.Message):
                |(cmdsL['modCommands']if isMod else{})\
                |(cmdsL['adminCommands']if isAdmin else{})\
                |(cmdsL['ownerCommands']if isOwner else{})
-    
     if cmd == prefix:
         cmd='help'
     else:
@@ -209,6 +208,7 @@ async def on_message(msg:dis.Message):
             'isAdmin':isAdmin,
             'isLinux':isLinux,
             'botPath':botPath,
+            'author':msg.author,
             'modRoles':modRoles,
             'argCount':argCount,
             'authorID':authorID,
@@ -242,6 +242,7 @@ async def on_message(msg:dis.Message):
 
             except Exception as e:
                 r='Error',e,f'```{e.__class__}```'
+                print(*r,sep='\n',end="\nEND\n")
         else:
             if hasInfKWArgs:
                 r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**KWARGS)
