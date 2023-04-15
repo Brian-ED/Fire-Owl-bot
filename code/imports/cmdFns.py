@@ -8,11 +8,13 @@ if __name__!="__main__":
     from imports.vars import *
     from imports import TicTacToe, AI
 else:
-    import TicTacToe, AI
+    import TicTacToe
     from vars import *
     from fns import *
 from asyncio import sleep as asySleep
 import discord as dis
+from discord.abc import PrivateChannel
+import json
 
 def Ball8(*_,myData={},**a):
     return choice([*myData['8ball']])
@@ -552,13 +554,35 @@ async def AskAI(*_,msg:dis.Message=C,**a):
     msg.content:str=msg.content
     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:])
 
-def pipInstall(*package,**_):
+def PipInstall(*package,**_):
     os.system(f'pip install {" ".join(package)} --disable-pip-version-check')
     return"done"
 
 def ToggleAI(*a,**_):
     AI.OFF = not AI.OFF
-    return f"Done. send it to {AI.OFF}"
+    return f"Done. Set it to {AI.OFF}"
+
+async def JsonOfMyData(msg=C, author=C, **_):
+    limit = 3
+    l:list[dis.Message] = []
+    for channel in msg.guild.channels:
+        if hasattr(channel, "history") and not isinstance(channel, PrivateChannel):
+            channel:dis.TextChannel = channel
+            l += await channel.history(
+                limit=limit, oldest_first=True
+            ).filter(lambda m:m.author.id==author.id
+            ).flatten()
+    def onEachData(x:dis.Message):
+        return x.content,' '.join([str(i) for i in x.reactions])
+    obj = {j:i for j,i in zip(["content", "reactions"],zip(*map(onEachData,l)))}
+    msg.channel:dis.TextChannel = msg.channel
+    text = json.dumps(obj)
+    with open("extra/tempjson.json",mode='w')as f:
+        f.write(text)
+    await msg.channel.send(file=dis.File("extra/tempjson.json"))
+    return "done"
+
+
 cmds={
     'userCommands':{
         'AskAI':AskAI,
@@ -597,6 +621,7 @@ cmds={
         'SpoilerMessage':SpoilerMsg,
     },
     'adminCommands':{
+        'JsonOfMyData':JsonOfMyData,
         'AddBotChannel':AddBotChannels,
         'AddModRoles':ModRoles,
         'ChangePrefix':ChangePrefix,
@@ -615,7 +640,7 @@ cmds={
 
     },
     'ownerCommands':{
-        'pipInstall':pipInstall,
+        'PipInstall':PipInstall,
         'Backup':Backup,
         'BoardGame':BoardGame,
         'EmergencyQuit':EmergencyQuit,
@@ -633,7 +658,7 @@ cmds={
 if __name__=="__main__":
 
     # Make sure there are no invalid KWARGS for the commands
-    kwargKeys='msg','cmd','say','data','Save','cmds','isMod','myData','reacts','prefix','client','allArgs','guildID','channel','isOwner','isAdmin','isLinux','botPath','modRoles','argCount','authorID','codePath','channelID','responses','extraPath','hasInfArgs','replyDelay','botChannels','isBotChannel','replyChannels','savestatePath','reactsChannels','chanceForReply','isReplyChannel','isReactChannel','isReactChannel','isReactChannel','isReactChannel'
+    kwargKeys='msg','cmd','say','data','Save','cmds','isMod','myData','reacts','prefix','client','allArgs','guildID','channel','isOwner','isAdmin','isLinux','botPath','modRoles','argCount','authorID','codePath','channelID','responses','extraPath','hasInfArgs','replyDelay','botChannels','isBotChannel','replyChannels','savestatePath','reactsChannels','chanceForReply','isReplyChannel','isReactChannel','isReactChannel','isReactChannel','isReactChannel','author'
     for i in cmds:
         for j in cmds[i]:
             ValidKWARGForFunc(cmds[i][j],{i:0 for i in kwargKeys})
