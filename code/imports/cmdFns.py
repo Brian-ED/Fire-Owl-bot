@@ -562,26 +562,25 @@ def ToggleAI(*a,**_):
     AI.OFF = not AI.OFF
     return f"Done. Set it to {AI.OFF}"
 
-async def JsonOfMyData(msg=C, author=C, **_):
-    limit = 3
-    l:list[dis.Message] = []
-    for channel in msg.guild.channels:
-        if hasattr(channel, "history") and not isinstance(channel, PrivateChannel):
-            channel:dis.TextChannel = channel
-            l += await channel.history(
-                limit=limit, oldest_first=True
+async def JsonOfMyData(*args:list[str], msg=C, author=C, say=C, **_):
+    limit = int(args[0]) if args and args[0].isnumeric() else None
+
+    def onEachMsg(x:dis.Message):
+        return *map(ascii, (x.content, ' '.join(map(str, x.reactions)), str(x.created_at))),
+
+    async def getChannelData(channel:dis.TextChannel):
+        return *map(onEachMsg, await channel.history(limit=limit
             ).filter(lambda m:m.author.id==author.id
             ).flatten()
-    def onEachData(x:dis.Message):
-        return x.content,' '.join([str(i) for i in x.reactions])
-    obj = {j:i for j,i in zip(["content", "reactions"],zip(*map(onEachData,l)))}
-    msg.channel:dis.TextChannel = msg.channel
-    text = json.dumps(obj)
+        ),
+    
+    await say("Starting, this might take a while.")
+    l:list[list] = filter(None,[await getChannelData(i)for i in msg.guild.channels if hasattr(i, "history")])
+    text = json.dumps(dict(zip(["content", "reactions", "timestampUTC"],zip(*l))))
     with open("extra/tempjson.json",mode='w')as f:
         f.write(text)
-    await msg.channel.send(file=dis.File("extra/tempjson.json"))
-    return "done"
-
+    await say(file=dis.File("extra/tempjson.json"))
+#    os.remove("extra/tempjson.json")
 
 cmds={
     'userCommands':{
@@ -628,7 +627,6 @@ cmds={
         'DelBotChannels':DelBotChannels,
         'DelReact':Curry(DelDataSlot,'Reacts'),
         'DelResponse':Curry(DelDataSlot,'Responses'),
-        'Import':Import,
         'ModRoles':ModRoles,
         'NewResponse':NewResponse,
         'Prefix':Prefix,
@@ -640,6 +638,7 @@ cmds={
 
     },
     'ownerCommands':{
+        'Import':Import,
         'PipInstall':PipInstall,
         'Backup':Backup,
         'BoardGame':BoardGame,
