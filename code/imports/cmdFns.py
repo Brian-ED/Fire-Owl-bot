@@ -188,7 +188,10 @@ async def MoveCmd(inpChannel:ChannelID,numOfMsgs:int,*args:int,msg=C,say=C,clien
     for i in history[::-1]:
         Sendingtxt=(i.clean_content+'\n'+' '.join(f'||[{z.filename}]({z.url})||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})"  for z in i.attachments))[:2000]
         async def SenderFunction(x=0):
-            if x>10:return"Well something very wrong happened inside the code :("
+            if x%100==99:
+                asySleep(3)
+                return SenderFunction(x)
+            if x>500:return"Internet connection is not good enough for moving messages"
             try:
                 return await webhook.send(
                     Sendingtxt if Sendingtxt else '** **',
