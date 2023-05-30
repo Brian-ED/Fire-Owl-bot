@@ -129,6 +129,9 @@ async def on_message(msg:dis.Message):
     isReplyChannel :bool               = channel.id in replyChannels  or not replyChannels
     isReactChannel :bool               = channel.id in reactsChannels or not reactsChannels
     
+    if cmd.startswith("<@975188865415536661>"):
+        cmd = prefix+cmd[len("<@975188865415536661>"):]
+
     # r will be the reply message
     r=''
     if not cmd.startswith(prefix):
