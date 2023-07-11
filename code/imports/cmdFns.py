@@ -515,11 +515,13 @@ async def Testing(*args,say=C,client=C,**_):
 
 async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
     deleted = 0 # for testing if deletion was successful
-    while deleted == 0:
+    while not deleted:
         try:
             await msg.delete()
-        except:
+        except dis.NotFound:
             deleted = 1
+        except:
+            await asySleep(1)
     try:
         repliedToMsg = await msg.channel.fetch_message(msg.reference.message_id)
     except:
@@ -548,11 +550,13 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
 
 async def UnSpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
     deleted = 0 # for testing if deletion was successful
-    while deleted == 0:
+    while not deleted:
         try:
             await msg.delete()
-        except:
+        except dis.NotFound:
             deleted = 1
+        except:
+            await asySleep(1)
     try:
         repliedToMsg = await msg.channel.fetch_message(msg.reference.message_id)
     except:
