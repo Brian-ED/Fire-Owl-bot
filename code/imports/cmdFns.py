@@ -514,7 +514,12 @@ async def Testing(*args,say=C,client=C,**_):
         return'-'
 
 async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
-    await msg.delete()
+    deleted = 0 # for testing if deletion was successful
+    while deleted == 0:
+        try:
+            await msg.delete()
+        except:
+            deleted = 1
     try:
         repliedToMsg = await msg.channel.fetch_message(msg.reference.message_id)
     except:
@@ -542,7 +547,12 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
     await webhook.delete()
 
 async def UnSpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
-    await msg.delete()
+    deleted = 0 # for testing if deletion was successful
+    while deleted == 0:
+        try:
+            await msg.delete()
+        except:
+            deleted = 1
     try:
         repliedToMsg = await msg.channel.fetch_message(msg.reference.message_id)
     except:
