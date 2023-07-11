@@ -530,7 +530,7 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
         Sendingtxt,
         wait=1,
         username=repliedToMsg.author.name,
-        avatar_url=repliedToMsg.author.avatar.url
+        avatar_url=repliedToMsg.author.avatar_url
     )
     if msgSent:
         for j in repliedToMsg.reactions:
