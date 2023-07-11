@@ -253,7 +253,8 @@ async def on_message(msg:dis.Message):
                 r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs)
             # I split by isLinux so i can get clear errors on my windows machine
             # but get errors from discord through my linux machine
-
+    else:
+        r = "Command not available."
     if not r:
         return
     if not hasattr(r,'__iter__') or type(r)==str:
