@@ -515,7 +515,11 @@ async def Testing(*args,say=C,client=C,**_):
 
 async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
     await msg.delete()
-    repliedToMsg = await msg.channel.fetch_message(msg.reference.message_id)
+    try:
+        repliedToMsg = await msg.channel.fetch_message(msg.reference.message_id)
+    except:
+        await say('This command needs you to reply to a message',DM=1)
+        return
 
     if repliedToMsg==None:
         await say('This command needs you to reply to a message',DM=1)
@@ -523,7 +527,6 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
     
 
     webhook = await msg.channel.create_webhook(name=repliedToMsg.author.display_name)
-    await repliedToMsg.delete()
     
     Sendingtxt='||'+(repliedToMsg.clean_content+'\n'+' '.join(f"[{z.filename}]({z.url})"for z in repliedToMsg.attachments))[:1996]+'||'
     msgSent=await webhook.send(
@@ -535,6 +538,39 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
     if msgSent:
         for j in repliedToMsg.reactions:
             await msgSent.add_reaction(j)
+    await repliedToMsg.delete()
+    await webhook.delete()
+
+async def UnSpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
+    await msg.delete()
+    try:
+        repliedToMsg = await msg.channel.fetch_message(msg.reference.message_id)
+    except:
+        await say('This command needs you to reply to a message',DM=1)
+        return
+
+    if repliedToMsg==None:
+        await say('This command needs you to reply to a message',DM=1)
+        return
+
+    webhook = await msg.channel.create_webhook(name=repliedToMsg.author.display_name)
+    
+    Sendingtxt:str = repliedToMsg.clean_content
+
+    if not (Sendingtxt[:2]=='||' and Sendingtxt[-2:]=='||') or repliedToMsg.attachments:
+        await say('Make sure the message was spoilered by me (the bot), since in this case the message was not formatted as expected.',DM=1)
+        return
+
+    msgSent = await webhook.send(
+        Sendingtxt[2:-2],
+        wait=1,
+        username=repliedToMsg.author.name,
+        avatar_url=repliedToMsg.author.avatar_url
+    )
+    if msgSent:
+        for j in repliedToMsg.reactions:
+            await msgSent.add_reaction(j)
+    await repliedToMsg.delete()
     await webhook.delete()
 
 def ResetDataSlot(*slotName,data={},Save=C,guildID=0,**_):
@@ -621,6 +657,7 @@ cmds={
         'Remove8ball':Curry(DelDataSlot,'8ball'),
         'Unmute':UnmuteCmd,
         'SpoilerMessage':SpoilerMsg,
+        'UnSpoilerMessage':UnSpoilerMsg,
     },
     'adminCommands':{
         'JsonOfMyData':JsonOfMyData,
