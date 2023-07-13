@@ -5,10 +5,20 @@ NN=dis.AllowedMentions(everyone=False, users=False, roles=False)
 with open('../../Safe/Fire-Owl-bot.yaml', encoding='utf-8') as f:
     openai.api_key = safe_load(f)['AIToken']
 OFF=False
+
 async def send_message(msg,content):
     if OFF and msg.guild.id==497131548282191892:
         await msg.channel.send("this command was turned off temporarily by Brian")
         return
+    aiResponse = openai.Completion.create(
+        model="text-davinci-003",
+        prompt=content,
+        temperature=0.7,
+        max_tokens=2048,
+        frequency_penalty=0.0,
+        presence_penalty=0.0,
+    ).choices[0].text
+    '''    
     aiResponse = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -22,8 +32,9 @@ async def send_message(msg,content):
         frequency_penalty=0.0,
         presence_penalty=0.0,
     ).choices[0].message.content
+    '''
     try:
-        response = f"> **{msg.author.display_name}**\n\n{content}\n\n{aiResponse}"
+        response = f"> **{msg.author.display_name}**\n\n{content}{aiResponse}"
         if len(response) <= 1900:
             return await msg.channel.send(response,allowed_mentions=NN)
         if "```" in response:
