@@ -642,7 +642,7 @@ async def JsonOfMyData(*args:list[str], msg=C, author=C, say=C, **_):
 cmds={
     'userCommands':{
         'AskAI'            :AskAI,
-        'AskSmartass'      : AskSmartass,
+        'AskSmartass'      :AskSmartass,
         '8ball'            :Ball8,
 #       'APL'              :APLCmd,
         'Flip'             :Flip,
@@ -655,17 +655,16 @@ cmds={
         'ListResponses'    :ListResponses,
         'Metheus'          :Metheus,
         'MuteMyself'       :MuteMyself,
-        'NowPlaying'       :NowPlaying,
+#       'NowPlaying'       :NowPlaying,
         'Ping'             :C("hiii"),
-        'Play'             :Play,
+#       'Play'             :Play,
         'Recommend'        :Recommend,
         'Rick'             :RickRoll,
         'RockPaperScissors':RockPaperScissors,
         'ShowPrefix'       :ShowPrefix,
-        'Skip'             :SkipSong,
+#       'Skip'             :SkipSong,
         'TicTacToe'        :TicTacToeCmd,
         'Zote'             :Zote,
-        'Error'            :Error,
     },
     'modCommands':{
         'Add8ball'        :Add8ball,
@@ -696,6 +695,7 @@ cmds={
 
     },
     'ownerCommands':{
+        'Error'        :Error,
         'Import'       :Import,
         'PipInstall'   :PipInstall,
         'Backup'       :Backup,
