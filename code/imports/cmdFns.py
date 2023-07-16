@@ -677,7 +677,7 @@ cmds={
 #       'ForceSkip'       :ForceSkipSong,
     },
     'adminCommands':{
-        'JsonOfMyData'    :JsonOfMyData,
+#       'JsonOfMyData'    :JsonOfMyData,
         'AddBotChannel'   :AddBotChannels,
         'AddModRoles'     :ModRoles,
         'ChangePrefix'    :ChangePrefix,
