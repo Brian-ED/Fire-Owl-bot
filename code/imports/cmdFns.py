@@ -607,7 +607,7 @@ async def AskAI(*_,msg:dis.Message=C,**a):
     msg.content:str=msg.content
     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:])
 
-async def AskSmartass(*_,msg:dis.Message=C,**a):
+async def AskNerd(*_,msg:dis.Message=C,**a):
     msg.content:str=msg.content
     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:], smart=True)
 
@@ -619,21 +619,27 @@ def ToggleAI(*a,**_):
     AI.OFF = not AI.OFF
     return f"Done. Set it to {AI.OFF}"
 
-async def JsonOfMyData(*args:list[str], msg=C, author=C, say=C, **_):
-    limit = int(args[0]) if args and args[0].isnumeric() else None
+async def JsonOfMyData(MessageLimit:int, msg=C, author=C, say=C, **_):
 
     def onEachMsg(x:dis.Message):
-        return *map(ascii, (x.content, ' '.join(map(str, x.reactions)), str(x.created_at))),
+        return x.content, ' '.join(map(str, x.reactions)), str(x.created_at)
 
-    async def getChannelData(channel:dis.TextChannel):
-        return *map(onEachMsg, await channel.history(limit=limit
-            ).filter(lambda m:m.author.id==author.id
-            ).flatten()
-        ),
-    
+    async def getChannelData(msg):
+        channels:tuple[dis.TextChannel] = msg.guild.channels
+        r=()
+        for ch in channels:
+            if not hasattr(ch, "history"):
+                break
+            
+            for msg in (await ch.history(limit=MessageLimit).filter(lambda m:m.author.id==author.id).flatten()):
+                x = onEachMsg(msg)
+                if type(x) == tuple and len(x)==3:
+                    r += x,
+                else: print(x)
+        return *zip(*r),
+
     await say("Starting, this might take a while.")
-    l:list[list] = filter(None,[await getChannelData(i)for i in msg.guild.channels if hasattr(i, "history")])
-    text = json.dumps(dict(zip(["content", "reactions", "timestampUTC"],zip(*l))))
+    text = json.dumps(await getChannelData(msg))
     with open("extra/tempjson.json",mode='w')as f:
         f.write(text)
     await say(file=dis.File("extra/tempjson.json"))
@@ -642,13 +648,12 @@ async def JsonOfMyData(*args:list[str], msg=C, author=C, say=C, **_):
 cmds={
     'userCommands':{
         'AskAI'            :AskAI,
-        'AskSmartass'      :AskSmartass,
+        'AskNerd'          :AskNerd,
         '8ball'            :Ball8,
         'Flip'             :Flip,
         'Help'             :HelpCmd,
         'HighLowGame'      :HighLow,
         'Info'             :InfoCmd,
-        'LeaveVC'          :LeaveVC,
         'List8ball'        :List8ball,
         'ListModRoles'     :ListModRoles,
         'ListResponses'    :ListResponses,
@@ -661,6 +666,7 @@ cmds={
         'ShowPrefix'       :ShowPrefix,
         'TicTacToe'        :TicTacToeCmd,
         'Zote'             :Zote,
+#       'LeaveVC'          :LeaveVC,
 #       'APL'              :APLCmd,
 #       'NowPlaying'       :NowPlaying,
 #       'Play'             :Play,
@@ -677,7 +683,7 @@ cmds={
 #       'ForceSkip'       :ForceSkipSong,
     },
     'adminCommands':{
-#       'JsonOfMyData'    :JsonOfMyData,
+        'JsonOfMyData'    :JsonOfMyData,
         'AddBotChannel'   :AddBotChannels,
         'AddModRoles'     :ModRoles,
         'ChangePrefix'    :ChangePrefix,
