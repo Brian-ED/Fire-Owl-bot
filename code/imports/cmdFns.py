@@ -13,7 +13,6 @@ else:
     from fns import *
 from asyncio import sleep as asySleep
 import discord as dis
-from discord.abc import PrivateChannel
 import json
 
 def Ball8(*_,myData={},**a):
@@ -604,11 +603,9 @@ def ListDataSlot(*slotName,data={},guildID=0,**_):
     return "Data slot doesn't exist"
 
 async def AskAI(*_,msg:dis.Message=C,**a):
-    msg.content:str=msg.content
     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:])
 
 async def AskNerd(*_,msg:dis.Message=C,**a):
-    msg.content:str=msg.content
     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:], smart=True)
 
 def PipInstall(*package,**_):
@@ -644,6 +641,8 @@ async def JsonOfMyData(MessageLimit:int, msg=C, author=C, say=C, **_):
         f.write(text)
     await say(file=dis.File("extra/tempjson.json"))
 #    os.remove("extra/tempjson.json")
+
+#from chessCmds import move, statistics, accept, new, about
 
 cmds={
     'userCommands':{

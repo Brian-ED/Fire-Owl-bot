@@ -58,7 +58,7 @@ async def on_ready():
     print(ascii('\n'.join(i.name for i in client.guilds)).replace("\\n","\n"))
     if isLinux:
         create_task(maddyTimer.maddyTimerMain(client))
-    await client.change_presence(activity=dis.Game(f'subscribe to FIRE OWL'))
+    await client.change_presence(activity=dis.Game('subscribe to FIRE OWL'))
     print('Logged in as',
         client.user.name,
         client.user.id,
@@ -88,19 +88,15 @@ async def on_ready():
         (await client.fetch_channel(980859412564553738)).send('The on_ready() startup function crashed. Routines stopped.')
 
 async def on_message(msg:dis.Message):
-    if msg.author.bot:
-        return
-    if not(isLinux or msg.content.lower().startswith("test")):
-        return
-    if len(msg.content.split())==0:
+    if msg.author.bot\
+        or not(isLinux or msg.content.lower().startswith("test"))\
+        or len(msg.content.split())==0:
         return
     async def say(*values,sep='\n',DM=False,**KWARGS):
-        textToBeSent=sep.join(map(str,values))
-        if textToBeSent.endswith('```') and len(textToBeSent)>2000:
-            textToBeSent=textToBeSent[:1997]+'```'
-        elif len(textToBeSent)>2000:
-            textToBeSent=textToBeSent[:2000]
-        return await (msg.channel,msg.author)[DM].send(textToBeSent,**KWARGS)
+        ttbs = sep.join(map(str,values)) # textToBeSent
+        if ttbs.endswith('```') and len(ttbs)>2000:
+            ttbs=ttbs[:1997]+'```'
+        return await (msg.channel,msg.author)[DM].send(ttbs[:2000],**KWARGS)
 
     if not msg.guild: return await say("I don't work in DMs sadly.",DM=1)
 
@@ -175,7 +171,7 @@ async def on_message(msg:dis.Message):
         return
 
     allowedCmdsL=cmdsL['userCommands']\
-               |(cmdsL['modCommands']if isMod else{})\
+               |(cmdsL['modCommands'  ]if isMod   else{})\
                |(cmdsL['adminCommands']if isAdmin else{})\
                |(cmdsL['ownerCommands']if isOwner else{})
     if cmd == prefix:
@@ -188,7 +184,9 @@ async def on_message(msg:dis.Message):
             cmd=''
             r=0 if posValues else posValues
 
-    if cmd in allowedCmdsL:
+    if cmd not in allowedCmdsL:
+        r = "Command not available."
+    else:
         argCount=fns.ArgCount(allowedCmdsL[cmd])
         hasInfArgs=fns.HasInfArgs(allowedCmdsL[cmd])
         hasInfKWArgs=fns.HasInfKWArgs(allowedCmdsL[cmd])
@@ -233,41 +231,30 @@ async def on_message(msg:dis.Message):
             'isReactChannel':isReactChannel,
             'isReactChannel':isReactChannel,
         }
-        errored,reTypedArgs=await fns.FitIntoFunc(allowedCmdsL[cmd],client,args,KWARGS)
+        errored, reTypedArgs=await fns.FitIntoFunc(allowedCmdsL[cmd],client,args,KWARGS)
         if errored:
             r=reTypedArgs
-        elif isLinux:
+        elif not isLinux:  # I split by isLinux so i can get clear errors on my windows machine but get errors from discord through my linux machine
+            r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**({},KWARGS)[hasInfKWArgs])
+        else:
             try:
-                if hasInfKWArgs:
-                    r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**KWARGS)
-                else:
-                    r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs)
-
+                r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**({},KWARGS)[hasInfKWArgs])
             except Exception as e:
                 r='Error',e,f'```{e.__class__}```'
                 print(*r,sep='\n',end="\nEND\n")
-        else:
-            if hasInfKWArgs:
-                r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**KWARGS)
-            else:
-                r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs)
-            # I split by isLinux so i can get clear errors on my windows machine
-            # but get errors from discord through my linux machine
-    else:
-        r = "Command not available."
     if not r:
         return
     if not hasattr(r,'__iter__') or type(r)==str:
         r=r,
     await say(*r)
 
-async def on_reaction_add(reaction, author):
-    ...
+# async def on_reaction_add(reaction, author):
+#     ...
 
 *map(client.event,(
     on_ready,
     on_message,
-    on_reaction_add
+#   on_reaction_add
 )),
 from yaml import safe_load
 with open(tokenPath, encoding='utf-8') as f:

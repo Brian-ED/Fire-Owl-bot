@@ -6,7 +6,7 @@ with open('../../Safe/Fire-Owl-bot.yaml', encoding='utf-8') as f:
     openai.api_key = safe_load(f)['AIToken']
 OFF=False
 
-async def send_message(msg,content, smart=False, babbage=False):
+async def send_message(msg,content, smart=False, babbage = False):
     if OFF and msg.guild.id==497131548282191892:
         await msg.channel.send("this command was turned off temporarily by Brian")
         return
@@ -15,8 +15,8 @@ async def send_message(msg,content, smart=False, babbage=False):
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": "What does selling your body mean?"},
-                {"role": "assistant", "content": "Selling one's body typically refers to engaging in sex work, such as prostitution, as a means to make money. It can also refer to other forms of labor such as selling organs or blood."},
+                {"role": "user", "content": "How's your day?"},
+                {"role": "assistant", "content": "I've had a lovely day! Thanks for asking."},
                 {"role": "user", "content": content}
             ],
             temperature=0.7,
@@ -35,7 +35,7 @@ async def send_message(msg,content, smart=False, babbage=False):
         ).choices[0].text
 
     try:
-        response = f"> **{msg.author.display_name}**"+"\n\n"+content+(smart*"\n\n")+aiResponse
+        response = f"> **{msg.author.display_name}**"+smart*"\n\n"+f"{content}{aiResponse}"
         if len(response) <= 1900:
             return await msg.channel.send(response,allowed_mentions=NN)
         if "```" in response:
