@@ -9,6 +9,9 @@ from imports import vars, fns, maddyTimer
 from imports.cmdFns import cmds
 from time import sleep, time
 
+if not os.path.exists('_temporaryFiles'):
+    os.makedirs('_temporaryFiles')
+
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 # region variable definitions
 
