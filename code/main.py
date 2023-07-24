@@ -90,16 +90,21 @@ async def on_ready():
         print("on_ready() stopped")
         (await client.fetch_channel(980859412564553738)).send('The on_ready() startup function crashed. Routines stopped.')
 
+presetKWARGs = {
+    "allowed_mentions":dis.AllowedMentions(everyone=False, users=False, roles=False)
+}
+
+
 async def on_message(msg:dis.Message):
     if msg.author.bot\
         or not(isLinux or msg.content.lower().startswith("test"))\
         or len(msg.content.split())==0:
         return
-    async def say(*values,sep='\n',DM=False,**KWARGS):
+    async def say(*values,sep='\n',DM=False, channel=msg.channel, **KWARGS):
         ttbs = sep.join(map(str,values)) # textToBeSent
         if ttbs.endswith('```') and len(ttbs)>2000:
             ttbs=ttbs[:1997]+'```'
-        return await (msg.channel,msg.author)[DM].send(ttbs[:2000],**KWARGS)
+        return await (channel,msg.author)[DM].send(ttbs[:2000],**(presetKWARGs|KWARGS))
 
     if not msg.guild: return await say("I don't work in DMs sadly.",DM=1)
 

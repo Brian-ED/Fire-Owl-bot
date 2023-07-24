@@ -1,8 +1,19 @@
-import io, random, shortuuid
-import discord
+import io, random, shortuuid, chess, discord as dis, numpy as np
+from threading import Timer
+from datetime import datetime
+from PIL import Image
+from typing import Union
+C = lambda x:x
+print(np.empty(8,8))
+def outer(dyOp, vec1, vec2):
+    l1, l2 = map(len,(vec1,vec2))
+    r = empty(l1, l2)
+    for i in range(len(A)):
+        for j in range(len(B)):
+            r[i,j] = dyOp(vec1[i], vec2[j])
 
 def addLog(player, time): 
-    {
+    return {
         "player"   :player,
         "timestamp":time,
         "totals"   :0,
@@ -11,11 +22,6 @@ def addLog(player, time):
     }
 
 # region generator
-
-from PIL import Image
-from typing import Union
-
-import chess
 
 layout = (
     range(0, 8 ),
@@ -28,14 +34,12 @@ layout = (
     range(56,64),
 )
 
-print(0b11001)
-coordinates = [ 25, 109, 194, 279, 363, 448, 531, 616 ]
 
 def generate(board: chess.BaseBoard) -> Image:
     chessboard = Image.open("resources/chessboard.png")
 
-    for y, Y in enumerate(coordinates):
-        for x, X in enumerate(coordinates):
+    for y in range(8):
+        for x in range(8):
             piece = board.piece_at(layout[y][x])
 
             if piece is None:
@@ -43,7 +47,7 @@ def generate(board: chess.BaseBoard) -> Image:
 
             piece = Image.open(path(piece)).convert("RGBA")
             
-            chessboard.paste(piece, (X, Y), piece)
+            chessboard.paste(piece, (25+84.5*x, 25+84.5*y), piece)
 
     return chessboard
 
@@ -65,12 +69,8 @@ def path(piece: chess.Piece) -> Union[str, None]:
 # endregion generator
 
 
-from threading import Timer
 
-from datetime import datetime
-from PIL import Image
-
-def makeInvite(challenger: discord.Member, challenged: discord.Member, guild: discord.Guild):
+def makeInvite(challenger: dis.Member, challenged: dis.Member, guild: dis.Guild):
     x = {
         'invites':[],
         'challenger':challenger,
@@ -79,14 +79,16 @@ def makeInvite(challenger: discord.Member, challenged: discord.Member, guild: di
         'timestamp' :datetime.now().strftime("%d-%m-%Y %H:%M"),
     }
     def expire(invite):
-        invites = x["invites"]
+        
 
         if invite in invites:
             invites.pop(invite)
     Timer(300.0, expire, x).start()
     return x
 
-def makeGame(white: discord.Member, black: discord.Member, guild: discord.Guild):
+invites = data[guildID]["invites"]
+
+def makeGame(white: dis.Member, black: dis.Member, guild: dis.Guild):
     return {
         'id':shortuuid.ShortUUID().random(length = 6),
         'white':white, 'black':black,
@@ -94,7 +96,7 @@ def makeGame(white: discord.Member, black: discord.Member, guild: discord.Guild)
         'board':chess.Board(),
     }
 
-def get_member_by_name(guild: discord.Guild, name: str) -> discord.Member:
+def get_member_by_name(guild: dis.Guild, name: str) -> dis.Member:
     for member in guild.members:
         if member.name.lower() == name.lower():
             return member
@@ -130,11 +132,11 @@ def new(ctx, user = None): # create invite
     if get_game_from_user(author): 
         return "You cannot send other invitations while you are in the middle of a match"
 
-    for invite in Invite.invites:
+    for invite in invites:
         if invite.challenger == author and invite.challenged == user and invite.guild == guild:
             return "You have already invited this user"
 
-    Invite.invites.append(Invite(author, user, guild))
+    invites.append((author, user, guild))
 
     return f"{user.mention}, {author.name} wants to play a chess match against you! Use `!chess accept {author.name}` if you want to accept the invite"
 
@@ -154,9 +156,11 @@ async def accept(ctx, user = None, say=C):
 
     invite = None
 
-    for index, element in enumerate(Invite.invites):
-        if (element.challenged, element.challenger, element.guild) == (user, author, guild):
-            invite = element; del Invite.invites[index]; break
+    for index, element in enumerate(invites):
+        if (element["challenged"], element["challenger"], element["guild"]) == (user, author, guild):
+            invite = element
+            del invites[index]
+            break
 
     if invite is None:
         return "No invite has been sent by the selected user"
@@ -168,17 +172,23 @@ async def accept(ctx, user = None, say=C):
 
     file = get_binary_board(game.board)
 
+    def Name(user:dis.Member):
+        return user.nick if user.nick else user.display_name
+
     await say((
-        f"**Match ID: {game.id}**\n"
-        f"Well, let's start this chess match with {white.mention} as `White Player` against {black.mention} as `Black Player`!"
+        "Match started!"
+        f"{Name(white)} as white!"
+        "VS"
+        f"{Name(black)} as black!"
+        f"**Match ID: {game.id}**"
     ), file = file)
 
 
-# Shows every out-coming and in-coming invites for the context user
+# Shows every out-going and in-coming invites for the context user
 async def invites(msg=C, **_):
     author, guild = msg.message.author, msg.message.author.guild
 
-    embed = discord.Embed(title = f"Invitations for {author.name}", color = 0x00ff00)
+    embed = dis.Embed(title = f"Invitations for {author.name}", color = 0x00ff00)
     outcoming, incoming = str(), str()
 
     for invite in Invite.invites:
@@ -231,14 +241,11 @@ async def move(ctx, initial, final):
 
     if game.board.is_checkmate():
         message = f"**Match Finished** - {game.white.mention} VS {game.black.mention} - `{author.name}` won the chess match, CONGRATULATIONS!"
-                    
         Game.games.remove(game)
-
         if color == chess.WHITE: update_statitics(game.white, game.black)
         if color == chess.BLACK: update_statitics(game.black, game.white)
 
     file = get_binary_board(game.board)
-
     await ctx.send(message, file = file)
 
 # Shows the current match chessboard disposition
@@ -281,7 +288,7 @@ async def statistics(ctx, user = None):
     if member is None:
         return "No user found in the current server"
 
-    embed = discord.Embed(color = 0x0000ff)
+    embed = dis.Embed(color = 0x0000ff)
 
     try: 
         statistics = data[guildID]["games"][member.id]
@@ -299,20 +306,20 @@ async def statistics(ctx, user = None):
 
     await ctx.send(embed = embed)
 
-def get_game_from_user(user: discord.Member) -> dict:
+def get_game_from_user(user: dis.Member) -> dict:
     for game in data[guildID]['games']:
         if user in (game['white'], game['black']):
             return game
 
-def get_binary_board(board) -> discord.File:
+def get_binary_board(board) -> dis.File:
     size = 500, 500
 
     with io.BytesIO() as binary:
         board = generate(board).resize(size, Image.ANTIALIAS)
         board.save(binary, "PNG"); binary.seek(0)
-        return discord.File(fp = binary, filename = "board.png")
+        return dis.File(fp = binary, filename = "board.png")
 
-def update_statitics(winner: discord.Member, loser: discord.Member):
+def update_statitics(winner: dis.Member, loser: dis.Member):
     winner = data[guildID][winner.id]
     loser  = data[guildID][loser.id]
     winner['wins' ] += 1

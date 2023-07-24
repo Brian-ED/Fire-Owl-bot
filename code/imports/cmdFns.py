@@ -196,7 +196,8 @@ async def MoveCmd(inpChannel:ChannelID,numOfMsgs:int,*args:int,msg=C,say=C,clien
                     Sendingtxt if Sendingtxt else '** **',
                     wait=1,
                     username=i.author.name,
-                    avatar_url=i.author.avatar_url
+                    avatar_url=i.author.avatar_url,
+                    allowed_mentions = dis.AllowedMentions(everyone=False, users=False, roles=False),
                 )
             except dis.errors.HTTPException as err:
                 print(str(err.response))
@@ -292,8 +293,8 @@ def List8ball(myData={},**_):
     return'8ball list: '+Join(myData['8ball'])
 
 
-async def Recommend(arg,*args,client=C,**_):
-    await client.get_channel(980859412564553738).send(' '.join((arg,)+args))
+async def Recommend(arg,*args,say=C,client=C,**_):
+    await say(' '.join((arg,)+args), channel=client.get_channel(980859412564553738))
     return'Thanks for the recommendation :D'
     
 def SetReplyChannels(*args,data={},guildID,Save=C,**_):
@@ -439,11 +440,10 @@ def NowPlaying(myData={},**_):
         ]
     return"The play queue is empty."
 
-
-async def APLCmd(*args,client=C,msg={},prefix='',cmd='',**_):
+async def APLCmd(*args,client=C,say=C,msg={},prefix='',cmd='',**_):
     if not args:
         return"Nothing to evaluate"
-    await client.get_channel(1042892476526100480).send("⋄"+msg.content[1+len(prefix)+len(cmd):])
+    await say("⋄"+msg.content[1+len(prefix)+len(cmd):], channel=client.get_channel(1042892476526100480))
     try:
         return(await client.wait_for(
             "message",
@@ -539,7 +539,8 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
         Sendingtxt,
         wait=1,
         username=repliedToMsg.author.name,
-        avatar_url=repliedToMsg.author.avatar_url
+        avatar_url=repliedToMsg.author.avatar_url,
+        allowed_mentions=dis.AllowedMentions(everyone=False, users=False, roles=False),
     )
     if msgSent:
         for j in repliedToMsg.reactions:
@@ -578,7 +579,8 @@ async def UnSpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
         Sendingtxt[2:-2],
         wait=1,
         username=repliedToMsg.author.name,
-        avatar_url=repliedToMsg.author.avatar_url
+        avatar_url=repliedToMsg.author.avatar_url,
+        allowed_mentions=dis.AllowedMentions(everyone=False, users=False, roles=False),
     )
     if msgSent:
         for j in repliedToMsg.reactions:
