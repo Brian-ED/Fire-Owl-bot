@@ -55,15 +55,7 @@ async def TurtleGame(client,say): #Made by EdelfQ!! only thing changed was the i
     turtle.goto(60, 180)
     turtle.goto(-60, 180)
     turtle.goto(-60, -180)
-    a = 0
-    b = 0
-    c = 0
-    d = 0
-    e = 0
-    f = 0
-    g = 0
-    h = 0
-    i = 0
+    a=b=c=d=e=f=g=h=i=0
     move = 0
     unchangingEmotes="1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"
     emotes=["1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"]
