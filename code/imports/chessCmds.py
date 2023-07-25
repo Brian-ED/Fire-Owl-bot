@@ -81,12 +81,10 @@ def makeInvite(challenger: dis.Member, challenged: dis.Member, guild: dis.Guild)
     def expire(invite):
         
 
-        if invite in invites:
-            invites.pop(invite)
+        if invite in data[guildID]["invites"]:
+            data[guildID]["invites"].pop(invite)
     Timer(300.0, expire, x).start()
     return x
-
-invites = data[guildID]["invites"]
 
 def makeGame(white: dis.Member, black: dis.Member, guild: dis.Guild):
     return {
@@ -132,11 +130,11 @@ def new(ctx, user = None): # create invite
     if get_game_from_user(author): 
         return "You cannot send other invitations while you are in the middle of a match"
 
-    for invite in invites:
+    for invite in data[guildID]["invites"]:
         if invite.challenger == author and invite.challenged == user and invite.guild == guild:
             return "You have already invited this user"
 
-    invites.append((author, user, guild))
+    data[guildID]["invites"].append((author, user, guild))
 
     return f"{user.mention}, {author.name} wants to play a chess match against you! Use `!chess accept {author.name}` if you want to accept the invite"
 
@@ -156,10 +154,10 @@ async def accept(ctx, user = None, say=C):
 
     invite = None
 
-    for index, element in enumerate(invites):
+    for index, element in enumerate(data[guildID]["invites"]):
         if (element["challenged"], element["challenger"], element["guild"]) == (user, author, guild):
             invite = element
-            del invites[index]
+            del data[guildID]["invites"][index]
             break
 
     if invite is None:
@@ -191,7 +189,7 @@ async def invites(msg=C, **_):
     embed = dis.Embed(title = f"Invitations for {author.name}", color = 0x00ff00)
     outcoming, incoming = str(), str()
 
-    for invite in Invite.invites:
+    for invite in data[guildID]["invites"]:
         if invite.challenger == author and invite.guild == guild:
             challenged = invite.challenged
             outcoming += f"You to {challenged.name} - {invite.timestamp}\n"; continue
