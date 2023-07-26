@@ -35,7 +35,7 @@ async def send_message(msg,content, smart=False, babbage = False):
         ).choices[0].text
 
     try:
-        response = f"> **{msg.author.display_name}**"+smart*"\n\n"+f"{content}{aiResponse}"
+        response = f"> **{msg.author.display_name}**\n\n{content}"+smart*"\n\n"+f"{aiResponse}"
         if len(response) <= 1900:
             return await msg.channel.send(response,allowed_mentions=NN)
         if "```" in response:
