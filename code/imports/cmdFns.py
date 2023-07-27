@@ -67,8 +67,8 @@ def ListResponses(responses={},reacts={},**_):
     return ('**Responses:**\n'+Join(responses.keys()),
         '\n**Reacts:**\n'+Join(reacts.keys()))
 
-async def Update(say=C,isLinux=0,savestatePath='',codePath='',extraPath='',botPath='',**_):
-    if isLinux:
+async def Update(say=C,isNonTestingVersion=0,savestatePath='',codePath='',extraPath='',botPath='',**_):
+    if isNonTestingVersion:
         await say("updating...")
 
         rmtree(savestatePath)
@@ -722,7 +722,7 @@ cmds={
 if __name__=="__main__":
 
     # Make sure there are no invalid KWARGS for the commands
-    kwargKeys='msg','cmd','say','data','Save','cmds','isMod','myData','reacts','prefix','client','allArgs','guildID','channel','isOwner','isAdmin','isLinux','botPath','modRoles','argCount','authorID','codePath','channelID','responses','extraPath','hasInfArgs','replyDelay','botChannels','isBotChannel','replyChannels','savestatePath','reactsChannels','chanceForReply','isReplyChannel','isReactChannel','isReactChannel','isReactChannel','isReactChannel','author'
+    kwargKeys='msg','cmd','say','data','Save','cmds','isMod','myData','reacts','prefix','client','allArgs','guildID','channel','isOwner','isAdmin','isNonTestingVersion','botPath','modRoles','argCount','authorID','codePath','channelID','responses','extraPath','hasInfArgs','replyDelay','botChannels','isBotChannel','replyChannels','savestatePath','reactsChannels','chanceForReply','isReplyChannel','isReactChannel','isReactChannel','isReactChannel','isReactChannel','author'
     for i in cmds:
         for j in cmds[i]:
             ValidKWARGForFunc(cmds[i][j],{i:0 for i in kwargKeys})

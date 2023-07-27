@@ -16,7 +16,9 @@ os.chdir(__file__[:-len(os.path.basename(__file__))])
 # region variable definitions
 
 # region paths
-isLinux=__file__[0]!='c'
+isNonTestingVersion = True
+#isNonTestingVersion = False
+
 mainPath      = '../../'
 tokenPath     = mainPath+'Safe/Fire-Owl-bot.yaml'
 savestatePath = mainPath+'data/Fire-Owl-data'
@@ -59,7 +61,7 @@ muteRoleName='MUTED(by Fire-Bot)'
 # endregion
 async def on_ready():
     print(ascii('\n'.join(i.name for i in client.guilds)).replace("\\n","\n"))
-    if isLinux:
+    if isNonTestingVersion:
         create_task(maddyTimer.maddyTimerMain(client))
     await client.change_presence(activity=dis.Game('subscribe to FIRE OWL'))
     print('Logged in as',
@@ -97,7 +99,7 @@ presetKWARGs = {
 
 async def on_message(msg:dis.Message):
     if msg.author.bot\
-        or not(isLinux or msg.content.lower().startswith("test"))\
+        or not(isNonTestingVersion or msg.content.lower().startswith("test"))\
         or len(msg.content.split())==0:
         return
     async def say(*values,sep='\n',DM=False, channel=msg.channel, **KWARGS):
@@ -120,7 +122,7 @@ async def on_message(msg:dis.Message):
     modRoles       :set[int]           = myData['ModRoles']
     responses      :set[dict[str:str]] = myData['Responses']
     reacts         :set[dict[str:str]] = myData['Reacts']
-    prefix         :str                = ("test!",myData['Prefix'])[isLinux]
+    prefix         :str                = ("test!",myData['Prefix'])[isNonTestingVersion]
     replyDelay     :int                = myData['Reply delay']
     chanceForReply :float              = myData['Chance for reply']
     allArgs=cmd,*args                  = msg.content.lower().split()
@@ -215,7 +217,7 @@ async def on_message(msg:dis.Message):
             'channel':channel,
             'isOwner':isOwner,
             'isAdmin':isAdmin,
-            'isLinux':isLinux,
+            'isNonTestingVersion':isNonTestingVersion,
             'botPath':botPath,
             'author':msg.author,
             'modRoles':modRoles,
@@ -242,7 +244,7 @@ async def on_message(msg:dis.Message):
         errored, reTypedArgs=await fns.FitIntoFunc(allowedCmdsL[cmd],client,args,KWARGS)
         if errored:
             r=reTypedArgs
-        elif not isLinux:  # I split by isLinux so i can get clear errors on my windows machine but get errors from discord through my linux machine
+        elif not isNonTestingVersion:  # I split by isNonTestingVersion so i can get clear errors on my windows machine but get errors from discord through my linux machine
             r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**({},KWARGS)[hasInfKWArgs])
         else:
             try:
