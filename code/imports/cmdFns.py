@@ -605,7 +605,7 @@ def ListDataSlot(*slotName,data={},guildID=0,**_):
     return "Data slot doesn't exist"
 
 async def AskAI(*_,msg:dis.Message=C,**a):
-    await AI.send_message(msg, msg.content[msg.content.index(" ")+1:])
+    await AI.send_message(msg, msg.content[len(msg.content.split()[0])+1:])
 
 async def AskNerd(*_,msg:dis.Message=C,**a):
     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:], smart=True)
