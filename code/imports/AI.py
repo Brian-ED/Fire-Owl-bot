@@ -6,7 +6,7 @@ with open('../../Safe/Fire-Owl-bot.yaml', encoding='utf-8') as f:
     openai.api_key = safe_load(f)['AIToken']
 OFF=False
 
-async def send_message(msg,content, smart=False, babbage = False):
+async def send_message(msg, content, smart=False, babbage = False):
     if OFF and msg.guild.id==497131548282191892:
         await msg.channel.send("this command was turned off temporarily by Brian")
         return
@@ -14,10 +14,10 @@ async def send_message(msg,content, smart=False, babbage = False):
         aiResponse = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": "How's your day?"},
+                {"role": "system"   , "content": "You are a helpful assistant."},
+                {"role": "user"     , "content": "How's your day?"},
                 {"role": "assistant", "content": "I've had a lovely day! Thanks for asking."},
-                {"role": "user", "content": content}
+                {"role": "user"     , "content": content}
             ],
             temperature=0.7,
             max_tokens=2048,
