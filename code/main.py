@@ -15,9 +15,10 @@ if not os.path.exists('_temporaryFiles'):
 os.chdir(__file__[:-len(os.path.basename(__file__))])
 # region variable definitions
 
-# region paths
 isNonTestingVersion = True
 #isNonTestingVersion = False
+
+# region paths
 
 mainPath      = '../../'
 tokenPath     = mainPath+'Safe/Fire-Owl-bot.yaml'
@@ -57,6 +58,8 @@ Save(data)
 # General globals
 replyDelayList=set()
 muteRoleName='MUTED(by Fire-Bot)'
+
+botPing = "<@975188865415536661>"
 
 # endregion
 async def on_ready():
@@ -135,8 +138,8 @@ async def on_message(msg:dis.Message):
     isReplyChannel :bool               = channel.id in replyChannels  or not replyChannels
     isReactChannel :bool               = channel.id in reactsChannels or not reactsChannels
     
-    if cmd.startswith("<@975188865415536661>"):
-        cmd = prefix+cmd[len("<@975188865415536661>"):]
+    if cmd.startswith(botPing):
+        cmd = prefix+cmd.removeprefix(botPing)
 
     # r will be the reply message
     r=''
