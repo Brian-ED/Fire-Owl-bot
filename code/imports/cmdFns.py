@@ -645,15 +645,17 @@ async def JsonOfMyData(MessageLimit:int, msg=C, author=C, say=C, **_):
     await say(file=dis.File("extra/tempjson.json"))
 #    os.remove("extra/tempjson.json")
 
-def SetAIToken(value:str, **_):
+def SetAIToken(x,msg=C, **_):
     safePath = "../../Safe/Fire-Owl-bot.yaml"
     with open(safePath, encoding='utf-8') as f:
         safe = yaml.safe_load(f)
 
-    safe['AIToken'] = value
+    safe['AIToken'] = msg.content.split()[1]
 
     with open(safePath, "w", encoding='utf-8') as f:
         yaml.dump(safe, f)
+    
+    return "done"
 
 #from chessCmds import move, statistics, accept, new, about
 
