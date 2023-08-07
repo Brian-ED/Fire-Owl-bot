@@ -14,6 +14,7 @@ else:
 from asyncio import sleep as asySleep
 import discord as dis
 import json
+import yaml
 
 def Ball8(*_,myData={},**a):
     return choice([*myData['8ball']])
@@ -644,6 +645,16 @@ async def JsonOfMyData(MessageLimit:int, msg=C, author=C, say=C, **_):
     await say(file=dis.File("extra/tempjson.json"))
 #    os.remove("extra/tempjson.json")
 
+def SetAIToken(value:str, **_):
+    safePath = "../../Safe/Fire-Owl-bot.yaml"
+    with open(safePath, encoding='utf-8') as f:
+        safe = yaml.safe_load(f)
+
+    safe['AIToken'] = value
+
+    with open(safePath, "w", encoding='utf-8') as f:
+        yaml.dump(safe, f)
+
 #from chessCmds import move, statistics, accept, new, about
 
 cmds={
@@ -715,6 +726,7 @@ cmds={
         'ResetDataSlot':ResetDataSlot,
         'ListDataSlot' :ListDataSlot,
         'ToggleAI'     :ToggleAI,
+        'SetAIToken'   :SetAIToken
     }
 }
 
