@@ -604,11 +604,11 @@ def ListDataSlot(*slotName,data={},guildID=0,**_):
             return str(data[guildID][i])
     return "Data slot doesn't exist"
 
-# async def AskAI(*_,msg:dis.Message=C,**a):
-#     await AI.send_message(msg, msg.content[len(msg.content.split()[0])+1:])
+async def AskAI(*_,msg:dis.Message=C,**a):
+    await AI.send_message(msg, msg.content[len(msg.content.split()[0])+1:])
 
-# async def AskNerd(*_,msg:dis.Message=C,**a):
-#     await AI.send_message(msg, msg.content[msg.content.index(" ")+1:], smart=True)
+async def AskNerd(*_,msg:dis.Message=C,**a):
+    await AI.send_message(msg, msg.content[msg.content.index(" ")+1:], smart=True)
 
 def PipInstall(*package,**_):
     os.system(f'pip install {" ".join(package)} --disable-pip-version-check')
@@ -665,8 +665,8 @@ cmds={
         'ShowPrefix'       :ShowPrefix,
         'TicTacToe'        :TicTacToeCmd,
         'Zote'             :Zote,
-#       'AskAI'            :AskAI,
-#       'AskNerd'          :AskNerd,
+        'AskAI'            :AskAI,
+        'AskNerd'          :AskNerd,
 #       'LeaveVC'          :LeaveVC,
 #       'APL'              :APLCmd,
 #       'NowPlaying'       :NowPlaying,
