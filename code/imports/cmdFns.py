@@ -629,7 +629,7 @@ async def JsonOfMyData(MessageLimit:int, msg=C, author=C, say=C, **_):
         r=()
         for ch in channels:
             if not hasattr(ch, "history"):
-                break
+                continue
             
             for msg in (await ch.history(limit=MessageLimit).filter(lambda m:m.author.id==author.id).flatten()):
                 x = onEachMsg(msg)
@@ -658,6 +658,23 @@ def SetAIToken(x,msg=C, **_):
     return "done"
 
 #from chessCmds import move, statistics, accept, new, about
+
+async def MassDeleteMsgs(userid:UserID, say=C, msg:dis.Message=C, **_):
+    await say("Starting. This will take a long time, sit tight.")
+
+    for ch in msg.guild.channels:
+        if not hasattr(ch, "history"):
+            continue
+        count = 0
+        async for msg in dis.TextChannel.history(ch, limit=None).filter(lambda m:m.author.id==userid):
+            count += 1
+            print(count)
+            if msg.author.id != userid:
+                raise Exception("The bot (me) almost deleted a message not belonging to user. Good Brian added a safeguard :)")
+            await dis.Message.delete(msg)
+
+    return "done"
+
 
 cmds={
     'userCommands':{
@@ -715,20 +732,21 @@ cmds={
 
     },
     'ownerCommands':{
-        'Error'        :Error,
-        'Import'       :Import,
-        'PipInstall'   :PipInstall,
-        'Backup'       :Backup,
-        'BoardGame'    :BoardGame,
-        'EmergencyQuit':EmergencyQuit,
-        'ListServers'  :ListServers,
-        'RestoreBackup':RestoreBackup,
-        'Testing'      :Testing,
-        'Update'       :Update,
-        'ResetDataSlot':ResetDataSlot,
-        'ListDataSlot' :ListDataSlot,
-        'ToggleAI'     :ToggleAI,
-        'SetAIToken'   :SetAIToken
+        'Error'         :Error,
+        'Import'        :Import,
+        'PipInstall'    :PipInstall,
+        'Backup'        :Backup,
+        'BoardGame'     :BoardGame,
+        'EmergencyQuit' :EmergencyQuit,
+        'ListServers'   :ListServers,
+        'RestoreBackup' :RestoreBackup,
+        'Testing'       :Testing,
+        'Update'        :Update,
+        'ResetDataSlot' :ResetDataSlot,
+        'ListDataSlot'  :ListDataSlot,
+        'ToggleAI'      :ToggleAI,
+        'SetAIToken'    :SetAIToken,
+        'MassDeleteMsgs':MassDeleteMsgs,
     }
 }
 
