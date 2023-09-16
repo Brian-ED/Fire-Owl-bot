@@ -111,8 +111,8 @@ async def on_message(msg:dis.Message):
             ttbs=ttbs[:1997]+'```'
         return await (channel,msg.author)[DM].send(ttbs[:2000],**(presetKWARGs|KWARGS))
 
-    if not msg.guild: return await say("I don't work in DMs sadly.",DM=1)
-
+    if not msg.guild: return
+    
     guildID:int = msg.guild.id
     global data
     if guildID not in data:
