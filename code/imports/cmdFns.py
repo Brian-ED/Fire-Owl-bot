@@ -549,7 +549,7 @@ async def SpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
     await repliedToMsg.delete()
     await webhook.delete()
 
-async def UnSpoilerMsg(msg:dis.Message=C,say=C,client=C,**_):
+async def UnSpoilerMsg(msg:dis.Message=C,say=C,**_):
     deleted = 0 # for testing if deletion was successful
     while not deleted:
         try:
@@ -619,19 +619,27 @@ def ToggleAI(*a,**_):
     AI.OFF = not AI.OFF
     return f"Done. Set it to {AI.OFF}"
 
-async def JsonOfMyData(MessageLimit:int, msg=C, author=C, say=C, **_):
-
+async def JsonOfMyData(MessageLimit:int, *userInstead:UserID, msg=C, authorID=C, say=C, **_):
+    userid = (userInstead+(authorID,))[0]
+    
     def onEachMsg(x:dis.Message):
         return x.content, ' '.join(map(str, x.reactions)), str(x.created_at)
 
     async def getChannelData(msg):
         channels:tuple[dis.TextChannel] = msg.guild.channels
         r=()
+        times=0
         for ch in channels:
             if not hasattr(ch, "history"):
                 continue
-            
-            for msg in (await ch.history(limit=MessageLimit).filter(lambda m:m.author.id==author.id).flatten()):
+
+            if times>MessageLimit:
+                break
+
+            async for msg in ch.history(limit=None).filter(lambda m:m.author.id==userid):
+                times+=1
+                if times>MessageLimit:
+                    break
                 x = onEachMsg(msg)
                 if type(x) == tuple and len(x)==3:
                     r += x,
