@@ -616,7 +616,7 @@ def PipInstall(*package,**_):
     os.system(f'pip install {" ".join(package)} --disable-pip-version-check')
     return"done"
 
-def ToggleAI(*a,**_):
+def ToggleAI(**_):
     AI.OFF = not AI.OFF
     return f"Done. Set it to {AI.OFF}"
 
