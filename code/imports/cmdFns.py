@@ -186,7 +186,7 @@ async def MoveCmd(inpChannel:ChannelID,numOfMsgs:int,*args:int,msg=C,say=C,clien
     await say(f"Please move to <#{inpChannel}>, Where it's way more cozy for this convo :>")
 
     for i in history[::-1]:
-        Sendingtxt=(i.clean_content+'\n'+' '.join(f'||[{z.filename}]({z.url})||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})"  for z in i.attachments))[:2000]
+        Sendingtxt=(i.clean_content+'\n'+' '.join(f'||[{z.filename}]({z.url})||' if z.filename.startswith('SPOILER') else f"[{z.filename}]({z.url})" for z in i.attachments))[:2000]
         async def SenderFunction(x=0):
             if x%100==99:
                 asySleep(3)
@@ -228,7 +228,7 @@ def ReplyDelay(delay:int,data={},guildID=0,Save=C,**_):
 
 
 muteRoleName='MUTED(by Fire-Bot)'
-async def MuteMyself(*args:TimeType,prefix='',data={},guildID=0,msg=C,authorID=0,Save=C,**_):
+async def MuteMyself(*args:TimeType,data={},guildID=0,msg=C,authorID=0,Save=C,**_):
     muteDuration=sum(args)
     if muteDuration<=0:
         return'The time values you provided totalled 0'
@@ -307,8 +307,9 @@ def SetReplyChannels(*args,data={},guildID,Save=C,**_):
     return'done'
 
 def SetReactChannels(args,data={},guildID=0,Save=C,**_):
-    if any((1-i.isnumeric() for i in args)):
+    if not all(map(str.isnumeric(), args)):
         return'Not valid channel IDs'
+    
     data[guildID]['Reacts channels']={*map(int,args)}
     Save(data)
     return'done'
@@ -689,7 +690,7 @@ cmds={
         '8ball'            :Ball8,
         'Flip'             :Flip,
         'Help'             :HelpCmd,
-        'HighLowGame'      :HighLow,
+#       'HighLowGame'      :HighLow,
         'Info'             :InfoCmd,
         'List8ball'        :List8ball,
         'ListModRoles'     :ListModRoles,
