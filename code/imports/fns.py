@@ -47,7 +47,7 @@ def Curry(f:Callable,*x,**xx:Any)->Callable:
 # }""")
 
 def Join(i)->str:
-    return ', '.join(sorted(i))
+    return ', '.join(map(str,sorted(i)))
 
 #rps=BQNfn("""{
 #draw←"Ah we drew the game m'lad, well played"
