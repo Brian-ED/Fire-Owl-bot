@@ -12,23 +12,6 @@ class UserID(int):1
 ChannelID, UserID = type('int', (object,), vars(int).copy()), type('int', (object,), vars(int).copy())
 TimeType = type('float', (object,), vars(float).copy())
 
-class Infix:
-    def __init__(self, function):
-        self.function = function
-    def __ror__(self, other):
-        return Infix(lambda x, self=self, other=other: self.function(other, x))
-    def __or__(self, other):
-        return self.function(other)
-    def __rlshift__(self, other):
-        return Infix(lambda x, self=self, other=other: self.function(other, x))
-    def __rshift__(self, other):
-        return self.function(other)
-    def __call__(self, value1, value2):
-        return self.function(value1, value2)
-    def __matmul__(self, x):
-        print("works")
-        print(x)
-
 def InV2(text:str, searchIn:Union[str,list]):
     searchStr=' '.join(searchIn) if type(searchIn)==list else searchIn
     return ' '+text+' ' in searchStr or text==searchStr or searchStr.startswith(text+' ') or searchStr.endswith(' '+text)
@@ -39,36 +22,9 @@ def Curry(f:Callable,*x,**xx:Any)->Callable:
         return f(*(i if i!=Any else yl.pop() for i in x),*yl,**yy,**xx)
     return g
 
-
-# Roll=BQNfn("""
-# •rand.Range{∧´𝕩∾⊸∊'0'+↕10?
-#     ≠◶⟨𝔽6,𝔽 1+⍟≤⊑,(⊣+⟜𝔽 1+-˜)´∧⟩10⊸×⊸+˜´∘⌽∘-⟜'0'¨𝕩
-#     ;"This command only accepts integers"⋈1+𝕩/⟜↕⟜≠˜¬𝕩∧´∘∊¨<'0'+↕10
-# }""")
-
 def Join(i)->str:
     return ', '.join(map(str,sorted(i)))
 
-#rps=BQNfn("""{
-#draw←"Ah we drew the game m'lad, well played"
-#sciRock←"Ha i see, my scissors seem to be no match for thy mighty rock <:hmm:987400356877176912>"
-#paperRock←"Haha i got ya there! you see my paper is basically made of steel so you never had a chance with that sand-particle worth of a rock!"
-#rockScissors←"Ha i won! My beutiful rock never fails against your unsharpened baby scissors <:KEKW:987400181140041729>"
-#paperScissors←"Oh i lost! Y'know i got that paper from my grandma before she died... :(... Ha just kidding, totally got you there :)"
-#rockPaper←"Did... did you just wrap your paper around my rock and assume i can't still throw it?.. wdym it's in the rules?.. God damnit"
-#scissorsPaper←"Ha my mighty metal scissors can cut throgh any paper! Y'know, your paper might aswell be taken right out of the toilet roll for how much of a fight it put up!"
-#map←[
-#    draw‿paperRock‿paperScissors
-#    rockPaper‿draw‿scissorsPaper
-#    rockScissors‿paperScissors‿draw
-#]
-#rps←𝕨
-#Lower←+⟜(32×1="A["⊸⍋)
-#3 •rand.Range⊸{botChoice 𝕊 userChoice:
-#    "You chose **"∾(𝕩⊑rps)∾"**. I (the bot) chose **"∾(𝕨⊑rps)∾"**.
-#    "∾𝕩‿𝕨⊑map
-#}⊑1⊐˜rps≡¨<Lower 𝕩
-#}""")
 
 def openR(path:str):
     with open(path, "r", encoding="utf-8") as f:
@@ -76,9 +32,6 @@ def openR(path:str):
 def openW(path:str,value):
     with open(path, "w", encoding="utf-8") as f:
         f.write(repr(value))
-
-def game(boardSize,maxMoves=None): # none means infinite
-    1
 
 def isMetheusEmote(x:str):
     return x[:8] in {':P1Relic',':P2Relic'}
