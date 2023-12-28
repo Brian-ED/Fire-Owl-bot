@@ -684,6 +684,9 @@ async def MassDeleteMsgs(userid:UserID, say=C, msg:dis.Message=C, **_):
 
     return "done"
 
+async def SendData(say=C, datatxtPath="", **_):
+    await say(file=dis.File(datatxtPath))
+    return "done" 
 
 cmds={
     'userCommands':{
@@ -741,6 +744,7 @@ cmds={
 
     },
     'ownerCommands':{
+        'SendData'      :SendData,
         'Error'         :Error,
         'Import'        :Import,
         'PipInstall'    :PipInstall,

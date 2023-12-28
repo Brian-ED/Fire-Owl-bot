@@ -220,7 +220,6 @@ async def on_message(msg:dis.Message):
             'channel':channel,
             'isOwner':isOwner,
             'isAdmin':isAdmin,
-            'isNonTestingVersion':isNonTestingVersion,
             'botPath':botPath,
             'author':msg.author,
             'modRoles':modRoles,
@@ -231,6 +230,7 @@ async def on_message(msg:dis.Message):
             'extraPath':extraPath,
             'hasInfArgs':hasInfArgs,
             'replyDelay':replyDelay,
+            'datatxtPath':datatxtPath,
             'botChannels':botChannels,
             'isBotChannel':isBotChannel,
             'hasInfKWArgs':hasInfKWArgs,
@@ -243,11 +243,12 @@ async def on_message(msg:dis.Message):
             'isReactChannel':isReactChannel,
             'isReactChannel':isReactChannel,
             'isReactChannel':isReactChannel,
+            'isNonTestingVersion':isNonTestingVersion,
         }
         errored, reTypedArgs=await fns.FitIntoFunc(allowedCmdsL[cmd],client,args,KWARGS)
         if errored:
             r=reTypedArgs
-        elif not isNonTestingVersion:  # I split by isNonTestingVersion so i can get clear errors on my windows machine but get errors from discord through my linux machine
+        elif not isNonTestingVersion:  # I split by isNonTestingVersion so i can get clear errors on my testing machine but get errors from discord on non-testing version
             r=await fns.intoAsync(allowedCmdsL[cmd])(*reTypedArgs,**({},KWARGS)[hasInfKWArgs])
         else:
             try:
