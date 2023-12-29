@@ -1,6 +1,6 @@
 from functools import reduce
 import inspect
-import youtube_dl as ytdl
+# import youtube_dl as ytdl
 import discord as dis
 from asyncio import run_coroutine_threadsafe, TimeoutError, create_task
 from typing import Iterable, MutableSequence, Union, Any, Callable
@@ -130,33 +130,33 @@ FFMPEG_BEFORE_OPTS = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
 #See https://stackoverflow.com/questions/43218292/youtubedl-read-error-with-discord-py/44490434#44490434 for more information.
 #Also, https://ffmpeg.org/ffmpeg-protocols.html for command line option reference.
 
-def play_song(msg, data, client):
-    data[msg.guild.id]['MusicSkipVotes']=set() # clear skip votes
-    source = dis.PCMVolumeTransformer(
-        dis.FFmpegPCMAudio(
-            data[msg.guild.id]['MusicPlaylist'][0]["formats"][0]["url"],
-            before_options=FFMPEG_BEFORE_OPTS),
-        volume=80)
-
-    def after_playing(unused): #unused variable here is for preventing error
-        data[msg.guild.id]['MusicPlaylist'].pop(0)
-        if data[msg.guild.id]['MusicPlaylist']:
-            play_song(msg,data,client)
-        else:
-            run_coroutine_threadsafe(msg.guild.voice_client.disconnect(),client.loop)
-    msg.guild.voice_client.play(source, after=after_playing)
-
-def get_Video(video_url):
-    with ytdl.YoutubeDL({
-        "default_search" : "ytsearch",
-        "format"         : "bestaudio/best",
-        "quiet"          : True,
-        "extract_flat"   : "in_playlist"}
-    ) as ydl:
-        info = ydl.extract_info(video_url, download=False)
-    if "_type" in info and info["_type"] == "playlist":
-        return get_Video(info["entries"][0]["url"])  # get info for first video
-    else: return info
+# def play_song(msg, data, client):
+#     data[msg.guild.id]['MusicSkipVotes']=set() # clear skip votes
+#     source = dis.PCMVolumeTransformer(
+#         dis.FFmpegPCMAudio(
+#             data[msg.guild.id]['MusicPlaylist'][0]["formats"][0]["url"],
+#             before_options=FFMPEG_BEFORE_OPTS),
+#         volume=80)
+# 
+#     def after_playing(unused): #unused variable here is for preventing error
+#         data[msg.guild.id]['MusicPlaylist'].pop(0)
+#         if data[msg.guild.id]['MusicPlaylist']:
+#             play_song(msg,data,client)
+#         else:
+#             run_coroutine_threadsafe(msg.guild.voice_client.disconnect(),client.loop)
+#     msg.guild.voice_client.play(source, after=after_playing)
+ 
+# def get_Video(video_url):
+#     with ytdl.YoutubeDL({
+#         "default_search" : "ytsearch",
+#         "format"         : "bestaudio/best",
+#         "quiet"          : True,
+#         "extract_flat"   : "in_playlist"}
+#     ) as ydl:
+#         info = ydl.extract_info(video_url, download=False)
+#     if "_type" in info and info["_type"] == "playlist":
+#         return get_Video(info["entries"][0]["url"])  # get info for first video
+#     else: return info
 
 def Get(items,*indexs):
     if 1==len(indexs):
