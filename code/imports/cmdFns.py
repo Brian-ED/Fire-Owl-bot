@@ -70,7 +70,7 @@ def ListResponses(responses={},reacts={},**_):
 
 async def Update(say=C,isNonTestingVersion=0,savestatePath='',codePath='',extraPath='',botPath='',**_):
     if isNonTestingVersion:
-        await say("updating...")
+        await say("Updating...")
 
         rmtree(savestatePath)
         copytree(extraPath, savestatePath)
@@ -81,6 +81,7 @@ async def Update(say=C,isNonTestingVersion=0,savestatePath='',codePath='',extraP
         os.system('git pull')
         os.system('cd '+codePath)
         os.system('python3 main.py')
+        await say("Successfully updated and restarting.")
         await asySleep(0.5)
         quit()
     return'Not available for the test version'
@@ -374,74 +375,6 @@ def ListModRoles(myData={},**_):
 def ListServers(client=C,**_):
     return'list of servers:\n',Join(i.name for i in client.guilds)
 
-
-async def LeaveVC(msg=C,data={},guildID=0,Save=C,**_):
-    if msg.guild.voice_client and msg.guild.voice_client.channel:
-        await msg.guild.voice_client.disconnect()
-        data[guildID]['MusicPlaylist'] = []
-        Save()
-        return'Done'
-    return'Not in a voice channel.'
-
-
-async def Play(*args,msg=C,myData={},client=C,data={},guildID=0,**_):
-    if not msg.author.voice:
-        return"You're not in a voice channel."
-    if not args:
-        if not myData['MusicPlaylist']:
-            return"There is no song playing, so you can't pause/resume."
-        vcClient=msg.guild.voice_client
-        if vcClient.is_paused():
-            await vcClient.resume()
-            return'Resumed'
-        await vcClient.pause()
-        return'Paused'
-    video=get_Video(' '.join(args))
-    
-    data[guildID]['MusicPlaylist']+=[video]
-    if not data[guildID]['MusicPlaylist']:
-        await msg.author.voice.channel.connect()
-        play_song(msg,data,client)
-    return'Song added to queue'
-
-async def SkipSong(*args,data={},myData={},client=C,authorID=0,msg=C,guildID=0,**_):
-    if not myData['MusicPlaylist']:
-        return"There's nothing to skip"
-    data[guildID]['MusicSkipVotes'].add(authorID)
-    users_in_channel=len([i for i in msg.author.voice.channel.members if not i.bot])
-    if users_in_channel:
-        voteRatio=len(data[guildID]['MusicSkipVotes'])/users_in_channel
-    else:voteRatio=1
-    neededVoteRatio=data[guildID]['MusicNeededVoteRatio']
-    if voteRatio >= neededVoteRatio:
-        data[guildID]['MusicPlaylist'].pop(0)
-        msg.channel.guild.voice_client.stop()
-        if len(data[guildID]['MusicPlaylist']):
-            await msg.author.voice.channel.connect()
-            play_song(msg,data,client)
-        return"Enough votes, skipped"
-    else:
-        return f'Not enough votes. Only {int(100*voteRatio)}% want to skip, when {int(100*neededVoteRatio)}% are needed'
-
-async def ForceSkipSong(*args,data={},client=C,msg,guildID=0,**_):
-    if not data[guildID]['MusicPlaylist']:
-        return"There's nothing to skip"
-    data[guildID]['MusicPlaylist'].pop(0)
-    msg.channel.guild.voice_client.stop()
-    if len(data[guildID]['MusicPlaylist']):
-        await msg.author.voice.channel.connect()
-        play_song(msg,data,client)
-    return"Skiped"
-
-
-def NowPlaying(myData={},**_):
-    if len(myData['MusicPlaylist']) > 0:
-        return [f"{len(myData['MusicPlaylist'])} songs in queue:"]+[
-            f"  {index+1}. **{song.title}** (requested by **{song.requested_by.name}**)"
-            for index, song in enumerate(myData['MusicPlaylist'])
-        ]
-    return"The play queue is empty."
-
 async def APLCmd(*args,client=C,say=C,msg={},prefix='',cmd='',**_):
     if not args:
         return"Nothing to evaluate"
@@ -709,11 +642,7 @@ cmds={
         'Zote'             :Zote,
         'AskAI'            :AskAI,
         'AskNerd'          :AskNerd,
-#       'LeaveVC'          :LeaveVC,
 #       'APL'              :APLCmd,
-#       'NowPlaying'       :NowPlaying,
-#       'Play'             :Play,
-#       'Skip'             :SkipSong,
     },
     'modCommands':{
         'Add8ball'        :Add8ball,
@@ -723,7 +652,6 @@ cmds={
         'Unmute'          :UnmuteCmd,
         'SpoilerMessage'  :SpoilerMsg,
         'UnSpoilerMessage':UnSpoilerMsg,
-#       'ForceSkip'       :ForceSkipSong,
     },
     'adminCommands':{
         'JsonOfMyData'    :JsonOfMyData,
