@@ -388,6 +388,37 @@ async def APLCmd(*args,client=C,say=C,msg={},prefix='',cmd='',**_):
     except TimeoutError:
         return"Took too long"
 
+def NewCounter(counter:str, *extra:int, data={}, guildID=0, Save=C, **_):
+    if counter in data[guildID]['Counters']:
+        return "Counter already exists"
+
+    data[guildID]['Counters'][counter] = 0
+    Save(data)
+    return f"New counter added, named {counter}"
+
+def RemoveCounter(counter:str, guildID=0, Save=C, data={}, **_):
+    if counter not in data[guildID]['Counters']:
+        return "Counter doesn't exist"
+
+    del data[guildID]['Counters'][counter]
+    Save(data)
+    return "Counter successfully removed"
+
+def AddCount(counter:str, *extra:int, data={}, guildID=0, Save=C, **_):
+    count = 1
+    if extra:
+        count, *_ = extra
+
+    if counter not in data[guildID]['Counters']:
+        return f"Error. Counter doesn't exist"
+
+    data[guildID]['Counters'][counter] += count
+    Save(data)
+    return f"Added {count} to counter {counter} (now at {data[guildID]['Counters'][counter]})"
+
+def ShowCounters(myData={}, **_):
+    return f"There are {len(myData['Counters'])} counters in this server: \n"+'\n'.join(f"{i}:{j}" for i,j in zip(myData["Counters"].keys(), myData["Counters"].values()))
+
 
 async def TicTacToeCmd(say=C,client=C,**_):
     await say('Game started! (Credits to EdelfQ for the game code)')
@@ -643,8 +674,12 @@ cmds={
         'AskAI'            :AskAI,
         'AskNerd'          :AskNerd,
 #       'APL'              :APLCmd,
+        'AddCount'         :AddCount,
+        'ShowCounters'     :ShowCounters,
     },
     'modCommands':{
+        'NewCounter'      :NewCounter,
+        'RemoveCounter'   :RemoveCounter,
         'Add8ball'        :Add8ball,
         'ChannelIDs'      :ChannelIDs,
         'Move'            :MoveCmd,
@@ -695,7 +730,7 @@ cmds={
 if __name__=="__main__":
 
     # Make sure there are no invalid KWARGS for the commands
-    kwargKeys='msg','cmd','say','data','Save','cmds','isMod','myData','reacts','prefix','client','allArgs','guildID','channel','isOwner','isAdmin','isNonTestingVersion','botPath','modRoles','argCount','authorID','codePath','channelID','responses','extraPath','hasInfArgs','replyDelay','botChannels','isBotChannel','replyChannels','savestatePath','reactsChannels','chanceForReply','isReplyChannel','isReactChannel','isReactChannel','isReactChannel','isReactChannel','author'
+    kwargKeys='msg','datatxtPath','cmd','say','data','Save','cmds','isMod','myData','reacts','prefix','client','allArgs','guildID','channel','isOwner','isAdmin','isNonTestingVersion','botPath','modRoles','argCount','authorID','codePath','channelID','responses','extraPath','hasInfArgs','replyDelay','botChannels','isBotChannel','replyChannels','savestatePath','reactsChannels','chanceForReply','isReplyChannel','isReactChannel','isReactChannel','isReactChannel','isReactChannel','author'
     for i in cmds:
         for j in cmds[i]:
             ValidKWARGForFunc(cmds[i][j],{i:0 for i in kwargKeys})
