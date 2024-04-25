@@ -1,8 +1,5 @@
 # Fire-Owl-bot
-## A discord bot for the Owl Nest discord
 > bot invite: https://discordapp.com/oauth2/authorize?&client_id=975188865415536661&scope=bot
-
-> Owl Nest discord invite https://discord.gg/MvzvNXguCK
 
 start a command with a prefix where the default prefix is `fo!`. Example: `fo!roll`
 
